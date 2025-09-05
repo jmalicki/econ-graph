@@ -29,6 +29,8 @@ const defaultProps = {
   data: createMockDataPoints(12, 100),
   loading: false,
   error: null,
+  units: 'Percent',
+  frequency: 'Monthly',
 };
 
 function renderInteractiveChart(props = {}) {

@@ -253,7 +253,8 @@ mod tests {
         }
         
         let config = Arc::new(crate::config::Config::default());
-        let db_pool = crate::database::create_test_pool().await.unwrap();
+        let container = crate::test_utils::TestContainer::new().await;
+        let db_pool = container.pool();
         let state = AppState { db_pool, config };
         
         // This should not panic

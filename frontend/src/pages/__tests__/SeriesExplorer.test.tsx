@@ -248,8 +248,8 @@ describe('SeriesExplorer', () => {
     renderSeriesExplorer();
     
     // Open advanced search
-    // Check if advanced search functionality exists - skip for now
-    // const advancedButton = screen.getByText(/advanced search/i);
+    // Check if advanced search functionality exists - find the advanced search button
+    const advancedButton = screen.getByRole('button', { name: /advanced search/i });
     await user.click(advancedButton);
     
     // Should show advanced options

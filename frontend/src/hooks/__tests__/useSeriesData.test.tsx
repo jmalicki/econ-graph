@@ -240,7 +240,7 @@ describe.skip('useSeriesSearch', () => {
         sourceId: 'bls',
         frequency: 'Monthly',
         similarityThreshold: 0.4,
-        sortBy: 'TITLE',
+        sortBy: 'title',
       }),
       { wrapper }
     );

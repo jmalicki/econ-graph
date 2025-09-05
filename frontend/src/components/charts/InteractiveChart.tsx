@@ -187,6 +187,15 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
     ],
   };
 
+  const getTransformationLabel = (type: TransformationType): string => {
+    switch (type) {
+      case 'yoy': return 'Year-over-Year % Change';
+      case 'qoq': return 'Quarter-over-Quarter % Change';
+      case 'mom': return 'Month-over-Month % Change';
+      default: return '';
+    }
+  };
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -271,15 +280,6 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
         },
       },
     },
-  };
-
-  const getTransformationLabel = (type: TransformationType): string => {
-    switch (type) {
-      case 'yoy': return 'Year-over-Year % Change';
-      case 'qoq': return 'Quarter-over-Quarter % Change';
-      case 'mom': return 'Month-over-Month % Change';
-      default: return '';
-    }
   };
 
   return (

@@ -172,7 +172,8 @@ mod tests {
         
         // Create a mock state for testing
         let config = Arc::new(Config::default());
-        let db_pool = database::create_test_pool().await.unwrap();
+        let container = crate::test_utils::TestContainer::new().await;
+        let db_pool = container.pool();
         let state = AppState { db_pool, config };
         
         let app = create_app(state);
