@@ -107,6 +107,16 @@ impl IntoResponse for AppError {
                 "Unauthorized access",
                 "UNAUTHORIZED",
             ),
+            AppError::ValidationErrors(_) => (
+                StatusCode::BAD_REQUEST,
+                "Validation failed",
+                "VALIDATION_ERROR",
+            ),
+            AppError::PoolError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database connection error",
+                "POOL_ERROR",
+            ),
         };
 
         // Log the error for debugging

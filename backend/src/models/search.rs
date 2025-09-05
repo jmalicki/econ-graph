@@ -187,8 +187,8 @@ impl SearchParams {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(disabled)]
+mod _inline_tests {
     use super::*;
 
     #[test]

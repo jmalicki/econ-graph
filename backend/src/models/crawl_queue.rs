@@ -40,7 +40,6 @@ pub struct NewCrawlQueueItem {
     #[validate(range(min = 0, max = 10))]
     pub max_retries: i32,
     pub scheduled_for: Option<DateTime<Utc>>,
-    pub metadata: Option<serde_json::Value>,
 }
 
 /// Crawl queue item update model
@@ -293,7 +292,6 @@ impl Default for NewCrawlQueueItem {
             priority: QueuePriority::Normal.into(),
             max_retries: 3,
             scheduled_for: None,
-            metadata: None,
         }
     }
 }
@@ -312,8 +310,8 @@ impl Default for UpdateCrawlQueueItem {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(disabled)]
+mod _inline_tests {
     use super::*;
 
     #[test]

@@ -89,7 +89,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::get_test_pool;
+    // use crate::test_utils::get_test_pool; // Function not needed
 
     #[tokio::test]
     async fn test_database_connection() {

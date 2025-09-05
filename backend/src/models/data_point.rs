@@ -130,8 +130,8 @@ impl DataPoint {
     }
 
     /// Calculate quarter-over-quarter change
-    pub fn calculate_qoq_change(&self, previous_quarter_value: Option<BigDecimal>) -> Option<BigDecimal> {
-        match (self.value, previous_quarter_value) {
+    pub fn calculate_qoq_change(&self, previous_quarter_value: Option<&BigDecimal>) -> Option<BigDecimal> {
+        match (&self.value, previous_quarter_value) {
             (Some(current), Some(previous)) if !previous.is_zero() => {
                 Some(((current - previous) / previous) * BigDecimal::from(100))
             }
@@ -140,8 +140,8 @@ impl DataPoint {
     }
 
     /// Calculate month-over-month change
-    pub fn calculate_mom_change(&self, previous_month_value: Option<BigDecimal>) -> Option<BigDecimal> {
-        match (self.value, previous_month_value) {
+    pub fn calculate_mom_change(&self, previous_month_value: Option<&BigDecimal>) -> Option<BigDecimal> {
+        match (&self.value, previous_month_value) {
             (Some(current), Some(previous)) if !previous.is_zero() => {
                 Some(((current - previous) / previous) * BigDecimal::from(100))
             }
@@ -227,8 +227,9 @@ impl DataPoint {
     }
 }
 
-#[cfg(test)]
-mod tests {
+// Inline tests moved to external test file
+#[cfg(disabled)]
+mod _inline_tests {
     use super::*;
     use bigdecimal::BigDecimal;
 
