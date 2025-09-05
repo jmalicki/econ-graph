@@ -232,8 +232,8 @@ impl DataPoint {
 }
 
 // Inline tests moved to external test file
-#[cfg(disabled)]
-mod _inline_tests {
+#[cfg(test)]
+mod inline_tests {
     use super::*;
     use bigdecimal::BigDecimal;
 
@@ -271,11 +271,11 @@ mod _inline_tests {
         };
 
         // Test normal YoY calculation: (110-100)/100 * 100 = 10%
-        let yoy_change = data_point.calculate_yoy_change(Some(BigDecimal::from(100.0)));
-        assert_eq!(yoy_change, Some(BigDecimal::from(10.0)), "YoY calculation should return 10% increase");
+        let yoy_change = data_point.calculate_yoy_change(Some("100.0".parse().unwrap()));
+        assert_eq!(yoy_change, Some("10.0".parse().unwrap()), "YoY calculation should return 10% increase");
 
         // Test division by zero protection - prevents runtime panics
-        let yoy_change_zero = data_point.calculate_yoy_change(Some(BigDecimal::from(0.0)));
+        let yoy_change_zero = data_point.calculate_yoy_change(Some("0.0".parse().unwrap()));
         assert_eq!(yoy_change_zero, None, "YoY calculation should handle zero previous value");
 
         // Test missing data handling - common in economic time series

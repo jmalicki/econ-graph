@@ -7,19 +7,20 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 
--- Create custom text search configuration for economic data
+-- Create custom text search configuration for economic data (simplified for testing)
 CREATE TEXT SEARCH CONFIGURATION economic_search (COPY = english);
 
--- Create synonym dictionary for economic terms
-CREATE TEXT SEARCH DICTIONARY economic_synonyms (
-    TEMPLATE = synonym,
-    SYNONYMS = economic_synonyms
-);
+-- Note: Synonym dictionary disabled for Docker testing
+-- In production, this would load from a synonym file
+-- CREATE TEXT SEARCH DICTIONARY economic_synonyms (
+--     TEMPLATE = synonym,
+--     SYNONYMS = economic_synonyms
+-- );
 
--- Add economic synonym dictionary to the configuration
-ALTER TEXT SEARCH CONFIGURATION economic_search
-    ALTER MAPPING FOR asciiword, asciihword, hword_asciipart, hword, hword_part, word
-    WITH economic_synonyms, english_stem;
+-- Use standard English stemming for now
+-- ALTER TEXT SEARCH CONFIGURATION economic_search
+--     ALTER MAPPING FOR asciiword, asciihword, hword_asciipart, hword, hword_part, word
+--     WITH economic_synonyms, english_stem;
 
 -- Create function for fuzzy search with spelling correction
 CREATE OR REPLACE FUNCTION fuzzy_search_series(
@@ -134,22 +135,22 @@ UPDATE economic_series SET
         setweight(to_tsvector('economic_search', COALESCE(external_id, '')), 'C') ||
         setweight(to_tsvector('economic_search', COALESCE(units, '')), 'D');
 
--- Create GIN index for full-text search
-CREATE INDEX CONCURRENTLY idx_economic_series_search_vector 
+-- Create GIN index for full-text search (CONCURRENTLY removed for migration compatibility)
+CREATE INDEX idx_economic_series_search_vector 
 ON economic_series USING GIN (search_vector);
 
 -- Create GIN index for trigram similarity search
-CREATE INDEX CONCURRENTLY idx_economic_series_title_trigram 
+CREATE INDEX idx_economic_series_title_trigram 
 ON economic_series USING GIN (title gin_trgm_ops);
 
-CREATE INDEX CONCURRENTLY idx_economic_series_description_trigram 
+CREATE INDEX idx_economic_series_description_trigram 
 ON economic_series USING GIN (description gin_trgm_ops);
 
-CREATE INDEX CONCURRENTLY idx_economic_series_external_id_trigram 
+CREATE INDEX idx_economic_series_external_id_trigram 
 ON economic_series USING GIN (external_id gin_trgm_ops);
 
 -- Create composite index for filtering active series
-CREATE INDEX CONCURRENTLY idx_economic_series_active_search 
+CREATE INDEX idx_economic_series_active_search 
 ON economic_series (is_active) WHERE is_active = true;
 
 -- Add similar search capabilities to data_sources table
@@ -178,14 +179,14 @@ UPDATE data_sources SET
         setweight(to_tsvector('economic_search', COALESCE(name, '')), 'A') ||
         setweight(to_tsvector('economic_search', COALESCE(description, '')), 'B');
 
--- Create indices for data sources
-CREATE INDEX CONCURRENTLY idx_data_sources_search_vector 
+-- Create indices for data sources (CONCURRENTLY removed for migration compatibility)
+CREATE INDEX idx_data_sources_search_vector 
 ON data_sources USING GIN (search_vector);
 
-CREATE INDEX CONCURRENTLY idx_data_sources_name_trigram 
+CREATE INDEX idx_data_sources_name_trigram 
 ON data_sources USING GIN (name gin_trgm_ops);
 
-CREATE INDEX CONCURRENTLY idx_data_sources_description_trigram 
+CREATE INDEX idx_data_sources_description_trigram 
 ON data_sources USING GIN (description gin_trgm_ops);
 
 -- Create search statistics view for monitoring

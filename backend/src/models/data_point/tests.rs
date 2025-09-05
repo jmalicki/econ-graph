@@ -39,7 +39,7 @@ mod simple_tests {
             updated_at: chrono::Utc::now(),
         };
         
-        let yoy_change = data_point.calculate_yoy_change(previous_value.as_ref());
+        let yoy_change = data_point.calculate_yoy_change(previous_value);
         assert!(yoy_change.is_some());
         
         let change = yoy_change.unwrap();
@@ -124,7 +124,7 @@ mod simple_tests {
         };
         
         // All calculations should return None when previous value is zero
-        assert!(data_point.calculate_yoy_change(zero_previous.as_ref()).is_none());
+        assert!(data_point.calculate_yoy_change(zero_previous.clone()).is_none());
         assert!(data_point.calculate_qoq_change(zero_previous.as_ref()).is_none());
         assert!(data_point.calculate_mom_change(zero_previous.as_ref()).is_none());
     }

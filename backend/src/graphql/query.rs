@@ -65,43 +65,6 @@ impl Query {
         })
     }
     
-    /// Search economic series by text query
-    async fn search_series(
-        &self,
-        ctx: &Context<'_>,
-        query: String,
-        source: Option<String>,
-        frequency: Option<SeriesFrequencyType>,
-        first: Option<i32>,
-        after: Option<String>,
-    ) -> Result<SearchResult> {
-        let pool = ctx.data::<DatabasePool>()?;
-        let start_time = std::time::Instant::now();
-        
-        // Convert to search service parameters
-        let search_params = crate::models::search::SearchParams {
-            query: query.clone(),
-            similarity_threshold: Some(0.3),
-            limit: first.map(|f| f as i32),
-            offset: after.and_then(|cursor| cursor.parse::<i32>().ok()),
-            source_id: source.and_then(|s| s.parse::<i32>().ok()),
-            frequency: frequency.map(|f| format!("{:?}", f)),
-            include_inactive: Some(false),
-            sort_by: Some(crate::models::search::SearchSortOrder::Relevance),
-        };
-        
-        let search_service = crate::services::search_service::SearchService::new(Arc::new(pool.clone()));
-        let results = search_service.search_series(&search_params).await?;
-        let took_ms = start_time.elapsed().as_millis() as i32;
-        
-        let total_count = results.len() as i32;
-        Ok(SearchResult {
-            series: results.into_iter().map(EconomicSeriesType::from).collect(),
-            total_count,
-            query,
-            took_ms,
-        })
-    }
     
     /// Get a specific data source by ID
     async fn data_source(&self, ctx: &Context<'_>, id: ID) -> Result<Option<DataSourceType>> {
@@ -217,6 +180,56 @@ impl Query {
             average_processing_time: stats.average_processing_time,
         })
     }
+    
+    /// Search economic series using full-text search with spelling correction
+    async fn search_series(
+        &self, 
+        ctx: &Context<'_>, 
+        query: String,
+        source: Option<String>,
+        frequency: Option<SeriesFrequencyType>,
+        first: Option<i32>,
+        after: Option<String>,
+    ) -> Result<SearchResult> {
+        // REQUIREMENT: Full-text search with spelling correction and synonyms
+        // PURPOSE: Provide comprehensive search capabilities for economic time series
+        
+        let start_time = std::time::Instant::now();
+        let pool = ctx.data::<DatabasePool>()?;
+        let search_service = SearchService::new(Arc::new(pool.clone()));
+        
+        // Convert GraphQL input to internal search parameters
+        let search_params = crate::models::search::SearchParams {
+            query: query.clone(),
+            similarity_threshold: Some(0.3),
+            limit: first,
+            offset: after.and_then(|cursor| cursor.parse::<i32>().ok()),
+            source_id: source.and_then(|s| s.parse::<i32>().ok()),
+            frequency: frequency.map(|f| format!("{:?}", f)),
+            include_inactive: Some(false),
+            sort_by: Some(crate::models::search::SearchSortOrder::Relevance),
+        };
+        
+        let results = search_service.search_series(&search_params).await?;
+        let took_ms = start_time.elapsed().as_millis() as i32;
+        let total_count = results.len() as i32;
+        
+        Ok(SearchResult {
+            series: results.into_iter().map(EconomicSeriesType::from).collect(),
+            total_count,
+            query,
+            took_ms,
+        })
+    }
+    
+    /// Get search suggestions for partial queries
+    async fn search_suggestions(&self, ctx: &Context<'_>, partial_query: String, limit: Option<i32>) -> Result<Vec<SearchSuggestionType>> {
+        let pool = ctx.data::<DatabasePool>()?;
+        let search_service = SearchService::new(Arc::new(pool.clone()));
+        
+        let suggestions = search_service.get_suggestions(&partial_query, limit.unwrap_or(10)).await?;
+        Ok(suggestions.into_iter().map(|suggestion| suggestion.into()).collect())
+    }
 }
 
 /// Convert GraphQL series filter to service parameters
@@ -296,47 +309,5 @@ mod tests {
         assert_eq!(pagination.first, Some(50), "Default page size should be reasonable for UI display");
         // Verify no initial cursor - starts from beginning of results
         assert_eq!(pagination.after, None, "Default pagination should start from beginning");
-    }
-    
-    /// Search economic series using full-text search with spelling correction
-    async fn search_series(&self, ctx: &Context<'_>, params: SearchParamsInput) -> Result<Vec<SeriesSearchResultType>> {
-        // REQUIREMENT: Full-text search with spelling correction and synonyms
-        // PURPOSE: Provide comprehensive search capabilities for economic time series
-        
-        let pool = ctx.data::<DatabasePool>()?;
-        let search_service = SearchService::new(pool.clone());
-        
-        // Convert GraphQL input to internal search parameters
-        let search_params = SearchParams {
-            query: params.query,
-            similarity_threshold: params.similarity_threshold,
-            limit: params.limit,
-            offset: params.offset,
-            source_id: params.source_id.map(|id| id.parse::<i32>()).transpose()?,
-            frequency: params.frequency,
-            include_inactive: params.include_inactive,
-            sort_by: params.sort_by.map(|order| order.into()),
-        };
-        
-        // Perform search
-        let results = search_service.search_series(&search_params).await?;
-        
-        // Convert results to GraphQL types
-        Ok(results.into_iter().map(|result| result.into()).collect())
-    }
-    
-    /// Get search suggestions for query completion and spelling correction
-    async fn search_suggestions(&self, ctx: &Context<'_>, partial_query: String, limit: Option<i32>) -> Result<Vec<SearchSuggestionType>> {
-        // REQUIREMENT: Provide search suggestions with spelling correction
-        // PURPOSE: Help users discover relevant search terms and correct typos
-        
-        let pool = ctx.data::<DatabasePool>()?;
-        let search_service = SearchService::new(pool.clone());
-        
-        let suggestion_limit = limit.unwrap_or(10).min(20); // Cap at 20 for performance
-        let suggestions = search_service.get_suggestions(&partial_query, suggestion_limit).await?;
-        
-        // Convert suggestions to GraphQL types
-        Ok(suggestions.into_iter().map(|suggestion| suggestion.into()).collect())
     }
 }

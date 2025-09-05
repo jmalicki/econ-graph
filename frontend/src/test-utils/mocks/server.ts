@@ -2,10 +2,7 @@
 // PURPOSE: Provide realistic API responses for isolated frontend testing
 // This enables testing components without requiring a running backend
 
-// Polyfills for Node.js test environment (required for MSW)
-const { TextEncoder, TextDecoder } = require('util');
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+// Note: Polyfills are now set up in setupTests.ts
 
 import { setupServer } from 'msw/node';
 import { graphql, http, HttpResponse } from 'msw';

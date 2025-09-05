@@ -5,9 +5,9 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { theme } from '../theme';
+import { render } from '@testing-library/react';
 
 interface TestProvidersProps {
   children: React.ReactNode;
@@ -38,10 +38,17 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
     },
   });
 
+  // Create a simple test theme
+  const testTheme = createTheme({
+    palette: {
+      mode: 'light',
+    },
+  });
+
   return (
     <QueryClientProvider client={testQueryClient}>
       <BrowserRouter>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={testTheme}>
           <CssBaseline />
           {children}
         </ThemeProvider>
@@ -79,8 +86,7 @@ export function renderWithProviders(
 
 // Re-export testing utilities
 export * from '@testing-library/react';
-export { render } from '@testing-library/react';
-export { renderWithProviders as render };
+// Note: renderWithProviders is available as a separate export to avoid conflicts
 
 /**
  * Create a mock QueryClient with custom configuration

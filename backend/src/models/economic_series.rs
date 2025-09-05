@@ -222,7 +222,7 @@ impl EconomicSeries {
     }
 }
 
-#[cfg(disabled)]
+#[cfg(test)]
 mod _inline_tests {
     use super::*;
 

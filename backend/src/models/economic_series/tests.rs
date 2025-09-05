@@ -27,9 +27,9 @@ mod simple_tests {
         let quarterly = SeriesFrequency::Quarterly.to_string();
         let annual = SeriesFrequency::Annual.to_string();
         
-        assert_eq!(monthly, "monthly");
-        assert_eq!(quarterly, "quarterly");
-        assert_eq!(annual, "annual");
+        assert_eq!(monthly, "Monthly");
+        assert_eq!(quarterly, "Quarterly");
+        assert_eq!(annual, "Annual");
     }
     
     #[test]

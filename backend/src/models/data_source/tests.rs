@@ -40,7 +40,7 @@ mod simple_tests {
         
         let update = UpdateDataSource {
             name: Some("Updated Source".to_string()),
-            description: Some(Some("Updated description".to_string())),
+            description: Some("Updated description".to_string()),
             base_url: Some("https://api.updated.com".to_string()),
             api_key_required: Some(true),
             rate_limit_per_minute: Some(200),

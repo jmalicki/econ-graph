@@ -27,11 +27,6 @@ CREATE TRIGGER update_data_points_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
--- Create partial index for latest revisions (performance optimization)
-CREATE INDEX idx_data_points_latest_revision ON data_points(series_id, date, value) 
-WHERE revision_date = (
-    SELECT MAX(revision_date) 
-    FROM data_points dp2 
-    WHERE dp2.series_id = data_points.series_id 
-    AND dp2.date = data_points.date
-);
+-- Create index for latest revisions (performance optimization)
+-- Note: Removed subquery from WHERE clause as PostgreSQL doesn't support it in index predicates
+CREATE INDEX idx_data_points_latest_revision ON data_points(series_id, date, revision_date DESC, value);

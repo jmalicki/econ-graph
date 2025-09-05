@@ -7,6 +7,12 @@ const { TextEncoder, TextDecoder } = require('util');
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
+// Additional polyfills for MSW compatibility
+if (typeof global.ReadableStream === 'undefined') {
+  const { ReadableStream } = require('stream/web');
+  global.ReadableStream = ReadableStream;
+}
+
 import '@testing-library/jest-dom';
 // import { server } from './test-utils/mocks/server';
 import 'whatwg-fetch'; // Polyfill for fetch in test environment
@@ -15,6 +21,7 @@ import 'whatwg-fetch'; // Polyfill for fetch in test environment
 beforeAll(() => {
   // REQUIREMENT: Mock GraphQL API responses for isolated testing
   // Start the Mock Service Worker server
+  // TODO: Re-enable MSW after fixing polyfill issues
   // server.listen({
   //   onUnhandledRequest: 'warn', // Warn about unhandled requests during development
   // });

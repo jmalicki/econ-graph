@@ -52,11 +52,13 @@ mod simple_tests {
 }
 
 // Basic database integration test - simplified to avoid model structure issues
-db_test!(test_basic_queue_operations, |container: Arc<TestContainer>| async move {
+#[tokio::test]
+async fn test_basic_queue_operations() {
     // REQUIREMENT: Test basic crawl queue operations with database persistence
     // PURPOSE: Verify that crawler tasks can be queued and retrieved
     // This tests the core functionality of the background job queue system
     
+    let container = Arc::new(crate::test_utils::TestContainer::new().await);
     let pool = container.pool();
     let mut conn = pool.get().await.expect("Failed to get connection");
     
@@ -96,7 +98,7 @@ db_test!(test_basic_queue_operations, |container: Arc<TestContainer>| async move
     assert_eq!(created_item.series_id, "TEST_SERIES_001");
     assert_eq!(created_item.max_retries, 3);
     assert_eq!(created_item.status, "pending"); // Status is stored as String
-});
+}
 
 // All complex integration tests temporarily disabled while fixing model structure
 // These will be re-enabled once the core database operations are working

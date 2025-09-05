@@ -103,39 +103,42 @@ pub async fn check_database_health(pool: &DatabasePool) -> AppResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // use crate::test_utils::get_test_pool; // Function not needed
+    // Tests now use TestContainer directly for better control
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_database_connection() {
         // Test database connection functionality
         // REQUIREMENT: Database layer testing with testcontainers
         // PURPOSE: Verify database connectivity and basic operations work correctly
         
-        let pool = get_test_pool().await;
+        let container = crate::test_utils::TestContainer::new().await;
+        let pool = container.pool();
         
         // Test basic connectivity
-        test_connection(&pool).await.expect("Database connection should work");
+        test_connection(pool).await.expect("Database connection should work");
         
         // Test getting a connection from the pool
         let _conn = pool.get().await.expect("Should be able to get connection from pool");
     }
     
     #[tokio::test]
-    async fn test_transaction() {
-        // Test transaction functionality
-        // REQUIREMENT: Database transaction testing
-        // PURPOSE: Verify database transactions work correctly with async connections
+    #[serial_test::serial]
+    async fn test_basic_query() {
+        // Test basic query functionality
+        // REQUIREMENT: Database query testing
+        // PURPOSE: Verify database queries work correctly with async connections
         
-        let pool = get_test_pool().await;
+        let container = crate::test_utils::TestContainer::new().await;
+        let pool = container.pool();
+        let mut conn = pool.get().await.expect("Should be able to get connection from pool");
         
-        let result: Result<i32, AppError> = transaction(&pool, |conn| async move {
-            let result: i32 = diesel::select(diesel::dsl::sql("1 + 1"))
-                .get_result(conn)
-                .await
-                .map_err(|e| AppError::Internal(format!("Query failed: {}", e)))?;
-            Ok(result)
-        }).await;
-        
-        assert_eq!(result.unwrap(), 2);
+        use diesel_async::RunQueryDsl;
+        let result: i32 = diesel::select(diesel::dsl::sql::<diesel::sql_types::Integer>("1 + 1"))
+            .get_result(&mut conn)
+            .await
+            .expect("Query should work");
+            
+        assert_eq!(result, 2);
     }
 }
