@@ -307,3 +307,197 @@ export function useDataTransformation(
 
 // Re-export React for the useMemo hook
 import React from 'react';
+
+// Additional interfaces for search functionality
+export interface SeriesSearchResult {
+  id: string;
+  title: string;
+  description: string;
+  externalId: string;
+  sourceId: string;
+  frequency: string;
+  units: string;
+  startDate: string;
+  endDate?: string;
+  lastUpdated: string;
+  isActive: boolean;
+  rank?: number;
+  similarityScore?: number;
+}
+
+export interface SearchSuggestion {
+  suggestion: string;
+  matchCount: number;
+  suggestionType: 'COMPLETION' | 'CORRECTION' | 'RELATED';
+  confidence: number;
+}
+
+export interface DataSource {
+  id: string;
+  name: string;
+  description: string;
+  baseUrl: string;
+  apiKeyRequired: boolean;
+  rateLimitPerMinute: number;
+  seriesCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrawlerStatus {
+  isRunning: boolean;
+  activeWorkers: number;
+  lastCrawl: string;
+  nextScheduledCrawl: string;
+}
+
+export interface QueueStatistics {
+  totalItems: number;
+  pendingItems: number;
+  processingItems: number;
+  completedItems: number;
+  failedItems: number;
+  retryingItems: number;
+  oldestPending: string;
+  averageProcessingTime: number;
+}
+
+export interface UseSeriesSearchOptions {
+  query: string;
+  sourceId?: string;
+  frequency?: string;
+  category?: string;
+  sortBy?: 'relevance' | 'title' | 'lastUpdated';
+  sortOrder?: 'asc' | 'desc';
+  limit?: number;
+  enabled?: boolean;
+}
+
+/**
+ * Hook to search for economic series using full-text search
+ */
+export function useSeriesSearch(
+  options: UseSeriesSearchOptions
+): UseQueryResult<SeriesSearchResult[], Error> {
+  const { query, sourceId, frequency, category, sortBy = 'relevance', sortOrder = 'desc', limit = 50, enabled = true } = options;
+
+  return useQuery(
+    ['series-search-fulltext', query, sourceId, frequency, category, sortBy, sortOrder, limit],
+    async () => {
+      if (!query || query.length < 2) return [];
+
+      const response = await executeGraphQL({
+        query: QUERIES.SEARCH_SERIES_FULLTEXT,
+        variables: {
+          params: {
+            query,
+            sourceId,
+            frequency,
+            category,
+            sortBy,
+            sortOrder,
+            limit,
+          },
+        },
+      });
+
+      return response.data?.searchSeries || [];
+    },
+    {
+      enabled: enabled && query.length >= 2,
+      staleTime: 30 * 1000, // 30 seconds
+      cacheTime: 5 * 60 * 1000, // 5 minutes
+      keepPreviousData: true,
+    }
+  );
+}
+
+export interface UseSearchSuggestionsOptions {
+  partialQuery: string;
+  limit?: number;
+  enabled?: boolean;
+}
+
+/**
+ * Hook to get search suggestions for autocomplete
+ */
+export function useSearchSuggestions(
+  options: UseSearchSuggestionsOptions
+): UseQueryResult<SearchSuggestion[], Error> {
+  const { partialQuery, limit = 5, enabled = true } = options;
+
+  return useQuery(
+    ['search-suggestions', partialQuery, limit],
+    async () => {
+      if (!partialQuery || partialQuery.length < 2) return [];
+
+      const response = await executeGraphQL({
+        query: QUERIES.GET_SEARCH_SUGGESTIONS,
+        variables: { partialQuery, limit },
+      });
+
+      return response.data?.searchSuggestions || [];
+    },
+    {
+      enabled: enabled && partialQuery.length >= 2,
+      staleTime: 60 * 1000, // 1 minute
+      cacheTime: 5 * 60 * 1000, // 5 minutes
+    }
+  );
+}
+
+/**
+ * Hook to get available data sources
+ */
+export function useDataSources(): UseQueryResult<DataSource[], Error> {
+  return useQuery(
+    ['data-sources'],
+    async () => {
+      const response = await executeGraphQL({
+        query: QUERIES.GET_DATA_SOURCES,
+        variables: {},
+      });
+
+      return response.data?.dataSources || [];
+    },
+    {
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      cacheTime: 30 * 60 * 1000, // 30 minutes
+    }
+  );
+}
+
+export interface UseCrawlerStatusOptions {
+  enabled?: boolean;
+  refetchInterval?: number;
+}
+
+/**
+ * Hook to get crawler status and queue statistics
+ */
+export function useCrawlerStatus(
+  options: UseCrawlerStatusOptions = {}
+): UseQueryResult<{ crawlerStatus: CrawlerStatus; queueStatistics: QueueStatistics }, Error> {
+  const { enabled = true, refetchInterval = 30000 } = options; // 30 seconds
+
+  return useQuery(
+    ['crawler-status'],
+    async () => {
+      const response = await executeGraphQL({
+        query: QUERIES.GET_CRAWLER_STATUS,
+        variables: {},
+      });
+
+      return {
+        crawlerStatus: response.data?.crawlerStatus,
+        queueStatistics: response.data?.queueStatistics,
+      };
+    },
+    {
+      enabled,
+      staleTime: 15 * 1000, // 15 seconds
+      cacheTime: 2 * 60 * 1000, // 2 minutes
+      refetchInterval: enabled ? refetchInterval : false,
+    }
+  );
+}

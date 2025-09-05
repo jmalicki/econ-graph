@@ -2,18 +2,35 @@
 // PURPOSE: Provide realistic API responses for isolated frontend testing
 // This enables testing components without requiring a running backend
 
-// Note: Polyfills are now set up in setupTests.ts
+// Note: Polyfills are set up before this file is imported
 
-import { setupServer } from 'msw/node';
-import { graphql, http, HttpResponse } from 'msw';
+// Import mock data (doesn't need polyfills)
 import { mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions } from './data';
+
+// Lazy import MSW to ensure polyfills are loaded first
+let setupServer, graphql, http, HttpResponse;
+
+function ensureMSWImported() {
+  if (!setupServer) {
+    const msw = require('msw/node');
+    const mswCore = require('msw');
+    setupServer = msw.setupServer;
+    graphql = mswCore.graphql;
+    http = mswCore.http;
+    HttpResponse = mswCore.HttpResponse;
+  }
+}
 
 // GraphQL endpoint
 const GRAPHQL_ENDPOINT = 'http://localhost:8080/graphql';
 
-export const handlers = [
-  // GraphQL handlers
-  graphql.query('GetSeriesDetail', ({ variables }) => {
+// Create handlers function that ensures MSW is imported
+function createHandlers() {
+  ensureMSWImported();
+  
+  return [
+    // GraphQL handlers
+    graphql.query('GetSeriesDetail', ({ variables }) => {
     // REQUIREMENT: Mock series detail query for component testing
     const { id } = variables as { id: string };
     const series = mockSeriesData.find(s => s.id === id);
@@ -133,15 +150,33 @@ export const handlers = [
     });
   }),
 
-  // Handle unmatched GraphQL requests
-  graphql.operation(({ operationName }) => {
-    console.warn(`Unhandled GraphQL operation: ${operationName}`);
-    return HttpResponse.json({
-      data: null,
-      errors: [{ message: `Unhandled operation: ${operationName}` }],
-    });
-  }),
-];
+    // Handle unmatched GraphQL requests
+    graphql.operation(({ operationName }) => {
+      console.warn(`Unhandled GraphQL operation: ${operationName}`);
+      return HttpResponse.json({
+        data: null,
+        errors: [{ message: `Unhandled operation: ${operationName}` }],
+      });
+    }),
+  ];
+}
 
-// Create and export the server
-export const server = setupServer(...handlers);
+// Export handlers and server as getters to ensure lazy loading
+export let handlers, server;
+
+// Initialize handlers and server when first accessed
+function initializeMSW() {
+  if (!handlers) {
+    handlers = createHandlers();
+  }
+  if (!server) {
+    ensureMSWImported();
+    server = setupServer(...handlers);
+  }
+}
+
+// Export initialization function for setupTests.ts
+export function getMSWServer() {
+  initializeMSW();
+  return server;
+}

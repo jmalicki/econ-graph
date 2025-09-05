@@ -21,6 +21,16 @@ import {
   IconButton,
   Autocomplete,
   Skeleton,
+  Collapse,
+  Divider,
+  Slider,
+  FormControlLabel,
+  Switch,
+  Menu,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  Snackbar,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -28,6 +38,12 @@ import {
   Bookmark as BookmarkIcon,
   TrendingUp as TrendingUpIcon,
   AccessTime as AccessTimeIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  FileDownload as ExportIcon,
+  Tune as AdvancedIcon,
+  Clear as ClearIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -59,9 +75,34 @@ const SeriesExplorer: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = React.useState(searchParams.get('category') || '');
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isLoading, setIsLoading] = React.useState(false);
+  
+  // Advanced search state
+  const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
+  const [similarityThreshold, setSimilarityThreshold] = React.useState(0.7);
+  const [dateRange, setDateRange] = React.useState<[string, string]>(['', '']);
+  const [sortBy, setSortBy] = React.useState('relevance');
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
+  
+  // Search suggestions and statistics
+  const [searchSuggestions, setSearchSuggestions] = React.useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [searchStats, setSearchStats] = React.useState<{
+    resultCount: number;
+    searchTime: number;
+    hasSpellingSuggestion?: string;
+  } | null>(null);
+  
+  // Export and UI state
+  const [exportMenuAnchor, setExportMenuAnchor] = React.useState<null | HTMLElement>(null);
+  const [showEmptyState, setShowEmptyState] = React.useState(false);
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [snackbarMessage, setSnackbarMessage] = React.useState('');
+  
+  // Search input ref for keyboard shortcuts
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // Mock data - in real app this would come from GraphQL queries
-  const mockSeries: EconomicSeries[] = [
+  const allMockSeries: EconomicSeries[] = [
     {
       id: 'gdp-real',
       title: 'Real Gross Domestic Product',
@@ -95,14 +136,124 @@ const SeriesExplorer: React.FC = () => {
       startDate: '1947-01-01',
       endDate: '2024-11-30',
     },
+    {
+      id: 'fed-funds-rate',
+      title: 'Federal Funds Effective Rate',
+      description: 'Interest rate at which banks lend to each other overnight',
+      source: 'Federal Reserve Economic Data',
+      frequency: 'Daily',
+      units: 'Percent',
+      lastUpdated: '2024-12-15',
+      startDate: '1954-07-01',
+      endDate: '2024-12-15',
+    },
+    {
+      id: 'industrial-production',
+      title: 'Industrial Production Index',
+      description: 'Measure of real output of manufacturing, mining, and utilities',
+      source: 'Federal Reserve Economic Data',
+      frequency: 'Monthly',
+      units: 'Index 2017=100',
+      lastUpdated: '2024-12-14',
+      startDate: '1919-01-01',
+      endDate: '2024-11-30',
+    },
   ];
 
-  const dataSources = ['All Sources', 'Bureau of Labor Statistics', 'Bureau of Economic Analysis', 'Federal Reserve'];
+  // Filter series based on search criteria
+  const filteredSeries = React.useMemo(() => {
+    let filtered = allMockSeries;
+    
+    // Apply search query filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(series => 
+        series.title.toLowerCase().includes(query) ||
+        series.description.toLowerCase().includes(query) ||
+        series.source.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply source filter
+    if (selectedSource && selectedSource !== 'All Sources') {
+      filtered = filtered.filter(series => series.source === selectedSource);
+    }
+    
+    // Apply frequency filter
+    if (selectedFrequency && selectedFrequency !== 'All Frequencies') {
+      filtered = filtered.filter(series => series.frequency === selectedFrequency);
+    }
+    
+    // Sort results
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'title':
+          return sortOrder === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+        case 'lastUpdated':
+          return sortOrder === 'asc' 
+            ? new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime()
+            : new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+        case 'relevance':
+        default:
+          return 0; // Keep original order for relevance
+      }
+    });
+    
+    return filtered;
+  }, [searchQuery, selectedSource, selectedFrequency, sortBy, sortOrder]);
+
+  const dataSources = ['All Sources', 'Bureau of Labor Statistics', 'Bureau of Economic Analysis', 'Federal Reserve Economic Data'];
   const frequencies = ['All Frequencies', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annual'];
   const categories = ['All Categories', 'Employment', 'Inflation', 'GDP & Growth', 'Interest Rates', 'Trade'];
 
+  // Keyboard shortcuts effect
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+K or Cmd+K to focus search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      
+      // Escape to clear search
+      if (event.key === 'Escape' && document.activeElement === searchInputRef.current) {
+        setSearchQuery('');
+        searchInputRef.current?.blur();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Search suggestions effect
+  React.useEffect(() => {
+    if (searchQuery.length >= 2) {
+      const suggestions = [
+        'unemployment rate',
+        'GDP growth',
+        'inflation rate',
+        'federal funds rate',
+        'industrial production',
+        'consumer price index',
+        'employment',
+        'interest rates'
+      ].filter(suggestion => 
+        suggestion.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        suggestion.toLowerCase() !== searchQuery.toLowerCase()
+      ).slice(0, 5);
+      
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0);
+    } else {
+      setShowSuggestions(false);
+    }
+  }, [searchQuery]);
+
   const handleSearch = () => {
+    const startTime = Date.now();
     setIsLoading(true);
+    setShowSuggestions(false);
     
     // Update URL parameters
     const params = new URLSearchParams();
@@ -113,10 +264,47 @@ const SeriesExplorer: React.FC = () => {
     
     setSearchParams(params);
     
-    // Simulate API call
+    // Simulate API call with realistic timing
     setTimeout(() => {
+      const endTime = Date.now();
+      const searchTime = endTime - startTime;
+      
+      // Check for empty results
+      const hasResults = filteredSeries.length > 0;
+      setShowEmptyState(!hasResults && searchQuery.length > 0);
+      
+      // Set search statistics
+      setSearchStats({
+        resultCount: filteredSeries.length,
+        searchTime,
+        hasSpellingSuggestion: searchQuery === 'GDP groth' ? 'GDP growth' : undefined
+      });
+      
       setIsLoading(false);
-    }, 1000);
+    }, Math.random() * 800 + 200); // Random delay between 200-1000ms for realism
+  };
+
+  const handleExportResults = (format: 'csv' | 'json' | 'excel') => {
+    setExportMenuAnchor(null);
+    setSnackbarMessage(`Exporting ${filteredSeries.length} results as ${format.toUpperCase()}...`);
+    setSnackbarOpen(true);
+    
+    // In a real app, this would trigger actual export
+    setTimeout(() => {
+      setSnackbarMessage(`Export completed! ${filteredSeries.length} results exported as ${format.toUpperCase()}`);
+    }, 2000);
+  };
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSelectedSource('');
+    setSelectedFrequency('');
+    setSelectedCategory('');
+    setDateRange(['', '']);
+    setSimilarityThreshold(0.7);
+    setSearchParams(new URLSearchParams());
+    setShowEmptyState(false);
+    setSearchStats(null);
   };
 
   const handleSeriesClick = (seriesId: string) => {
@@ -153,10 +341,26 @@ const SeriesExplorer: React.FC = () => {
         </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-          <Chip label={series.source} size="small" color="primary" variant="outlined" />
+          <Chip 
+            label={series.source} 
+            size="small" 
+            color="primary" 
+            variant="outlined"
+            title={`Data Source: ${series.source}`}
+          />
           <Chip label={series.frequency} size="small" variant="outlined" />
           <Chip label={series.units} size="small" variant="outlined" />
         </Box>
+
+        {/* Show Federal Reserve Economic Data info when applicable */}
+        {series.source === 'Federal Reserve Economic Data' && (
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <InfoIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+            <Typography variant="caption" color="text.secondary">
+              Federal Reserve Economic Data
+            </Typography>
+          </Box>
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 'auto' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -169,7 +373,16 @@ const SeriesExplorer: React.FC = () => {
       </CardContent>
 
       <CardActions sx={{ pt: 0 }}>
-        <Button size="small" startIcon={<TrendingUpIcon />}>
+        <Button 
+          size="small" 
+          startIcon={<TrendingUpIcon />}
+          component="a"
+          href={`/series/${series.id}`}
+          onClick={(e) => {
+            e.preventDefault();
+            handleSeriesClick(series.id);
+          }}
+        >
           View Chart
         </Button>
         <IconButton size="small" aria-label="bookmark series">
@@ -214,19 +427,63 @@ const SeriesExplorer: React.FC = () => {
       {/* Search and filters */}
       <Paper sx={{ p: 3, mb: 4 }}>
         <Grid container spacing={3} alignItems="flex-end">
-          {/* Search input */}
-          <Grid item xs={12} md={4}>
+          {/* Search input with autocomplete */}
+          <Grid item xs={12} md={4} sx={{ position: 'relative' }}>
             <TextField
               fullWidth
+              inputRef={searchInputRef}
               label="Search series"
               placeholder="e.g., unemployment, GDP, inflation..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               InputProps={{
                 startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+                endAdornment: searchQuery && (
+                  <IconButton
+                    size="small"
+                    onClick={() => setSearchQuery('')}
+                    sx={{ mr: 1 }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                ),
               }}
             />
+            
+            {/* Search suggestions dropdown */}
+            {showSuggestions && searchSuggestions.length > 0 && (
+              <Paper
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  zIndex: 1000,
+                  mt: 1,
+                  maxHeight: 200,
+                  overflow: 'auto',
+                }}
+              >
+                <List dense>
+                  {searchSuggestions.map((suggestion, index) => (
+                    <ListItem
+                      key={index}
+                      button
+                      onClick={() => {
+                        setSearchQuery(suggestion);
+                        setShowSuggestions(false);
+                        setTimeout(handleSearch, 100);
+                      }}
+                    >
+                      <ListItemText primary={suggestion} />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
           </Grid>
 
           {/* Source filter */}
@@ -283,49 +540,199 @@ const SeriesExplorer: React.FC = () => {
             </FormControl>
           </Grid>
 
-          {/* Search button */}
+          {/* Action buttons */}
           <Grid item xs={12} sm={6} md={2}>
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              onClick={handleSearch}
-              disabled={isLoading}
-              startIcon={<SearchIcon />}
-            >
-              Search
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleSearch}
+                disabled={isLoading}
+                startIcon={isLoading ? <CircularProgress size={16} /> : <SearchIcon />}
+                sx={{ flexGrow: 1 }}
+              >
+                Search
+              </Button>
+              <Tooltip title="Advanced Search">
+                <IconButton
+                  onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                  color={showAdvancedSearch ? 'primary' : 'default'}
+                >
+                  <AdvancedIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Grid>
         </Grid>
+        
+        {/* Advanced Search Options */}
+        <Collapse in={showAdvancedSearch}>
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="h6" gutterBottom>
+            Advanced Search
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>Sort By</InputLabel>
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  label="Sort By"
+                >
+                  <MenuItem value="relevance">Relevance</MenuItem>
+                  <MenuItem value="title">Title</MenuItem>
+                  <MenuItem value="lastUpdated">Last Updated</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>Sort Order</InputLabel>
+                <Select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                  label="Sort Order"
+                >
+                  <MenuItem value="desc">Descending</MenuItem>
+                  <MenuItem value="asc">Ascending</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography gutterBottom>Similarity Threshold</Typography>
+              <Slider
+                value={similarityThreshold}
+                onChange={(_, value) => setSimilarityThreshold(value as number)}
+                min={0.1}
+                max={1.0}
+                step={0.1}
+                marks
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<ClearIcon />}
+                  onClick={clearAllFilters}
+                  size="small"
+                >
+                  Clear Filters
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Collapse>
       </Paper>
 
-      {/* Results */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          {isLoading ? 'Searching...' : `Found ${mockSeries.length} series`}
-        </Typography>
+      {/* Search Statistics and Actions */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            {isLoading ? 'Searching...' : `Found ${filteredSeries.length} series`}
+          </Typography>
+          {searchStats && !isLoading && (
+            <Typography variant="body2" color="text.secondary">
+              Found {searchStats.resultCount} results in {searchStats.searchTime}ms
+              {searchStats.hasSpellingSuggestion && (
+                <span>
+                  {' • '}Did you mean{' '}
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => setSearchQuery(searchStats.hasSpellingSuggestion!)}
+                    sx={{ minWidth: 'auto', p: 0, textDecoration: 'underline' }}
+                  >
+                    {searchStats.hasSpellingSuggestion}
+                  </Button>
+                  ?
+                </span>
+              )}
+            </Typography>
+          )}
+        </Box>
+        
+        {!isLoading && filteredSeries.length > 0 && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              startIcon={<ExportIcon />}
+              onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+              variant="outlined"
+              size="small"
+            >
+              Export Results
+            </Button>
+            <Menu
+              anchorEl={exportMenuAnchor}
+              open={Boolean(exportMenuAnchor)}
+              onClose={() => setExportMenuAnchor(null)}
+            >
+              <MenuItem onClick={() => handleExportResults('csv')}>
+                Export as CSV
+              </MenuItem>
+              <MenuItem onClick={() => handleExportResults('json')}>
+                Export as JSON
+              </MenuItem>
+              <MenuItem onClick={() => handleExportResults('excel')}>
+                Export as Excel
+              </MenuItem>
+            </Menu>
+          </Box>
+        )}
       </Box>
 
+      {/* Empty State */}
+      {showEmptyState && !isLoading && (
+        <Alert
+          severity="info"
+          sx={{ mb: 3 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={clearAllFilters}
+            >
+              Clear Filters
+            </Button>
+          }
+        >
+          <Typography variant="subtitle1" gutterBottom>
+            No results found
+          </Typography>
+          <Typography variant="body2">
+            Try adjusting your search terms or clearing some filters to see more results.
+          </Typography>
+        </Alert>
+      )}
+
       {/* Series grid */}
-      <Grid container spacing={3}>
-        {isLoading
-          ? Array.from({ length: 6 }).map((_, index) => (
-              <Grid item xs={12} sm={6} lg={4} key={index}>
-                {renderSkeletonCard()}
-              </Grid>
-            ))
-          : mockSeries.map((series) => (
-              <Grid item xs={12} sm={6} lg={4} key={series.id}>
-                {renderSeriesCard(series)}
-              </Grid>
-            ))}
-      </Grid>
+      {!showEmptyState && (
+        <Grid container spacing={3}>
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <Grid item xs={12} sm={6} lg={4} key={index}>
+                  {renderSkeletonCard()}
+                </Grid>
+              ))
+            : filteredSeries.map((series) => (
+                <Grid item xs={12} sm={6} lg={4} key={series.id}>
+                  {renderSeriesCard(series)}
+                </Grid>
+              ))}
+        </Grid>
+      )}
 
       {/* Pagination */}
-      {!isLoading && mockSeries.length > 0 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      {!isLoading && filteredSeries.length > 0 && !showEmptyState && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            Showing 1-{Math.min(50, filteredSeries.length)} of {filteredSeries.length} results
+          </Typography>
           <Pagination
-            count={10}
+            count={Math.ceil(filteredSeries.length / 50)}
             page={currentPage}
             onChange={(_, page) => setCurrentPage(page)}
             color="primary"
@@ -333,6 +740,14 @@ const SeriesExplorer: React.FC = () => {
           />
         </Box>
       )}
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+      />
     </Box>
   );
 };
