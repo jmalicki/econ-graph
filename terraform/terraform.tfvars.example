@@ -1,0 +1,96 @@
+# EconGraph Terraform Configuration Example
+# Copy this file to terraform.tfvars and customize for your environment
+
+# REQUIRED: Domain configuration
+domain = "econgraph.example.com"
+
+# REQUIRED: Database password (use a strong password in production)
+database_password = "your-secure-database-password-here"
+
+# Environment configuration
+environment = "prod"  # Options: dev, staging, prod
+namespace   = "econgraph"
+
+# Kubernetes configuration
+kubeconfig_path = "~/.kube/config"
+
+# API Keys for data sources (optional but recommended)
+# Get FRED API key from: https://fred.stlouisfed.org/docs/api/api_key.html
+fred_api_key = "your-fred-api-key-here"
+
+# Get BLS API key from: https://www.bls.gov/developers/api_signature_v2.html
+bls_api_key = "your-bls-api-key-here"
+
+# Advanced configuration (optional)
+
+# Resource scaling (uncomment to customize)
+# backend_replicas  = 3
+# frontend_replicas = 3
+# crawler_replicas  = 2
+
+# Database configuration (uncomment to customize)
+# database_storage_size = "50Gi"
+# database_storage_class = "standard"
+
+# SSL/TLS configuration (uncomment to disable automatic certificates)
+# enable_cert_manager = false
+
+# Monitoring configuration (uncomment to customize)
+# prometheus_retention = "30d"
+# prometheus_storage_size = "50Gi"
+
+# Image configuration (uncomment to use custom images)
+# backend_image_repository = "your-registry/econgraph-backend"
+# backend_image_tag = "v1.0.0"
+# frontend_image_repository = "your-registry/econgraph-frontend"
+# frontend_image_tag = "v1.0.0"
+# crawler_image_repository = "your-registry/econgraph-crawler"
+# crawler_image_tag = "v1.0.0"
+
+# ADMIN INTERFACE CONFIGURATION
+# =============================
+# SECURITY WARNING: Admin interface provides full system control
+# Only configure if you need administrative access
+
+# REQUIRED: Admin domain (use internal domain, not public)
+admin_domain = "admin.internal.econgraph.example.com"
+
+# REQUIRED: Admin access control (IP whitelist)
+allowed_admin_ips = [
+  "10.0.0.0/8",      # Internal network
+  "172.16.0.0/12",   # Private network
+  "192.168.0.0/16",  # Local network
+  # Add your specific admin IP ranges here
+]
+
+# REQUIRED: Admin authentication secrets (generate strong random values)
+admin_jwt_secret     = "your-admin-jwt-secret-256-bits"
+admin_session_key    = "your-admin-session-key-256-bits"
+admin_encryption_key = "your-admin-encryption-key-256-bits"
+
+# REQUIRED: Admin TLS certificates (base64 encoded)
+# admin_tls_cert = "base64-encoded-certificate"
+# admin_tls_key  = "base64-encoded-private-key"
+
+# Admin security settings
+admin_session_timeout = 1800  # 30 minutes
+admin_mfa_required    = true
+admin_alert_email     = "admin@example.com"
+
+# Admin resource limits
+admin_replica_count   = 2
+admin_cpu_request     = "100m"
+admin_cpu_limit       = "500m"
+admin_memory_request  = "128Mi"
+admin_memory_limit    = "512Mi"
+
+# Admin rate limiting
+admin_rate_limit_rps         = 10
+admin_rate_limit_connections = 5
+
+# SECURITY NOTES:
+# 1. Admin interface is deployed in separate namespace with network isolation
+# 2. Access is restricted to specified IP ranges only
+# 3. All admin actions are logged and monitored
+# 4. Use strong, unique secrets for admin authentication
+# 5. Consider using VPN or bastion host for additional security

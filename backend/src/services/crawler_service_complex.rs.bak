@@ -1,0 +1,695 @@
+use chrono::{DateTime, Utc, NaiveDate};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use reqwest::Client;
+use tracing::{info, warn, error};
+
+use crate::{
+    database::DatabasePool,
+    error::{AppError, AppResult},
+    models::{EconomicSeries, DataPoint, DataSource, NewEconomicSeries, NewDataPoint, NewCrawlQueueItem, QueueStatus, Priority, NewDataSource},
+    services::queue_service,
+};
+use uuid::Uuid;
+
+/// Crawler status information
+pub struct CrawlerStatus {
+    pub is_running: bool,
+    pub active_workers: i32,
+    pub last_crawl: Option<DateTime<Utc>>,
+    pub next_scheduled_crawl: Option<DateTime<Utc>>,
+}
+
+/// Get current crawler status
+pub async fn get_crawler_status() -> AppResult<CrawlerStatus> {
+    // TODO: Implement actual crawler status retrieval
+    Ok(CrawlerStatus {
+        is_running: true,
+        active_workers: 5,
+        last_crawl: Some(Utc::now()),
+        next_scheduled_crawl: Some(Utc::now() + chrono::Duration::hours(4)),
+    })
+}
+
+/// Trigger manual crawl for specific sources or series
+pub async fn trigger_manual_crawl(
+    _pool: &DatabasePool,
+    _sources: Option<Vec<String>>,
+    _series_ids: Option<Vec<String>>,
+    _priority: i32,
+) -> AppResult<i32> {
+    // TODO: Implement manual crawl triggering
+    // Return number of items queued
+    Ok(0)
+}
+
+/// Schedule FRED data crawl
+pub async fn schedule_fred_crawl(_pool: &DatabasePool) -> AppResult<()> {
+    // TODO: Implement FRED crawl scheduling
+    Ok(())
+}
+
+/// Schedule BLS data crawl
+pub async fn schedule_bls_crawl(_pool: &DatabasePool) -> AppResult<()> {
+    // TODO: Implement BLS crawl scheduling
+    Ok(())
+}
+
+/// FRED API response structures
+#[derive(Debug, Deserialize)]
+struct FredSeriesResponse {
+    seriess: Vec<FredSeries>,
+}
+
+#[derive(Debug, Deserialize)]
+struct FredSeries {
+    id: String,
+    title: String,
+    notes: Option<String>,
+    frequency: String,
+    units: String,
+    seasonal_adjustment: Option<String>,
+    last_updated: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct FredObservationsResponse {
+    observations: Vec<FredObservation>,
+}
+
+#[derive(Debug, Deserialize)]
+struct FredObservation {
+    date: String,
+    value: String,
+    realtime_start: String,
+    realtime_end: String,
+}
+
+/// Crawl a specific FRED series
+pub async fn crawl_fred_series(
+    pool: &DatabasePool,
+    series_id: &str,
+) -> AppResult<()> {
+    // REQUIREMENT: Crawl Federal Reserve economic time series data
+    // PURPOSE: Fetch and store FRED series data with revision tracking
+    
+    info!("Starting FRED crawl for series: {}", series_id);
+    
+    let client = Client::new();
+    let api_key = std::env::var("FRED_API_KEY")
+        .unwrap_or_else(|_| "demo_key".to_string());
+    
+    // First, get series metadata
+    let series_url = format!(
+        "https://api.stlouisfed.org/fred/series?series_id={}&api_key={}&file_type=json",
+        series_id, api_key
+    );
+    
+    let series_response = client
+        .get(&series_url)
+        .send()
+        .await
+        .map_err(|e| AppError::ExternalApiApi(format!("FRED API request failed: {}", e)))?;
+    
+    if !series_response.status().is_success() {
+        return Err(AppError::ExternalApi(format!(
+            "FRED API returned status: {}", 
+            series_response.status()
+        )));
+    }
+    
+    let series_data: FredSeriesResponse = series_response
+        .json()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED series response: {}", e)))?;
+    
+    let fred_series = series_data.seriess
+        .into_iter()
+        .next()
+        .ok_or_else(|| AppError::NotFound(format!("FRED series {} not found", series_id)))?;
+    
+    // Get or create data source
+    let data_source = get_or_create_fred_source(pool).await?;
+    
+    // Create or update economic series
+    let economic_series = upsert_economic_series(pool, &fred_series, data_source.id).await?;
+    
+    // Get observations with revision tracking
+    let observations_url = format!(
+        "https://api.stlouisfed.org/fred/series/observations?series_id={}&api_key={}&file_type=json&realtime_start=1776-07-04&realtime_end=9999-12-31",
+        series_id, api_key
+    );
+    
+    let obs_response = client
+        .get(&observations_url)
+        .send()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("FRED observations request failed: {}", e)))?;
+    
+    if !obs_response.status().is_success() {
+        return Err(AppError::ExternalApi(format!(
+            "FRED observations API returned status: {}", 
+            obs_response.status()
+        )));
+    }
+    
+    let obs_data: FredObservationsResponse = obs_response
+        .json()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED observations response: {}", e)))?;
+    
+    // Process observations and track revisions
+    let mut processed_count = 0;
+    let mut revision_count = 0;
+    
+    for observation in obs_data.observations {
+        if observation.value == "." {
+            continue; // Skip missing values
+        }
+        
+        let value: f64 = observation.value
+            .parse()
+            .map_err(|e| AppError::ExternalApi(format!("Invalid value in observation: {}", e)))?;
+        
+        let date = NaiveDate::parse_from_str(&observation.date, "%Y-%m-%d")
+            .map_err(|e| AppError::ExternalApi(format!("Invalid date format: {}", e)))?;
+        
+        let revision_date = NaiveDate::parse_from_str(&observation.realtime_start, "%Y-%m-%d")
+            .map_err(|e| AppError::ExternalApi(format!("Invalid revision date format: {}", e)))?;
+        
+        // Check if this is an original release or revision
+        let is_original_release = revision_date == date || 
+            revision_date <= date + chrono::Duration::days(7); // Allow 7 days for original release
+        
+        // Store the data point
+        let new_data_point = NewDataPoint {
+            series_id: economic_series.id,
+            date,
+            value: Some(value),
+            revision_date: Some(revision_date),
+            is_original_release,
+        };
+        
+        match DataPoint::create(pool, &new_data_point).await {
+            Ok(_) => {
+                processed_count += 1;
+                if !is_original_release {
+                    revision_count += 1;
+                }
+            }
+            Err(e) => {
+                warn!("Failed to store data point for {}: {}", series_id, e);
+            }
+        }
+    }
+    
+    info!(
+        "FRED crawl completed for {}: {} data points processed ({} revisions)",
+        series_id, processed_count, revision_count
+    );
+    
+    Ok(())
+}
+
+/// BLS API response structures
+#[derive(Debug, Deserialize)]
+struct BlsResponse {
+    status: String,
+    #[serde(rename = "Results")]
+    results: Option<BlsResults>,
+    message: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct BlsResults {
+    series: Vec<BlsSeries>,
+}
+
+#[derive(Debug, Deserialize)]
+struct BlsSeries {
+    #[serde(rename = "seriesID")]
+    series_id: String,
+    data: Vec<BlsDataPoint>,
+}
+
+#[derive(Debug, Deserialize)]
+struct BlsDataPoint {
+    year: String,
+    period: String,
+    #[serde(rename = "periodName")]
+    period_name: String,
+    value: String,
+    footnotes: Option<Vec<BlsFootnote>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct BlsFootnote {
+    code: String,
+    text: String,
+}
+
+/// Crawl a specific BLS series
+pub async fn crawl_bls_series(
+    pool: &DatabasePool,
+    series_id: &str,
+) -> AppResult<()> {
+    // REQUIREMENT: Crawl Bureau of Labor Statistics economic time series data
+    // PURPOSE: Fetch and store BLS series data with proper date handling
+    
+    info!("Starting BLS crawl for series: {}", series_id);
+    
+    let client = Client::new();
+    
+    // BLS API requires POST request with JSON payload
+    let mut request_data = HashMap::new();
+    request_data.insert("seriesid", vec![series_id]);
+    request_data.insert("startyear", vec!["2000"]); // Start from 2000
+    request_data.insert("endyear", vec!["2024"]);   // Current year
+    request_data.insert("registrationkey", vec![&std::env::var("BLS_API_KEY").unwrap_or_else(|_| "".to_string())]);
+    
+    let bls_url = "https://api.bls.gov/publicAPI/v2/timeseries/data/";
+    
+    let response = client
+        .post(bls_url)
+        .json(&request_data)
+        .send()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("BLS API request failed: {}", e)))?;
+    
+    if !response.status().is_success() {
+        return Err(AppError::ExternalApi(format!(
+            "BLS API returned status: {}", 
+            response.status()
+        )));
+    }
+    
+    let bls_response: BlsResponse = response
+        .json()
+        .await
+        .map_err(|e| AppError::ExternalApi(format!("Failed to parse BLS response: {}", e)))?;
+    
+    if bls_response.status != "REQUEST_SUCCEEDED" {
+        let error_msg = bls_response.message
+            .map(|msgs| msgs.join(", "))
+            .unwrap_or_else(|| "Unknown BLS API error".to_string());
+        return Err(AppError::ExternalApi(format!("BLS API error: {}", error_msg)));
+    }
+    
+    let results = bls_response.results
+        .ok_or_else(|| AppError::ExternalApi("No results in BLS response".to_string()))?;
+    
+    let bls_series = results.series
+        .into_iter()
+        .next()
+        .ok_or_else(|| AppError::NotFound(format!("BLS series {} not found", series_id)))?;
+    
+    // Get or create data source
+    let data_source = get_or_create_bls_source(pool).await?;
+    
+    // Create or update economic series (we'll need to get metadata separately or use defaults)
+    let economic_series = upsert_bls_economic_series(pool, series_id, data_source.id).await?;
+    
+    // Process data points
+    let mut processed_count = 0;
+    
+    for data_point in bls_series.data {
+        let value: f64 = data_point.value
+            .parse()
+            .map_err(|e| AppError::ExternalApi(format!("Invalid value in BLS data: {}", e)))?;
+        
+        // Convert BLS period to date
+        let date = convert_bls_period_to_date(&data_point.year, &data_point.period)?;
+        
+        // BLS data is typically final when released, so we consider it original
+        let new_data_point = NewDataPoint {
+            series_id: economic_series.id,
+            date,
+            value: Some(value),
+            revision_date: Some(chrono::Utc::now().date_naive()), // Current date as revision date
+            is_original_release: true, // BLS data is usually final on release
+        };
+        
+        match DataPoint::create(pool, &new_data_point).await {
+            Ok(_) => processed_count += 1,
+            Err(e) => {
+                warn!("Failed to store BLS data point for {}: {}", series_id, e);
+            }
+        }
+    }
+    
+    info!(
+        "BLS crawl completed for {}: {} data points processed",
+        series_id, processed_count
+    );
+    
+    Ok(())
+}
+
+/// Helper function to get or create FRED data source
+async fn get_or_create_fred_source(pool: &DatabasePool) -> AppResult<DataSource> {
+    // REQUIREMENT: Manage data sources for Federal Reserve data
+    // PURPOSE: Ensure FRED data source exists in database
+    
+    match DataSource::find_by_name(pool, "FRED").await {
+        Ok(source) => Ok(source),
+        Err(_) => {
+            let new_source = crate::models::NewDataSource {
+                name: "FRED".to_string(),
+                description: Some("Federal Reserve Economic Data".to_string()),
+                base_url: Some("https://api.stlouisfed.org/fred".to_string()),
+                api_key_required: true,
+                rate_limit_per_minute: Some(120),
+            };
+            DataSource::create(pool, &new_source).await
+        }
+    }
+}
+
+/// Helper function to get or create BLS data source
+async fn get_or_create_bls_source(pool: &DatabasePool) -> AppResult<DataSource> {
+    // REQUIREMENT: Manage data sources for Bureau of Labor Statistics data
+    // PURPOSE: Ensure BLS data source exists in database
+    
+    match DataSource::find_by_name(pool, "BLS").await {
+        Ok(source) => Ok(source),
+        Err(_) => {
+            let new_source = crate::models::NewDataSource {
+                name: "BLS".to_string(),
+                description: Some("Bureau of Labor Statistics".to_string()),
+                base_url: Some("https://api.bls.gov/publicAPI/v2".to_string()),
+                api_key_required: false,
+                rate_limit_per_minute: Some(500),
+            };
+            DataSource::create(pool, &new_source).await
+        }
+    }
+}
+
+/// Helper function to create or update FRED economic series
+async fn upsert_economic_series(
+    pool: &DatabasePool,
+    fred_series: &FredSeries,
+    data_source_id: Uuid,
+) -> AppResult<EconomicSeries> {
+    // REQUIREMENT: Store FRED series metadata with proper attributes
+    // PURPOSE: Create or update economic series information from FRED
+    
+    match EconomicSeries::find_by_external_id(pool, &fred_series.id).await {
+        Ok(mut series) => {
+            // Update existing series
+            series.title = fred_series.title.clone();
+            series.description = fred_series.notes.clone();
+            series.frequency = fred_series.frequency.clone();
+            series.units = fred_series.units.clone();
+            series.seasonal_adjustment = fred_series.seasonal_adjustment.clone();
+            series.last_updated = chrono::Utc::now();
+            
+            EconomicSeries::update(pool, &series).await
+        }
+        Err(_) => {
+            // Create new series
+            let new_series = NewEconomicSeries {
+                external_id: fred_series.id.clone(),
+                title: fred_series.title.clone(),
+                description: fred_series.notes.clone(),
+                source_id: data_source_id,
+                frequency: fred_series.frequency.clone(),
+                units: fred_series.units.clone(),
+                seasonal_adjustment: fred_series.seasonal_adjustment.clone(),
+                start_date: None, // Will be set when first data point is added
+                end_date: None,   // Will be updated as data is added
+                is_active: true,
+            };
+            
+            EconomicSeries::create(pool, &new_series).await
+        }
+    }
+}
+
+/// Helper function to create or update BLS economic series
+async fn upsert_bls_economic_series(
+    pool: &DatabasePool,
+    series_id: &str,
+    data_source_id: Uuid,
+) -> AppResult<EconomicSeries> {
+    // REQUIREMENT: Store BLS series metadata with default attributes
+    // PURPOSE: Create or update economic series information from BLS
+    
+    match EconomicSeries::find_by_external_id(pool, series_id).await {
+        Ok(series) => Ok(series), // BLS series metadata doesn't change often
+        Err(_) => {
+            // Create new series with default values (BLS API doesn't provide rich metadata)
+            let new_series = NewEconomicSeries {
+                external_id: series_id.to_string(),
+                title: format!("BLS Series {}", series_id), // Default title
+                description: Some("Bureau of Labor Statistics time series".to_string()),
+                source_id: data_source_id,
+                frequency: "Monthly".to_string(), // Most BLS series are monthly
+                units: "Index or Rate".to_string(), // Generic unit
+                seasonal_adjustment: None,
+                start_date: None,
+                end_date: None,
+                is_active: true,
+            };
+            
+            EconomicSeries::create(pool, &new_series).await
+        }
+    }
+}
+
+/// Convert BLS period notation to date
+fn convert_bls_period_to_date(year: &str, period: &str) -> AppResult<NaiveDate> {
+    // REQUIREMENT: Convert BLS period codes to standard dates
+    // PURPOSE: Handle BLS-specific date formatting (M01-M12, Q01-Q04, etc.)
+    
+    let year: i32 = year.parse()
+        .map_err(|e| AppError::ExternalApi(format!("Invalid year in BLS data: {}", e)))?;
+    
+    let date = match period {
+        // Monthly data (M01-M12)
+        "M01" => NaiveDate::from_ymd_opt(year, 1, 1),
+        "M02" => NaiveDate::from_ymd_opt(year, 2, 1),
+        "M03" => NaiveDate::from_ymd_opt(year, 3, 1),
+        "M04" => NaiveDate::from_ymd_opt(year, 4, 1),
+        "M05" => NaiveDate::from_ymd_opt(year, 5, 1),
+        "M06" => NaiveDate::from_ymd_opt(year, 6, 1),
+        "M07" => NaiveDate::from_ymd_opt(year, 7, 1),
+        "M08" => NaiveDate::from_ymd_opt(year, 8, 1),
+        "M09" => NaiveDate::from_ymd_opt(year, 9, 1),
+        "M10" => NaiveDate::from_ymd_opt(year, 10, 1),
+        "M11" => NaiveDate::from_ymd_opt(year, 11, 1),
+        "M12" => NaiveDate::from_ymd_opt(year, 12, 1),
+        
+        // Quarterly data (Q01-Q04)
+        "Q01" => NaiveDate::from_ymd_opt(year, 1, 1),
+        "Q02" => NaiveDate::from_ymd_opt(year, 4, 1),
+        "Q03" => NaiveDate::from_ymd_opt(year, 7, 1),
+        "Q04" => NaiveDate::from_ymd_opt(year, 10, 1),
+        
+        // Annual data
+        "A01" => NaiveDate::from_ymd_opt(year, 1, 1),
+        
+        // Semi-annual data
+        "S01" => NaiveDate::from_ymd_opt(year, 1, 1),
+        "S02" => NaiveDate::from_ymd_opt(year, 7, 1),
+        
+        _ => {
+            warn!("Unknown BLS period: {}", period);
+            NaiveDate::from_ymd_opt(year, 1, 1) // Default to January 1st
+        }
+    };
+    
+    date.ok_or_else(|| AppError::ExternalApi(format!("Invalid date: {} {}", year, period)))
+}
+
+/// Schedule FRED data crawl by adding items to queue
+pub async fn schedule_fred_crawl(pool: &DatabasePool) -> AppResult<()> {
+    // REQUIREMENT: Schedule FRED data collection jobs
+    // PURPOSE: Add popular FRED series to crawl queue for regular updates
+    
+    info!("Scheduling FRED crawl jobs");
+    
+    // Popular FRED series to crawl regularly
+    let fred_series = vec![
+        "GDPC1",    // Real GDP
+        "UNRATE",   // Unemployment Rate
+        "CPIAUCSL", // Consumer Price Index
+        "FEDFUNDS", // Federal Funds Rate
+        "DGS10",    // 10-Year Treasury Rate
+        "DEXUSEU",  // USD/EUR Exchange Rate
+        "PAYEMS",   // Nonfarm Payrolls
+        "HOUST",    // Housing Starts
+        "INDPRO",   // Industrial Production Index
+        "RETAILSMNSA", // Retail Sales
+    ];
+    
+    let mut queued_count = 0;
+    
+    for series_id in fred_series {
+        let queue_item = NewCrawlQueueItem {
+            source: "FRED".to_string(),
+            series_id: series_id.to_string(),
+            priority: Priority::Normal,
+            metadata: Some(serde_json::json!({
+                "scheduled_crawl": true,
+                "crawl_type": "regular_update"
+            })),
+        };
+        
+        match queue_service::add_to_queue(pool, &queue_item).await {
+            Ok(_) => {
+                queued_count += 1;
+                info!("Queued FRED series: {}", series_id);
+            }
+            Err(e) => {
+                warn!("Failed to queue FRED series {}: {}", series_id, e);
+            }
+        }
+    }
+    
+    info!("FRED crawl scheduling completed: {} series queued", queued_count);
+    Ok(())
+}
+
+/// Schedule BLS data crawl by adding items to queue
+pub async fn schedule_bls_crawl(pool: &DatabasePool) -> AppResult<()> {
+    // REQUIREMENT: Schedule BLS data collection jobs
+    // PURPOSE: Add popular BLS series to crawl queue for regular updates
+    
+    info!("Scheduling BLS crawl jobs");
+    
+    // Popular BLS series to crawl regularly
+    let bls_series = vec![
+        "LNS14000000", // Unemployment Rate
+        "CES0000000001", // Total Nonfarm Employment
+        "CUUR0000SA0",   // CPI-U All Items
+        "LNS11300000",   // Labor Force Participation Rate
+        "CES0500000003", // Average Hourly Earnings
+        "LNS12300000",   // Employment-Population Ratio
+        "CUUR0000SAF1",  // CPI-U Food
+        "CUUR0000SAH1",  // CPI-U Housing
+        "LNS13008636",   // Part-Time Workers Economic Reasons
+        "CES0000000007", // Average Weekly Hours
+    ];
+    
+    let mut queued_count = 0;
+    
+    for series_id in bls_series {
+        let queue_item = NewCrawlQueueItem {
+            source: "BLS".to_string(),
+            series_id: series_id.to_string(),
+            priority: Priority::Normal,
+            metadata: Some(serde_json::json!({
+                "scheduled_crawl": true,
+                "crawl_type": "regular_update"
+            })),
+        };
+        
+        match queue_service::add_to_queue(pool, &queue_item).await {
+            Ok(_) => {
+                queued_count += 1;
+                info!("Queued BLS series: {}", series_id);
+            }
+            Err(e) => {
+                warn!("Failed to queue BLS series {}: {}", series_id, e);
+            }
+        }
+    }
+    
+    info!("BLS crawl scheduling completed: {} series queued", queued_count);
+    Ok(())
+}
+
+/// Trigger manual crawl for specific sources or series
+pub async fn trigger_manual_crawl(
+    pool: &DatabasePool,
+    sources: Option<Vec<String>>,
+    series_ids: Option<Vec<String>>,
+    priority: i32,
+) -> AppResult<i32> {
+    // REQUIREMENT: Allow manual triggering of data collection
+    // PURPOSE: Enable on-demand crawling of specific series or sources
+    
+    info!("Triggering manual crawl: sources={:?}, series={:?}", sources, series_ids);
+    
+    let priority = match priority {
+        p if p >= 3 => Priority::High,
+        p if p >= 2 => Priority::Normal,
+        _ => Priority::Low,
+    };
+    
+    let mut queued_count = 0;
+    
+    // If specific series are requested
+    if let Some(series_list) = series_ids {
+        for series_id in series_list {
+            // Determine source from series ID pattern or default to FRED
+            let source = if series_id.len() >= 10 && series_id.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit()) {
+                "BLS"
+            } else {
+                "FRED"
+            };
+            
+            let queue_item = NewCrawlQueueItem {
+                source: source.to_string(),
+                series_id: series_id.clone(),
+                priority: priority.clone(),
+                metadata: Some(serde_json::json!({
+                    "manual_crawl": true,
+                    "requested_at": chrono::Utc::now()
+                })),
+            };
+            
+            match queue_service::add_to_queue(pool, &queue_item).await {
+                Ok(_) => {
+                    queued_count += 1;
+                    info!("Manually queued series: {} ({})", series_id, source);
+                }
+                Err(e) => {
+                    warn!("Failed to queue series {}: {}", series_id, e);
+                }
+            }
+        }
+    }
+    
+    // If sources are requested, schedule their popular series
+    if let Some(source_list) = sources {
+        for source in source_list {
+            match source.as_str() {
+                "FRED" => {
+                    schedule_fred_crawl(pool).await?;
+                    queued_count += 10; // Approximate count
+                }
+                "BLS" => {
+                    schedule_bls_crawl(pool).await?;
+                    queued_count += 10; // Approximate count
+                }
+                _ => {
+                    warn!("Unknown source requested for manual crawl: {}", source);
+                }
+            }
+        }
+    }
+    
+    info!("Manual crawl completed: {} items queued", queued_count);
+    Ok(queued_count)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_crawler_status() {
+        let status = get_crawler_status().await.unwrap();
+        assert!(status.is_running);
+        assert!(status.active_workers > 0);
+    }
+
+    #[tokio::test]
+    async fn test_trigger_manual_crawl() {
+        // Would need actual database pool for real test
+        // let queued = trigger_manual_crawl(&pool, Some(vec!["FRED".to_string()]), None, 5).await.unwrap();
+        // assert_eq!(queued, 0); // Placeholder returns 0
+    }
+}

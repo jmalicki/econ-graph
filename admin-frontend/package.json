@@ -1,0 +1,73 @@
+{
+  "name": "econ-graph-admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Administrative interface for EconGraph platform - INTERNAL USE ONLY",
+  "dependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "typescript": "^5.3.3",
+    "web-vitals": "^3.5.0",
+    
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.0",
+    "@mui/icons-material": "^5.15.0",
+    "@mui/x-date-pickers": "^6.18.3",
+    "@mui/x-data-grid": "^6.18.3",
+    
+    "chart.js": "^4.4.1",
+    "react-chartjs-2": "^5.2.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "date-fns": "^3.0.6",
+    
+    "axios": "^1.6.2",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.20.1",
+    
+    "lodash": "^4.17.21",
+    "@types/lodash": "^4.14.202",
+    
+    "react-json-view": "^1.21.3",
+    "react-ace": "^10.1.0",
+    "ace-builds": "^1.32.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/jest": "^29.5.8",
+    "jest": "^27.5.1"
+  },
+  "scripts": {
+    "start": "REACT_APP_ENV=admin react-scripts start",
+    "build": "REACT_APP_ENV=admin react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:8081"
+}

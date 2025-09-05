@@ -1,0 +1,123 @@
+# REQUIREMENT: Synonym dictionary for economic term search
+# PURPOSE: Map common economic terms to their synonyms for better search results
+# Format: synonym_group : word1,word2,word3
+
+# GDP and Economic Output
+gdp : gross domestic product,economic output,national income,total output
+gnp : gross national product
+real gdp : inflation adjusted gdp,constant dollar gdp
+nominal gdp : current dollar gdp,unadjusted gdp
+
+# Employment and Labor
+unemployment : jobless,joblessness,out of work
+employment : jobs,labor,workforce,workers
+labor force : workforce,working population
+nonfarm payrolls : employment,jobs,payroll employment
+jobless rate : unemployment rate
+labor participation : workforce participation
+
+# Inflation and Prices  
+inflation : price increases,rising prices,price growth
+deflation : falling prices,price decreases
+cpi : consumer price index,consumer prices
+ppi : producer price index,producer prices
+core inflation : underlying inflation,ex food energy
+headline inflation : total inflation,all items inflation
+price level : cost of living,price index
+
+# Interest Rates and Monetary Policy
+interest rates : rates,borrowing costs,lending rates
+fed funds rate : federal funds rate,overnight rate,policy rate
+discount rate : fed discount rate
+prime rate : bank prime rate,lending rate
+yield : return,interest return
+bond yield : bond return,treasury yield
+
+# Business and Industry
+manufacturing : industry,industrial production,factory output
+retail sales : consumer spending,retail trade
+industrial production : manufacturing output,factory production
+capacity utilization : factory usage,industrial capacity
+business investment : capital spending,capex
+productivity : output per hour,efficiency
+
+# Housing and Real Estate
+housing : real estate,residential,homes
+home sales : house sales,residential sales
+housing starts : new construction,building permits
+home prices : house prices,real estate prices
+mortgage rates : home loan rates,housing finance rates
+
+# Trade and International
+exports : foreign sales,overseas sales
+imports : foreign purchases,overseas purchases
+trade balance : trade deficit,trade surplus,net exports
+exchange rates : currency rates,fx rates,foreign exchange
+
+# Financial Markets
+stock market : equity market,shares,equities
+bond market : debt market,fixed income
+market volatility : price swings,market fluctuations
+market capitalization : market cap,market value
+
+# Economic Indicators
+leading indicators : forward looking,predictive indicators
+lagging indicators : backward looking,confirming indicators
+coincident indicators : current indicators,real time indicators
+economic growth : expansion,gdp growth,output growth
+recession : contraction,downturn,economic decline
+recovery : expansion,upturn,economic growth
+
+# Government and Fiscal
+government spending : public spending,fiscal spending
+budget deficit : fiscal deficit,government shortfall
+budget surplus : fiscal surplus,government excess
+national debt : government debt,public debt
+fiscal policy : government policy,budget policy
+taxes : taxation,tax revenue,government revenue
+
+# Demographics and Population
+population : demographics,people
+working age : labor force age,employment age
+retirement age : senior population,elderly
+birth rate : fertility rate,population growth
+migration : immigration,population movement
+
+# Seasonal and Time-based
+seasonally adjusted : sa,seasonal adjustment
+not seasonally adjusted : nsa,unadjusted
+annualized : yearly rate,annual rate
+quarterly : q1,q2,q3,q4,quarter
+monthly : month,per month
+yearly : annual,per year,year over year
+yoy : year over year,annual change
+mom : month over month,monthly change
+qoq : quarter over quarter,quarterly change
+
+# Data Types and Measurements
+index : measure,indicator,gauge
+rate : percentage,percent,ratio
+level : amount,quantity,value
+change : difference,variation,movement
+growth : increase,expansion,rise
+decline : decrease,fall,drop
+trend : direction,pattern,movement
+
+# Regions and Geography
+us : united states,usa,america
+national : country,nationwide,federal
+state : regional,local
+metropolitan : metro,urban,city
+rural : countryside,non urban
+
+# Common Abbreviations
+fed : federal reserve,central bank
+bls : bureau of labor statistics
+bea : bureau of economic analysis
+census : census bureau
+oecd : organisation for economic cooperation
+imf : international monetary fund
+gdp : gross domestic product
+cpi : consumer price index
+ppi : producer price index
+pce : personal consumption expenditures
