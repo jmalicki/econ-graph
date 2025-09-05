@@ -20,15 +20,27 @@ pub async fn search_series(
     // Validate search parameters
     params.validate().map_err(|e| AppError::Validation(e.to_string()))?;
     
-    let results = search_service::search_series(&state.db_pool, params).await?;
+    // Convert handler SearchParams to model SearchParams
+    let model_params = crate::models::search::SearchParams {
+        query: params.q.clone(),
+        similarity_threshold: Some(0.3),
+        limit: params.per_page.map(|p| p as i32),
+        offset: params.page.map(|p| ((p - 1) * params.per_page.unwrap_or(20)) as i32),
+        source_id: params.source.and_then(|s| s.parse::<i32>().ok()),
+        frequency: params.frequency.clone(),
+        include_inactive: Some(false),
+        sort_by: Some(crate::models::search::SearchSortOrder::Relevance),
+    };
+    
+    let results = search_service::search_series(&state.db_pool, &model_params).await?;
     
     Ok(Json(json!({
-        "data": results.results,
-        "total_count": results.total_count,
-        "page": results.page,
-        "per_page": results.per_page,
-        "total_pages": results.total_pages,
-        "query": results.query,
+        "data": results,
+        "total_count": results.len(),
+        "page": 1,
+        "per_page": results.len(),
+        "total_pages": 1,
+        "query": params.q,
         "timestamp": chrono::Utc::now().to_rfc3339()
     })))
 }

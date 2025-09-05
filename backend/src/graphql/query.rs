@@ -79,24 +79,25 @@ impl Query {
         let start_time = std::time::Instant::now();
         
         // Convert to search service parameters
-        let search_params = crate::handlers::search::SearchParams {
-            q: query.clone(),
-            source,
+        let search_params = crate::models::search::SearchParams {
+            query: query.clone(),
+            similarity_threshold: Some(0.3),
+            limit: first.map(|f| f as i32),
+            offset: after.and_then(|cursor| cursor.parse::<i32>().ok()),
+            source_id: source.and_then(|s| s.parse::<i32>().ok()),
             frequency: frequency.map(|f| format!("{:?}", f)),
-            category: None,
-            per_page: first.map(|f| f as i64),
-            page: after.and_then(|cursor| cursor.parse::<i64>().ok()),
-            sort_by: Some("relevance".to_string()),
-            sort_order: Some("desc".to_string()),
+            include_inactive: Some(false),
+            sort_by: Some(crate::models::search::SearchSortOrder::Relevance),
         };
         
         let search_service = crate::services::search_service::SearchService::new(Arc::new(pool.clone()));
-        let results = search_service.search_series(search_params).await?;
+        let results = search_service.search_series(&search_params).await?;
         let took_ms = start_time.elapsed().as_millis() as i32;
         
+        let total_count = results.len() as i32;
         Ok(SearchResult {
-            series: results.results.into_iter().map(EconomicSeriesType::from).collect(),
-            total_count: results.total_count as i32,
+            series: results.into_iter().map(EconomicSeriesType::from).collect(),
+            total_count,
             query,
             took_ms,
         })
@@ -104,13 +105,21 @@ impl Query {
     
     /// Get a specific data source by ID
     async fn data_source(&self, ctx: &Context<'_>, id: ID) -> Result<Option<DataSourceType>> {
-        let loaders = ctx.data::<crate::graphql::dataloaders::DataLoaders>()?;
+        let pool = ctx.data::<DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&id)?;
         
-        match loaders.data_source_loader.load_one(source_uuid).await? {
-            Some(source) => Ok(Some(source.into())),
-            None => Ok(None),
-        }
+        use crate::schema::data_sources::dsl;
+        use diesel_async::RunQueryDsl;
+        use diesel::{QueryDsl, ExpressionMethods, OptionalExtension};
+        
+        let mut conn = pool.get().await?;
+        let source = dsl::data_sources
+            .filter(dsl::id.eq(source_uuid))
+            .first::<crate::models::DataSource>(&mut conn)
+            .await
+            .optional()?;
+        
+        Ok(source.map(|s| s.into()))
     }
     
     /// List all data sources

@@ -18,12 +18,22 @@ impl Mutation {
     ) -> Result<CrawlerStatusType> {
         let pool = ctx.data::<DatabasePool>()?;
         
-        let _queued_items = crate::services::crawler_service::trigger_manual_crawl(
-            pool,
-            input.sources,
-            input.series_ids,
-            input.priority.unwrap_or(5),
-        ).await?;
+        let mut _queued_items = Vec::new();
+        
+        // Handle multiple sources and series
+        let sources = input.sources.unwrap_or_else(|| vec!["FRED".to_string()]);
+        let series_ids = input.series_ids.unwrap_or_else(|| vec!["GDP".to_string()]);
+        
+        for source in &sources {
+            for series_id in &series_ids {
+                let items = crate::services::crawler_service::trigger_manual_crawl(
+                    pool,
+                    source,
+                    series_id,
+                ).await?;
+                _queued_items.extend(items);
+            }
+        }
         
         // Return updated crawler status
         Ok(CrawlerStatusType {

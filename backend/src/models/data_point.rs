@@ -181,9 +181,10 @@ impl DataPoint {
         
         let mut conn = pool.get().await?;
         
-        let data_point = diesel::insert_into(dsl::data_points)
-            .values(new_data_point)
-            .get_result::<Self>(&mut conn)
+        let data_point = diesel_async::RunQueryDsl::get_result(
+            diesel::insert_into(dsl::data_points).values(new_data_point),
+            &mut conn
+        )
             .await?;
         
         Ok(data_point)
@@ -196,9 +197,10 @@ impl DataPoint {
         
         let mut conn = pool.get().await?;
         
-        let data_points = diesel::insert_into(dsl::data_points)
-            .values(new_data_points)
-            .get_results::<Self>(&mut conn)
+        let data_points = diesel_async::RunQueryDsl::get_results(
+            diesel::insert_into(dsl::data_points).values(new_data_points),
+            &mut conn
+        )
             .await?;
         
         Ok(data_points)
@@ -216,11 +218,13 @@ impl DataPoint {
         
         let mut conn = pool.get().await?;
         
-        let data_points = dsl::data_points
-            .filter(dsl::series_id.eq(series_id))
-            .filter(dsl::date.between(start_date, end_date))
-            .order(dsl::date.asc())
-            .load::<Self>(&mut conn)
+        let data_points = diesel_async::RunQueryDsl::load(
+            dsl::data_points
+                .filter(dsl::series_id.eq(series_id))
+                .filter(dsl::date.between(start_date, end_date))
+                .order(dsl::date.asc()),
+            &mut conn
+        )
             .await?;
         
         Ok(data_points)

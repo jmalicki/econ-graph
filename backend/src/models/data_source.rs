@@ -102,14 +102,13 @@ impl DataSource {
     pub async fn find_by_name(pool: &crate::database::DatabasePool, name: &str) -> crate::error::AppResult<Self> {
         use crate::schema::data_sources::dsl;
         
-        let conn = pool.get().await?;
+        let mut conn = pool.get().await?;
         let name = name.to_string();
         
-        let source = conn.interact(move |conn| {
-            dsl::data_sources
-                .filter(dsl::name.eq(name))
-                .first::<Self>(conn)
-        }).await??;
+        let source = diesel_async::RunQueryDsl::first(
+            dsl::data_sources.filter(dsl::name.eq(name)),
+            &mut conn
+        ).await?;
             
         Ok(source)
     }
@@ -121,13 +120,12 @@ impl DataSource {
         // Validate the new data source
         new_source.validate()?;
         
-        let conn = pool.get().await?;
+        let mut conn = pool.get().await?;
         
-        let source = conn.interact(move |conn| {
-            diesel::insert_into(dsl::data_sources)
-                .values(&new_source)
-                .get_result::<Self>(conn)
-        }).await??;
+        let source = diesel_async::RunQueryDsl::get_result(
+            diesel::insert_into(dsl::data_sources).values(&new_source),
+            &mut conn
+        ).await?;
             
         Ok(source)
     }

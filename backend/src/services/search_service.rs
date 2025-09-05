@@ -5,24 +5,24 @@
 use std::sync::Arc;
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
-// Pool type updated to use diesel-async
+use diesel_async::pooled_connection::bb8::Pool;
 use tracing::{info, warn, error};
-// TryFutureExt temporarily disabled
 use crate::models::search::{
     SearchParams, SeriesSearchResult, SearchSuggestion, SearchAnalytics, SearchStatistics,
     SuggestionType, SearchSortOrder
 };
 use crate::error::{AppError, AppResult};
 use validator::Validate;
+use crate::database::DatabasePool;
 
 /// Service for handling full-text search operations
 pub struct SearchService {
-    pool: Arc<Pool>,
+    pool: Arc<DatabasePool>,
 }
 
 impl SearchService {
     /// Create a new search service
-    pub fn new(pool: Arc<Pool>) -> Self {
+    pub fn new(pool: Arc<DatabasePool>) -> Self {
         Self { pool }
     }
     
@@ -52,29 +52,31 @@ impl SearchService {
         let frequency_filter = params.frequency.clone();
         let include_inactive = params.should_include_inactive();
         
-        let results = conn.interact(move |conn| {
-            diesel::sql_query(
-                "SELECT id, title, description, external_id, source_id, frequency, 
-                        units, start_date, end_date, last_updated, is_active, rank, similarity_score
-                 FROM fuzzy_search_series($1, $2) 
-                 WHERE ($3::integer IS NULL OR source_id = $3)
-                 AND ($4::text IS NULL OR frequency = $4)
-                 AND ($5::boolean OR is_active = true)
-                 ORDER BY rank DESC, title ASC
-                 LIMIT $6 OFFSET $7"
-            )
-            .bind::<diesel::sql_types::Text, _>(&search_query)
-            .bind::<diesel::sql_types::Float4, _>(similarity_threshold)
-            .bind::<diesel::sql_types::Nullable<diesel::sql_types::Integer>, _>(source_filter)
-            .bind::<diesel::sql_types::Nullable<diesel::sql_types::Text>, _>(frequency_filter.as_deref())
-            .bind::<diesel::sql_types::Bool, _>(include_inactive)
-            .bind::<diesel::sql_types::Integer, _>(limit)
-            .bind::<diesel::sql_types::Integer, _>(offset)
-            .load::<SeriesSearchResultRow>(conn)
-        }).await.map_err(|e| {
-            error!("Database interaction failed: {}", e);
-            AppError::ExternalApi(format!("Search query failed: {}", e))
-        })?.map_err(|e| {
+        let mut conn = self.pool.get().await.map_err(|e| {
+            error!("Failed to get database connection: {}", e);
+            AppError::ExternalApi(format!("Connection error: {}", e))
+        })?;
+
+        let results = diesel::sql_query(
+            "SELECT id, title, description, external_id, source_id, frequency, 
+                    units, start_date, end_date, last_updated, is_active, rank, similarity_score
+             FROM fuzzy_search_series($1, $2) 
+             WHERE ($3::integer IS NULL OR source_id = $3)
+             AND ($4::text IS NULL OR frequency = $4)
+             AND ($5::boolean OR is_active = true)
+             ORDER BY rank DESC, title ASC
+             LIMIT $6 OFFSET $7"
+        )
+        .bind::<diesel::sql_types::Text, _>(&search_query)
+        .bind::<diesel::sql_types::Float4, _>(similarity_threshold)
+        .bind::<diesel::sql_types::Nullable<diesel::sql_types::Integer>, _>(source_filter)
+        .bind::<diesel::sql_types::Nullable<diesel::sql_types::Text>, _>(frequency_filter.as_deref())
+        .bind::<diesel::sql_types::Bool, _>(include_inactive)
+        .bind::<diesel::sql_types::Integer, _>(limit)
+        .bind::<diesel::sql_types::Integer, _>(offset)
+        .load::<SeriesSearchResultRow>(&mut conn)
+        .await
+        .map_err(|e| {
             error!("Search query execution failed: {}", e);
             AppError::ExternalApi(format!("Query execution error: {}", e))
         })?;
@@ -100,7 +102,7 @@ impl SearchService {
             return Ok(vec![]);
         }
         
-        let conn = self.pool.get().await.map_err(|e| {
+        let mut conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
             AppError::ExternalApi(format!("Connection error: {}", e))
         })?;
@@ -108,21 +110,18 @@ impl SearchService {
         let query = partial_query.to_lowercase().trim().to_string();
         let search_limit = limit.min(20);
         
-        let suggestions = conn.interact(move |conn| {
-            diesel::sql_query(
-                "SELECT DISTINCT title as word, 0.0 as rank, 'completion' as suggestion_type, 1 as match_count
-                 FROM economic_series
-                 WHERE title ILIKE $1 AND is_active = true
-                 ORDER BY title ASC
-                 LIMIT $2"
-            )
-            .bind::<diesel::sql_types::Text, _>(&format!("{}%", query))
-            .bind::<diesel::sql_types::Integer, _>(search_limit)
-            .load::<SuggestionRow>(conn)
-        }).await.map_err(|e| {
-            error!("Database interaction failed: {}", e);
-            AppError::ExternalApi(format!("Suggestions query failed: {}", e))
-        })?.map_err(|e| {
+        let suggestions = diesel::sql_query(
+            "SELECT DISTINCT title as word, 0.0 as rank, 'completion' as suggestion_type, 1 as match_count
+             FROM economic_series
+             WHERE title ILIKE $1 AND is_active = true
+             ORDER BY title ASC
+             LIMIT $2"
+        )
+        .bind::<diesel::sql_types::Text, _>(&format!("{}%", query))
+        .bind::<diesel::sql_types::Integer, _>(search_limit)
+        .load::<SuggestionRow>(&mut conn)
+        .await
+        .map_err(|e| {
             error!("Suggestions query execution failed: {}", e);
             AppError::ExternalApi(format!("Query execution error: {}", e))
         })?;
@@ -203,4 +202,10 @@ struct SuggestionRow {
     pub suggestion_type: String,
     #[diesel(sql_type = diesel::sql_types::BigInt)]
     pub match_count: i64,
+}
+
+// Module-level function for compatibility
+pub async fn search_series(pool: &DatabasePool, params: &SearchParams) -> AppResult<Vec<SeriesSearchResult>> {
+    let search_service = SearchService::new(Arc::new(pool.clone()));
+    search_service.search_series(params).await
 }

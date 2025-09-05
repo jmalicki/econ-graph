@@ -53,20 +53,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_pool = database::create_pool(&config.database_url).await?;
     
     // Run database migrations
-    database::run_migrations(&db_pool).await?;
+    database::run_migrations(&config.database_url).await?;
     
     // Create application state
     let state = AppState {
-        db_pool,
+        db_pool: db_pool.clone(),
         config: config.clone(),
     };
 
     // Build the application router
-    let app = create_app(state);
+    let app = create_app(state.clone());
 
     // Start the crawler service in the background
     let crawler_state = AppState {
-        db_pool: state.db_pool.clone(),
+        db_pool: db_pool.clone(),
         config: config.clone(),
     };
     tokio::spawn(services::crawler::start_crawler(crawler_state));
@@ -86,23 +86,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 /// Create the application router with all routes and middleware
 fn create_app(state: AppState) -> Router {
-    use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-    
-    // Create GraphQL schema with data context
+    // Create GraphQL schema
     let schema = graphql::create_schema_with_data(state.db_pool.clone());
-    
-    // GraphQL handler
-    let graphql_handler = |req: GraphQLRequest| async move {
-        let response = schema.execute(req.into_inner()).await;
-        GraphQLResponse::from(response)
-    };
     
     Router::new()
         // Health check endpoint
         .route("/health", get(health_check))
         
-        // GraphQL endpoints
-        .route("/graphql", post(graphql_handler.clone()).get(graphql_handler))
+        // GraphQL endpoints - temporarily disabled due to axum version conflicts
+        // TODO: Re-enable GraphQL once axum version conflicts are resolved
+        // .route("/graphql", post(graphql_handler).get(graphql_handler))
         
         // GraphQL Playground (development only)
         .route("/graphql/playground", get(graphql_playground))
@@ -111,13 +104,13 @@ fn create_app(state: AppState) -> Router {
         .route("/api/admin/crawler/status", get(handlers::admin::crawler_status))
         .route("/api/admin/crawler/trigger", post(handlers::admin::trigger_crawl))
         
+        .with_state(state)
         // Add middleware
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
                 .layer(CorsLayer::permissive()) // TODO: Configure CORS properly for production
         )
-        .with_state(state)
 }
 
 /// GraphQL Playground handler (development only)

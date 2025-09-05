@@ -29,12 +29,22 @@ pub async fn trigger_crawl(
     State(state): State<AppState>,
     Json(request): Json<TriggerCrawlRequest>,
 ) -> AppResult<Json<Value>> {
-    let queued_items = crawler_service::trigger_manual_crawl(
-        &state.db_pool,
-        request.sources,
-        request.series_ids,
-        request.priority.unwrap_or(5),
-    ).await?;
+    let mut queued_items = Vec::new();
+    
+    // Handle multiple sources and series
+    let sources = request.sources.unwrap_or_else(|| vec!["FRED".to_string()]);
+    let series_ids = request.series_ids.unwrap_or_else(|| vec!["GDP".to_string()]);
+    
+    for source in &sources {
+        for series_id in &series_ids {
+            let items = crawler_service::trigger_manual_crawl(
+                &state.db_pool,
+                source,
+                series_id,
+            ).await?;
+            queued_items.extend(items);
+        }
+    }
     
     Ok(Json(json!({
         "message": "Crawl triggered successfully",

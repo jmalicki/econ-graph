@@ -215,8 +215,9 @@ impl CrawlQueueItem {
             .await
             .optional()?;
             
-        if let Some(mut item) = item {
+        if let Some(item) = item {
             // Lock the item for this worker
+            let item_id = item.id;
             let update = UpdateCrawlQueueItem {
                 status: Some("processing".to_string()),
                 locked_by: Some(worker_id.to_string()),
@@ -225,13 +226,15 @@ impl CrawlQueueItem {
                 ..Default::default()
             };
             
-            item = diesel::update(dsl::crawl_queue.filter(dsl::id.eq(item.id)))
+            let item = diesel::update(dsl::crawl_queue.filter(dsl::id.eq(item_id)))
                 .set(&update)
                 .get_result::<Self>(&mut conn)
                 .await?;
+                
+            return Ok(Some(item));
         }
             
-        Ok(item)
+        Ok(None)
     }
 
     /// Update crawl queue item

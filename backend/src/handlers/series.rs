@@ -68,6 +68,9 @@ pub async fn get_series_data(
     
     let data_points = series_service::get_series_data(&state.db_pool, query_params).await?;
     
+    // Store transformation for response
+    let transformation_name = params.transformation.as_ref().map(|t| t.clone()).unwrap_or_else(|| "none".to_string());
+    
     // Apply transformation if requested
     let transformed_data = if let Some(transformation) = params.transformation {
         series_service::transform_data_points(data_points, transformation.into()).await?
@@ -85,7 +88,7 @@ pub async fn get_series_data(
     Ok(Json(json!({
         "data": transformed_data,
         "series_id": series_id,
-        "transformation": params.transformation.unwrap_or_else(|| "none".to_string()),
+        "transformation": transformation_name,
         "timestamp": chrono::Utc::now().to_rfc3339()
     })))
 }

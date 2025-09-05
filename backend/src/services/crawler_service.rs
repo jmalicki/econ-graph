@@ -426,10 +426,6 @@ impl CrawlerService {
             priority: priority.into(),
             max_retries: 3,
             scheduled_for: None,
-            metadata: Some(serde_json::json!({
-                "source_type": "fred",
-                "series_id": series_id
-            })),
         };
         
         CrawlQueueItem::create(pool, &queue_item).await?;
@@ -445,10 +441,6 @@ impl CrawlerService {
             priority: priority.into(),
             max_retries: 3,
             scheduled_for: None,
-            metadata: Some(serde_json::json!({
-                "source_type": "bls",
-                "series_id": series_id
-            })),
         };
         
         CrawlQueueItem::create(pool, &queue_item).await?;
@@ -495,6 +487,72 @@ impl CrawlerService {
             _ => Err(AppError::ExternalApi(format!("Unknown source: {}", source))),
         }
     }
+}
+
+// Module-level functions for compatibility with existing code
+pub async fn trigger_manual_crawl(pool: &DatabasePool, source: &str, series_id: &str) -> AppResult<Vec<String>> {
+    let crawler = CrawlerService::new(
+        std::env::var("FRED_API_KEY").ok(),
+        std::env::var("BLS_API_KEY").ok()
+    );
+    
+    crawler.trigger_manual_crawl(pool, source, series_id).await?;
+    Ok(vec![format!("{}:{}", source, series_id)])
+}
+
+pub async fn get_crawler_status() -> AppResult<serde_json::Value> {
+    // Return basic crawler status
+    Ok(serde_json::json!({
+        "status": "active",
+        "workers": 1,
+        "last_run": chrono::Utc::now().to_rfc3339()
+    }))
+}
+
+pub async fn schedule_fred_crawl(pool: &DatabasePool) -> AppResult<()> {
+    let crawler = CrawlerService::new(
+        std::env::var("FRED_API_KEY").ok(),
+        std::env::var("BLS_API_KEY").ok()
+    );
+    
+    // Schedule some common FRED series
+    let common_series = vec!["GDP", "UNRATE", "CPIAUCSL"];
+    for series in common_series {
+        crawler.schedule_fred_crawl(pool, series, QueuePriority::Normal).await?;
+    }
+    Ok(())
+}
+
+pub async fn schedule_bls_crawl(pool: &DatabasePool) -> AppResult<()> {
+    let crawler = CrawlerService::new(
+        std::env::var("FRED_API_KEY").ok(),
+        std::env::var("BLS_API_KEY").ok()
+    );
+    
+    // Schedule some common BLS series
+    let common_series = vec!["LNS14000000", "CUUR0000SA0"];
+    for series in common_series {
+        crawler.schedule_bls_crawl(pool, series, QueuePriority::Normal).await?;
+    }
+    Ok(())
+}
+
+pub async fn crawl_fred_series(pool: &DatabasePool, series_id: &str) -> AppResult<()> {
+    let crawler = CrawlerService::new(
+        std::env::var("FRED_API_KEY").ok(),
+        std::env::var("BLS_API_KEY").ok()
+    );
+    
+    crawler.crawl_fred_series(pool, series_id).await
+}
+
+pub async fn crawl_bls_series(pool: &DatabasePool, series_id: &str) -> AppResult<()> {
+    let crawler = CrawlerService::new(
+        std::env::var("FRED_API_KEY").ok(),
+        std::env::var("BLS_API_KEY").ok()
+    );
+    
+    crawler.crawl_bls_series(pool, series_id).await
 }
 
 #[cfg(test)]

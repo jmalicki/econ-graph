@@ -83,51 +83,69 @@ impl EconomicSeriesType {
         self.updated_at
     }
     
-    /// Fetch the data source using DataLoader to prevent N+1 queries
+    /// Fetch the data source using direct database query
     async fn source(&self, ctx: &Context<'_>) -> Result<Option<DataSourceType>> {
-        let loaders = ctx.data::<crate::graphql::dataloaders::DataLoaders>()?;
+        let pool = ctx.data::<crate::database::DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&self.source_id)?;
         
-        match loaders.data_source_loader.load_one(source_uuid).await? {
-            Some(source) => Ok(Some(source.into())),
-            None => Ok(None),
-        }
+        use crate::schema::data_sources::dsl;
+        use diesel_async::RunQueryDsl;
+        use diesel::{QueryDsl, ExpressionMethods, OptionalExtension};
+        
+        let mut conn = pool.get().await?;
+        let source = dsl::data_sources
+            .filter(dsl::id.eq(source_uuid))
+            .first::<crate::models::DataSource>(&mut conn)
+            .await
+            .optional()?;
+        
+        Ok(source.map(|s| s.into()))
     }
     
-    /// Fetch recent data points using DataLoader
+    /// Fetch recent data points using direct database query
     async fn recent_data_points(
         &self,
         ctx: &Context<'_>,
         #[graphql(default = 100)] limit: i32,
     ) -> Result<Vec<DataPointType>> {
-        let loaders = ctx.data::<crate::graphql::dataloaders::DataLoaders>()?;
+        let pool = ctx.data::<crate::database::DatabasePool>()?;
         let series_uuid = Uuid::parse_str(&self.id)?;
         
-        let data_points = loaders
-            .latest_data_points_loader
-            .load_one(series_uuid)
-            .await?
-            .unwrap_or_default();
+        use crate::schema::data_points::dsl;
+        use diesel_async::RunQueryDsl;
+        use diesel::{QueryDsl, ExpressionMethods};
+        
+        let mut conn = pool.get().await?;
+        let data_points = dsl::data_points
+            .filter(dsl::series_id.eq(series_uuid))
+            .order(dsl::date.desc())
+            .limit(limit as i64)
+            .load::<crate::models::DataPoint>(&mut conn)
+            .await?;
         
         let limited_points = data_points
             .into_iter()
-            .take(limit as usize)
             .map(DataPointType::from)
             .collect();
         
         Ok(limited_points)
     }
     
-    /// Get data point count using DataLoader
+    /// Get data point count using direct database query
     async fn data_point_count(&self, ctx: &Context<'_>) -> Result<i32> {
-        let loaders = ctx.data::<crate::graphql::dataloaders::DataLoaders>()?;
+        let pool = ctx.data::<crate::database::DatabasePool>()?;
         let series_uuid = Uuid::parse_str(&self.id)?;
         
-        let count = loaders
-            .data_point_count_loader
-            .load_one(series_uuid)
-            .await?
-            .unwrap_or(0);
+        use crate::schema::data_points::dsl;
+        use diesel_async::RunQueryDsl;
+        use diesel::{QueryDsl, ExpressionMethods};
+        
+        let mut conn = pool.get().await?;
+        let count = dsl::data_points
+            .filter(dsl::series_id.eq(series_uuid))
+            .count()
+            .get_result::<i64>(&mut conn)
+            .await?;
         
         Ok(count as i32)
     }
@@ -146,20 +164,32 @@ impl EconomicSeriesType {
         
         let filter = filter.unwrap_or_default();
         
-        // Create a custom data loader for this specific query
-        let loaders = ctx.data::<crate::graphql::dataloaders::DataLoaders>()?;
-        let date_range_loader = loaders.create_date_range_loader(
-            pool.clone(),
-            filter.start_date,
-            filter.end_date,
-            filter.original_only.unwrap_or(false),
-            filter.latest_revision_only.unwrap_or(false),
-        );
+        // Query data points directly from database
+        use crate::schema::data_points::dsl;
+        use diesel_async::RunQueryDsl;
+        use diesel::{QueryDsl, ExpressionMethods};
         
-        let data_points = date_range_loader
-            .load_one(series_uuid)
-            .await?
-            .unwrap_or_default();
+        let mut conn = pool.get().await?;
+        let mut query = dsl::data_points
+            .filter(dsl::series_id.eq(series_uuid))
+            .into_boxed();
+        
+        if let Some(start_date) = filter.start_date {
+            query = query.filter(dsl::date.ge(start_date));
+        }
+        
+        if let Some(end_date) = filter.end_date {
+            query = query.filter(dsl::date.le(end_date));
+        }
+        
+        if filter.original_only.unwrap_or(false) {
+            query = query.filter(dsl::is_original_release.eq(true));
+        }
+        
+        let data_points = query
+            .order(dsl::date.asc())
+            .load::<crate::models::DataPoint>(&mut conn)
+            .await?;
         
         // Apply transformation if requested
         if let Some(transformation) = transformation {
@@ -195,6 +225,27 @@ impl From<EconomicSeries> for EconomicSeriesType {
             is_active: series.is_active,
             created_at: series.created_at,
             updated_at: series.updated_at,
+        }
+    }
+}
+
+impl From<crate::models::search::SeriesSearchResult> for EconomicSeriesType {
+    fn from(result: crate::models::search::SeriesSearchResult) -> Self {
+        Self {
+            id: ID::from(result.id.to_string()),
+            source_id: ID::from(result.source_id.to_string()),
+            external_id: result.external_id,
+            title: result.title,
+            description: result.description,
+            units: Some(result.units),
+            frequency: result.frequency,
+            seasonal_adjustment: None,
+            last_updated: Some(result.last_updated.and_utc()),
+            start_date: Some(result.start_date),
+            end_date: result.end_date,
+            is_active: result.is_active,
+            created_at: chrono::Utc::now(), // Not available in search result
+            updated_at: chrono::Utc::now(), // Not available in search result
         }
     }
 }
@@ -282,14 +333,19 @@ impl DataSourceType {
         #[graphql(default = 50)] first: i32,
         after: Option<String>,
     ) -> Result<SeriesConnection> {
-        let loaders = ctx.data::<crate::graphql::dataloaders::DataLoaders>()?;
+        let pool = ctx.data::<crate::database::DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&self.id)?;
         
-        let all_series = loaders
-            .series_by_source_loader
-            .load_one(source_uuid)
-            .await?
-            .unwrap_or_default();
+        use crate::schema::economic_series::dsl;
+        use diesel_async::RunQueryDsl;
+        use diesel::{QueryDsl, ExpressionMethods};
+        
+        let mut conn = pool.get().await?;
+        let all_series = dsl::economic_series
+            .filter(dsl::source_id.eq(source_uuid))
+            .filter(dsl::is_active.eq(true))
+            .load::<crate::models::EconomicSeries>(&mut conn)
+            .await?;
         
         // Apply pagination (simplified - in production you'd want cursor-based pagination)
         let start_index = after
@@ -316,16 +372,22 @@ impl DataSourceType {
     
     /// Get count of active series for this data source
     async fn series_count(&self, ctx: &Context<'_>) -> Result<i32> {
-        let loaders = ctx.data::<crate::graphql::dataloaders::DataLoaders>()?;
+        let pool = ctx.data::<crate::database::DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&self.id)?;
         
-        let series = loaders
-            .series_by_source_loader
-            .load_one(source_uuid)
-            .await?
-            .unwrap_or_default();
+        use crate::schema::economic_series::dsl;
+        use diesel_async::RunQueryDsl;
+        use diesel::{QueryDsl, ExpressionMethods};
         
-        Ok(series.len() as i32)
+        let mut conn = pool.get().await?;
+        let count = dsl::economic_series
+            .filter(dsl::source_id.eq(source_uuid))
+            .filter(dsl::is_active.eq(true))
+            .count()
+            .get_result::<i64>(&mut conn)
+            .await?;
+        
+        Ok(count as i32)
     }
 }
 
