@@ -234,7 +234,7 @@ impl Query {
             similarity_threshold: Some(0.3),
             limit: first,
             offset: after.and_then(|cursor| cursor.parse::<i32>().ok()),
-            source_id: None, // TODO: Parse UUID from string if needed
+            source_id: source.and_then(|s| uuid::Uuid::parse_str(&s).ok()),
             frequency: frequency.map(|f| format!("{:?}", f)),
             include_inactive: Some(false),
             sort_by: Some(crate::models::search::SearchSortOrder::Relevance),
