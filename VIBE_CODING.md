@@ -1010,10 +1010,10 @@ cd frontend && npm audit
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                           CI/CD Infrastructure                           │
+│                           CI/CD Infrastructure                          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  GitHub Actions Workflows                 Container Infrastructure       │
+│  GitHub Actions Workflows                Container Infrastructure        │
 │  ┌───────────────────────┐                ┌─────────────────────────┐   │
 │  │ • CI/CD Pipeline      │                │ • Multi-stage Builds    │   │
 │  │ • Security Scanning   │◄──────────────►│ • Security Hardening    │   │
