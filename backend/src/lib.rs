@@ -12,3 +12,4 @@ pub mod test_utils;
 
 #[cfg(test)]
 pub mod e2e_tests;
+pub mod epic_e2e_tests;
