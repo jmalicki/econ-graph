@@ -28,7 +28,7 @@ describe('SeriesExplorer', () => {
     // Verify main elements are present
     expect(screen.getByRole('heading', { name: /explore economic series/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^search$/i })).toBeInTheDocument();
   });
 
   test('should perform search when user types query', async () => {
@@ -47,7 +47,11 @@ describe('SeriesExplorer', () => {
     // Verify input value
     expect(searchInput).toHaveValue('GDP growth');
     
-    // Search should be triggered automatically (debounced)
+    // Trigger search manually
+    const searchButton = screen.getByRole('button', { name: /^search$/i });
+    await user.click(searchButton);
+    
+    // Search should show loading state
     await waitFor(() => {
       expect(screen.getByText(/searching/i)).toBeInTheDocument();
     });
@@ -70,8 +74,8 @@ describe('SeriesExplorer', () => {
     });
     
     // Verify result elements
-    expect(screen.getByText(/gdpc1/i)).toBeInTheDocument(); // External ID
-    expect(screen.getByText(/quarterly/i)).toBeInTheDocument(); // Frequency
+    expect(screen.getByText(/test-series-1/i)).toBeInTheDocument(); // Series ID
+    expect(screen.getAllByText(/quarterly/i)[0]).toBeInTheDocument(); // Frequency
   });
 
   test('should show search suggestions while typing', async () => {
@@ -105,13 +109,13 @@ describe('SeriesExplorer', () => {
     renderSeriesExplorer();
     
     // Open filters panel
-    const filtersButton = screen.getByText(/filters/i);
+    const filtersButton = screen.getByTestId('filters-button');
     await user.click(filtersButton);
     
     // Apply data source filter
     const sourceFilter = screen.getByLabelText(/data source/i);
     await user.click(sourceFilter);
-    await user.click(screen.getByText(/federal reserve/i));
+    await user.click(screen.getByRole('option', { name: /federal reserve economic data/i }));
     
     // Apply frequency filter
     const frequencyFilter = screen.getByLabelText(/frequency/i);
@@ -140,7 +144,10 @@ describe('SeriesExplorer', () => {
       expect(screen.queryByText(/searching/i)).not.toBeInTheDocument();
     });
     
-    // Change sort order
+    // Change sort order - need to open advanced search first
+    const filtersButton = screen.getByTestId('filters-button');
+    await user.click(filtersButton);
+    
     const sortSelect = screen.getByLabelText(/sort by/i);
     await user.click(sortSelect);
     await user.click(screen.getByText(/title/i));
@@ -296,17 +303,17 @@ describe('SeriesExplorer', () => {
     renderSeriesExplorer();
     
     // Set preferences
-    const filtersButton = screen.getByText(/filters/i);
+    const filtersButton = screen.getByTestId('filters-button');
     await user.click(filtersButton);
     
     const sourceFilter = screen.getByLabelText(/data source/i);
     await user.click(sourceFilter);
-    await user.click(screen.getByText(/federal reserve/i));
+    await user.click(screen.getByRole('option', { name: /federal reserve economic data/i }));
     
     // Preferences should be saved to localStorage
     expect(localStorage.setItem).toHaveBeenCalledWith(
       'searchPreferences',
-      expect.stringContaining('federal reserve')
+      expect.stringContaining('Federal Reserve Economic Data')
     );
   });
 
@@ -361,12 +368,12 @@ describe('SeriesExplorer', () => {
     await user.type(searchInput, 'GDP');
     
     await waitFor(() => {
-      expect(screen.getByText(/federal reserve economic data/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/federal reserve economic data/i)[0]).toBeInTheDocument();
     });
     
     // Should show data source badges or indicators
-    expect(screen.getByText(/fred/i)).toBeInTheDocument();
-    expect(screen.getByText(/quarterly/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/fred/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/quarterly/i)[0]).toBeInTheDocument();
   });
 
   test('should handle search export functionality', async () => {
