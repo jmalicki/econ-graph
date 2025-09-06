@@ -30,6 +30,71 @@ use config::Config;
 use database::DatabasePool;
 use error::AppError;
 
+/// Configure CORS for production use
+fn configure_cors() -> CorsLayer {
+    use tower_http::cors::{Any, CorsLayer};
+    use axum::http::{HeaderValue, Method};
+    
+    // Get allowed origins from environment variable, default to localhost for development
+    let allowed_origins = std::env::var("CORS_ALLOWED_ORIGINS")
+        .unwrap_or_else(|_| "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000".to_string());
+    
+    let origins: Vec<HeaderValue> = allowed_origins
+        .split(',')
+        .filter_map(|origin| {
+            let trimmed = origin.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                match trimmed.parse::<HeaderValue>() {
+                    Ok(header_value) => {
+                        tracing::info!("Allowing CORS origin: {}", trimmed);
+                        Some(header_value)
+                    }
+                    Err(e) => {
+                        tracing::warn!("Invalid CORS origin '{}': {}", trimmed, e);
+                        None
+                    }
+                }
+            }
+        })
+        .collect();
+    
+    // If no valid origins are provided, use permissive settings for development
+    if origins.is_empty() {
+        tracing::warn!("No valid CORS origins configured, using permissive CORS for development");
+        return CorsLayer::permissive();
+    }
+    
+    CorsLayer::new()
+        // Allow specific origins
+        .allow_origin(origins)
+        // Allow specific methods
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::HEAD,
+            Method::OPTIONS,
+        ])
+        // Allow specific headers
+        .allow_headers([
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::ACCEPT,
+            axum::http::header::ACCEPT_LANGUAGE,
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::CONTENT_LENGTH,
+            axum::http::header::ORIGIN,
+            axum::http::header::USER_AGENT,
+            axum::http::header::REFERER,
+        ])
+        // Allow credentials (cookies, authorization headers)
+        .allow_credentials(true)
+        // Cache preflight requests for 1 hour
+        .max_age(std::time::Duration::from_secs(3600))
+}
+
 /// Application state shared across handlers
 #[derive(Clone)]
 pub struct AppState {
@@ -109,7 +174,7 @@ fn create_app(state: AppState) -> Router {
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
-                .layer(CorsLayer::permissive()) // TODO: Configure CORS properly for production
+                .layer(configure_cors())
         )
 }
 

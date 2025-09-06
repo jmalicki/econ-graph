@@ -206,7 +206,7 @@ impl EconomicSeries {
 
     /// Get or create an economic series
     pub async fn get_or_create(
-        pool: &crate::database::DatabasePool, 
+        pool: &crate::database::DatabasePool,
         external_id: &str, 
         data_source_id: uuid::Uuid,
         new_series: &NewEconomicSeries
@@ -219,6 +219,33 @@ impl EconomicSeries {
                 Self::create(pool, new_series).await
             }
         }
+    }
+
+    /// Update the date range for a series
+    pub async fn update_date_range(
+        pool: &crate::database::DatabasePool,
+        series_id: uuid::Uuid,
+        start_date: NaiveDate,
+        end_date: NaiveDate,
+    ) -> crate::error::AppResult<Self> {
+        use crate::schema::economic_series::dsl;
+        
+        let mut conn = pool.get().await?;
+        
+        let update_data = UpdateEconomicSeries {
+            start_date: Some(start_date),
+            end_date: Some(end_date),
+            last_updated: Some(Utc::now()),
+            updated_at: Utc::now(),
+            ..Default::default()
+        };
+        
+        let series = diesel::update(dsl::economic_series.filter(dsl::id.eq(series_id)))
+            .set(&update_data)
+            .get_result::<Self>(&mut conn)
+            .await?;
+            
+        Ok(series)
     }
 }
 
