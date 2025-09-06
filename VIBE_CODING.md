@@ -170,7 +170,7 @@ Throughout the session, the user provided specific feedback that was immediately
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React Frontend │    │   Rust Backend   │    │   PostgreSQL    │
+│  React Frontend │    │   Rust Backend   │    │   PostgreSQL    │
 │                 │    │                  │    │                 │
 │ • TypeScript    │◄──►│ • Axum Server    │◄──►│ • Economic Data │
 │ • Material-UI   │    │ • GraphQL API    │    │ • Full-text     │
@@ -180,7 +180,7 @@ Throughout the session, the user provided specific feedback that was immediately
                                 │
                                 ▼
                        ┌──────────────────┐
-                       │   Crawler System │
+                       │  Crawler System  │
                        │                  │
                        │ • FRED API       │
                        │ • BLS API        │
@@ -494,7 +494,7 @@ let result = dsl::table
 
 ```
 ┌─────────────────┐    ┌──────────────────────┐    ┌─────────────────┐
-│   React Frontend │    │   Async Rust Backend │    │   PostgreSQL    │
+│  React Frontend │    │  Async Rust Backend  │    │   PostgreSQL    │
 │                 │    │                      │    │                 │
 │ • TypeScript    │◄──►│ • Axum Server        │◄──►│ • Economic Data │
 │ • Material-UI   │    │ • diesel-async       │    │ • Full-text     │
@@ -505,7 +505,7 @@ let result = dsl::table
                                 │
                                 ▼
                        ┌──────────────────────┐
-                       │   Async Crawler      │
+                       │    Async Crawler     │
                        │                      │
                        │ • FRED API (Async)   │
                        │ • BLS API (Async)    │
