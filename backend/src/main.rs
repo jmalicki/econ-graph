@@ -1,10 +1,12 @@
 use axum::{
     extract::State,
     http::StatusCode,
-    response::Json,
+    response::{Html, Json},
     routing::{get, post},
     Router,
 };
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use std::sync::Arc;
 use tokio::signal;
 use tower::ServiceBuilder;
@@ -15,7 +17,6 @@ mod config;
 mod database;
 mod error;
 mod graphql;
-mod handlers;
 mod models;
 mod schema;
 mod services;
@@ -95,11 +96,25 @@ fn configure_cors() -> CorsLayer {
         .max_age(std::time::Duration::from_secs(3600))
 }
 
+/// GraphQL handler for processing GraphQL requests
+async fn graphql_handler(
+    State(state): State<AppState>,
+    req: GraphQLRequest,
+) -> GraphQLResponse {
+    state.schema.execute(req.into_inner()).await.into()
+}
+
+/// GraphQL Playground handler for development
+async fn graphql_playground() -> Html<String> {
+    Html(playground_source(GraphQLPlaygroundConfig::new("/graphql")))
+}
+
 /// Application state shared across handlers
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: DatabasePool,
     pub config: Arc<Config>,
+    pub schema: graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
 }
 
 #[tokio::main]
@@ -120,10 +135,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Run database migrations
     database::run_migrations(&config.database_url).await?;
     
+    // Create GraphQL schema with database pool
+    let schema = graphql::create_schema_with_data(db_pool.clone());
+    
     // Create application state
     let state = AppState {
         db_pool: db_pool.clone(),
         config: config.clone(),
+        schema,
     };
 
     // Build the application router
@@ -158,16 +177,11 @@ fn create_app(state: AppState) -> Router {
         // Health check endpoint
         .route("/health", get(health_check))
         
-        // GraphQL endpoints - temporarily disabled due to axum version conflicts
-        // TODO: Re-enable GraphQL once axum version conflicts are resolved
-        // .route("/graphql", post(graphql_handler).get(graphql_handler))
+        // GraphQL endpoints
+        .route("/graphql", post(graphql_handler).get(graphql_handler))
         
         // GraphQL Playground (development only)
         .route("/graphql/playground", get(graphql_playground))
-        
-        // Legacy REST endpoints (for backward compatibility during transition)
-        .route("/api/admin/crawler/status", get(handlers::admin::crawler_status))
-        .route("/api/admin/crawler/trigger", post(handlers::admin::trigger_crawl))
         
         .with_state(state)
         // Add middleware
@@ -178,13 +192,6 @@ fn create_app(state: AppState) -> Router {
         )
 }
 
-/// GraphQL Playground handler (development only)
-async fn graphql_playground() -> impl axum::response::IntoResponse {
-    axum::response::Html(async_graphql::http::playground_source(
-        async_graphql::http::GraphQLPlaygroundConfig::new("/graphql")
-            .subscription_endpoint("/graphql/ws")
-    ))
-}
 
 /// Simple health check endpoint
 async fn health_check() -> Result<Json<serde_json::Value>, AppError> {
