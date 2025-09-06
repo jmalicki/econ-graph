@@ -1934,7 +1934,7 @@ CorsLayer::new()
 │  Database Layer (Async)                API Layer (Production)           │
 │  ┌───────────────────────┐             ┌─────────────────────────┐      │
 │  │ • diesel-async        │             │ • REST Endpoints        │      │
-│  │ • bb8 Connection Pool │◄───────────►│ • GraphQL API          │      │
+│  │ • bb8 Connection Pool │◄───────────►│ • GraphQL API           │      │
 │  │ • BigDecimal Support  │             │ • Health Checks         │      │
 │  │ • Transaction Mgmt    │             │ • Error Handling        │      │
 │  └───────────────────────┘             └─────────────────────────┘      │
