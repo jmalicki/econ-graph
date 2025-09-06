@@ -116,11 +116,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
         {/* Search functionality */}
         <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-          <Search
+          <Box 
             component="form"
             onSubmit={handleSearchSubmit}
             sx={{ maxWidth: 600, width: '100%' }}
           >
+            <Search
+              sx={{ width: '100%' }}
+            >
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
@@ -130,7 +133,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               value={searchQuery}
               onChange={handleSearchChange}
             />
-          </Search>
+            </Search>
+          </Box>
         </Box>
 
         {/* Right side actions (placeholder for future features) */}

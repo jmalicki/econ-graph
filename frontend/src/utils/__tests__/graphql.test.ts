@@ -4,7 +4,7 @@
 
 import { executeGraphQL, QUERIES } from '../graphql';
 import { server } from '../../test-utils/mocks/server';
-import { rest } from 'msw';
+import { http } from 'msw';
 
 // Mock fetch for testing
 global.fetch = jest.fn();

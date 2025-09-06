@@ -31,11 +31,6 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
         retry: false,
       },
     },
-    logger: {
-      log: () => {}, // Suppress logs in tests
-      warn: () => {},
-      error: () => {},
-    },
   });
 
   // Create a simple test theme
@@ -103,11 +98,6 @@ export function createMockQueryClient(overrides: Partial<QueryClient> = {}) {
       mutations: {
         retry: false,
       },
-    },
-    logger: {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
     },
     ...overrides,
   });

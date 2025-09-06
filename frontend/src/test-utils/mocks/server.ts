@@ -8,7 +8,7 @@
 import { mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions } from './data';
 
 // Lazy import MSW to ensure polyfills are loaded first
-let setupServer, graphql, http, HttpResponse;
+let setupServer: any, graphql: any, http: any, HttpResponse: any;
 
 function ensureMSWImported() {
   if (!setupServer) {
@@ -30,7 +30,7 @@ function createHandlers() {
   
   return [
     // GraphQL handlers
-    graphql.query('GetSeriesDetail', ({ variables }) => {
+    graphql.query('GetSeriesDetail', ({ variables }: { variables: any }) => {
     // REQUIREMENT: Mock series detail query for component testing
     const { id } = variables as { id: string };
     const series = mockSeriesData.find(s => s.id === id);
@@ -47,7 +47,7 @@ function createHandlers() {
     });
   }),
 
-  graphql.query('GetSeriesData', ({ variables }) => {
+  graphql.query('GetSeriesData', ({ variables }: { variables: any }) => {
     // REQUIREMENT: Mock series data points for chart testing
     const { seriesId, filter, transformation } = variables as any;
     
@@ -75,7 +75,7 @@ function createHandlers() {
     });
   }),
 
-  graphql.query('SearchSeriesFulltext', ({ variables }) => {
+  graphql.query('SearchSeriesFulltext', ({ variables }: { variables: any }) => {
     // REQUIREMENT: Mock full-text search for search component testing
     const { params } = variables as any;
     const { query, limit = 50 } = params;
@@ -93,7 +93,7 @@ function createHandlers() {
     });
   }),
 
-  graphql.query('GetSearchSuggestions', ({ variables }) => {
+  graphql.query('GetSearchSuggestions', ({ variables }: { variables: any }) => {
     // REQUIREMENT: Mock search suggestions for autocomplete testing
     const { partialQuery, limit = 10 } = variables as any;
     
@@ -151,7 +151,7 @@ function createHandlers() {
   }),
 
     // Handle unmatched GraphQL requests
-    graphql.operation(({ operationName }) => {
+    graphql.operation(({ operationName }: { operationName: any }) => {
       console.warn(`Unhandled GraphQL operation: ${operationName}`);
       return HttpResponse.json({
         data: null,
@@ -162,7 +162,7 @@ function createHandlers() {
 }
 
 // Export handlers and server as getters to ensure lazy loading
-export let handlers, server;
+export let handlers: any, server: any;
 
 // Initialize handlers and server when first accessed
 function initializeMSW() {
