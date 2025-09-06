@@ -193,15 +193,14 @@ impl EconomicSeriesType {
         
         // Apply transformation if requested
         if let Some(transformation) = transformation {
-            // Transform the data points
-            let transformed = crate::services::series_service::transform_data_points(
+            // Transform the data points using the GraphQL transformation function
+            let transformed = crate::graphql::query::apply_data_transformation(
                 data_points,
-                transformation.into(),
+                transformation,
             ).await?;
             
-            // Convert to GraphQL types (this is a simplified version)
-            // In practice, you'd want a proper TransformedDataPoint type
-            Ok(Vec::new()) // TODO: Implement proper transformation return
+            // Convert transformed data points to GraphQL types
+            Ok(transformed.into_iter().map(DataPointType::from).collect())
         } else {
             Ok(data_points.into_iter().map(DataPointType::from).collect())
         }

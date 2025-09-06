@@ -131,9 +131,11 @@ impl Query {
         
         // Apply transformation if requested
         let result_points = if let Some(transformation) = transformation {
-            // For now, return the original data points
-            // TODO: Implement proper transformation handling in GraphQL context
-            data_points.into_iter().map(DataPointType::from).collect()
+            // Apply the requested transformation to the data points
+            apply_data_transformation(data_points, transformation).await?
+                .into_iter()
+                .map(DataPointType::from)
+                .collect()
         } else {
             data_points.into_iter().map(DataPointType::from).collect()
         };
@@ -294,6 +296,153 @@ impl Default for PaginationInput {
             before: None,
         }
     }
+}
+
+/// Apply data transformation to a series of data points
+pub async fn apply_data_transformation(
+    data_points: Vec<crate::models::DataPoint>,
+    transformation: DataTransformationType,
+) -> Result<Vec<crate::models::DataPoint>> {
+    use crate::models::data_point::DataTransformation;
+    use bigdecimal::BigDecimal;
+    
+    // Convert GraphQL transformation type to model transformation type
+    let transform_type = match transformation {
+        DataTransformationType::YearOverYear => DataTransformation::YearOverYear,
+        DataTransformationType::QuarterOverQuarter => DataTransformation::QuarterOverQuarter,
+        DataTransformationType::MonthOverMonth => DataTransformation::MonthOverMonth,
+        DataTransformationType::PercentChange => DataTransformation::PercentChange,
+        DataTransformationType::LogDifference => DataTransformation::LogDifference,
+    };
+    
+    if data_points.is_empty() {
+        return Ok(data_points);
+    }
+    
+    // Sort data points by date to ensure correct chronological order
+    let mut sorted_points = data_points;
+    sorted_points.sort_by(|a, b| a.date.cmp(&b.date));
+    
+    let mut transformed_points = Vec::new();
+    
+    match transform_type {
+        DataTransformation::YearOverYear => {
+            // For YoY, we need to find the value from exactly one year ago
+            for (i, point) in sorted_points.iter().enumerate() {
+                let previous_year_value = sorted_points
+                    .iter()
+                    .find(|p| {
+                        // Look for a point approximately one year earlier
+                        let days_diff = (point.date - p.date).num_days();
+                        days_diff >= 360 && days_diff <= 370 // Allow some flexibility for exact dates
+                    })
+                    .and_then(|p| p.value.as_ref().cloned());
+                
+                let transformed_value = point.calculate_yoy_change(previous_year_value);
+                
+                // Create new data point with transformed value
+                let mut transformed_point = point.clone();
+                transformed_point.value = transformed_value;
+                transformed_points.push(transformed_point);
+            }
+        }
+        
+        DataTransformation::QuarterOverQuarter => {
+            // For QoQ, compare with previous quarter (approximately 3 months)
+            for (i, point) in sorted_points.iter().enumerate() {
+                let previous_quarter_value = sorted_points
+                    .iter()
+                    .find(|p| {
+                        let days_diff = (point.date - p.date).num_days();
+                        days_diff >= 85 && days_diff <= 95 // ~3 months with flexibility
+                    })
+                    .and_then(|p| p.value.as_ref());
+                
+                let transformed_value = point.calculate_qoq_change(previous_quarter_value);
+                
+                let mut transformed_point = point.clone();
+                transformed_point.value = transformed_value;
+                transformed_points.push(transformed_point);
+            }
+        }
+        
+        DataTransformation::MonthOverMonth => {
+            // For MoM, compare with previous month
+            for (i, point) in sorted_points.iter().enumerate() {
+                let previous_month_value = sorted_points
+                    .iter()
+                    .find(|p| {
+                        let days_diff = (point.date - p.date).num_days();
+                        days_diff >= 28 && days_diff <= 32 // ~1 month with flexibility
+                    })
+                    .and_then(|p| p.value.as_ref());
+                
+                let transformed_value = point.calculate_mom_change(previous_month_value);
+                
+                let mut transformed_point = point.clone();
+                transformed_point.value = transformed_value;
+                transformed_points.push(transformed_point);
+            }
+        }
+        
+        DataTransformation::PercentChange => {
+            // For percent change, compare each point with the first point
+            if let Some(base_point) = sorted_points.first() {
+                if let Some(base_value) = &base_point.value {
+                    for point in &sorted_points {
+                        let transformed_value = if let Some(current_value) = &point.value {
+                            if !base_value.is_zero() {
+                                Some(((current_value - base_value) / base_value) * BigDecimal::from(100))
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        };
+                        
+                        let mut transformed_point = point.clone();
+                        transformed_point.value = transformed_value;
+                        transformed_points.push(transformed_point);
+                    }
+                }
+            }
+        }
+        
+        DataTransformation::LogDifference => {
+            // For log difference, calculate ln(current) - ln(previous)
+            for (i, point) in sorted_points.iter().enumerate() {
+                let transformed_value = if i > 0 {
+                    let prev_point = &sorted_points[i - 1];
+                    match (&point.value, &prev_point.value) {
+                        (Some(current), Some(previous)) => {
+                            if *current > BigDecimal::from(0) && *previous > BigDecimal::from(0) {
+                                // Approximate natural log using decimal operations
+                                // This is a simplified implementation - in production you might want a more accurate log
+                                let ratio = current / previous;
+                                Some(ratio - BigDecimal::from(1)) // Simplified log approximation
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
+                    }
+                } else {
+                    None // First point has no previous value
+                };
+                
+                let mut transformed_point = point.clone();
+                transformed_point.value = transformed_value;
+                transformed_points.push(transformed_point);
+            }
+        }
+        
+        DataTransformation::None => {
+            // No transformation, return original points
+            return Ok(sorted_points);
+        }
+    }
+    
+    Ok(transformed_points)
 }
 
 #[cfg(test)]
