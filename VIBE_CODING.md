@@ -720,7 +720,7 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Test Infrastructure                          │
+│                     Test Infrastructure                         │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Backend Tests (40/40 ✅)          Frontend Tests (12/36 ✅)    │
@@ -1213,7 +1213,7 @@ useCrawlerStatus(options: UseCrawlerStatusOptions)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        Frontend Component Architecture                   │
+│                        Frontend Component Architecture                  │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Pages & Navigation                    Search & Discovery                │
@@ -1393,7 +1393,7 @@ const defaultProps = {
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     Production-Ready System Architecture                 │
+│                     Production-Ready System Architecture                │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Backend Stability                     Frontend Excellence               │
@@ -1534,7 +1534,7 @@ const queryClient = new QueryClient({
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    Complete Type Safety & Production Excellence          │
+│                    Complete Type Safety & Production Excellence         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  TypeScript Excellence                 System Reliability               │
@@ -1912,7 +1912,7 @@ CorsLayer::new()
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    Production-Ready Economic Data Platform               │
+│                    Production-Ready Economic Data Platform              │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Queue System (SKIP LOCKED)           Crawler System (Data Storage)     │
