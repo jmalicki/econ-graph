@@ -58,8 +58,7 @@ mod simple_tests {
     }
 }
 
-// Complex database integration tests disabled temporarily
-// TODO: Re-enable these once model structure is updated
+// Complex database integration tests disabled - replaced with modern async integration tests
 
 /*
 db_test!(test_create_and_retrieve_series, |container: Arc<TestContainer>| async move {

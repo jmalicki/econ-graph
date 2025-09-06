@@ -51,8 +51,7 @@ mod simple_tests {
     }
 }
 
-// Complex database integration tests disabled temporarily
-// TODO: Re-enable these once model structure is updated
+// Complex database integration tests disabled - replaced with modern async integration tests
 
 /*
 db_test!(test_fulltext_search_basic, |container: Arc<TestContainer>| async move {
