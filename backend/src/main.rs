@@ -169,7 +169,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Create the application router with all routes and middleware
-fn create_app(state: AppState) -> Router {
+pub fn create_app(state: AppState) -> Router {
     // Create GraphQL schema
     let schema = graphql::create_schema_with_data(state.db_pool.clone());
     

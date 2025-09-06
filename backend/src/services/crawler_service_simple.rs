@@ -2,7 +2,7 @@
 // PURPOSE: Provide working crawler functionality while avoiding complex model dependencies
 // This ensures the crawler system can be completed and tested
 
-use chrono::{DateTime, Utc, NaiveDate};
+use chrono::{DateTime, Utc, NaiveDate, Timelike};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use reqwest::Client;
@@ -357,11 +357,12 @@ pub async fn crawl_bls_series(
     let bls_source = DataSource::get_or_create(pool, DataSource::bls()).await?;
     
     // BLS API requires POST request with JSON payload
+    let api_key = std::env::var("BLS_API_KEY").unwrap_or_else(|_| "".to_string());
     let mut request_data = HashMap::new();
     request_data.insert("seriesid", vec![series_id]);
     request_data.insert("startyear", vec!["2020"]); // Start from 2020 for demo
     request_data.insert("endyear", vec!["2024"]);   // Current year
-    request_data.insert("registrationkey", vec![&std::env::var("BLS_API_KEY").unwrap_or_else(|_| "".to_string())]);
+    request_data.insert("registrationkey", vec![&api_key]);
     
     let bls_url = "https://api.bls.gov/publicAPI/v2/timeseries/data/";
     
@@ -735,11 +736,19 @@ mod tests {
         // REQUIREMENT: Test crawler status retrieval
         // PURPOSE: Verify that crawler status information is available for monitoring
         
+        // Set test API keys for testing
+        std::env::set_var("FRED_API_KEY", "test_fred_key");
+        std::env::set_var("BLS_API_KEY", "test_bls_key");
+        
         let status = get_crawler_status().await.unwrap();
         assert!(status.is_running);
         assert!(status.active_workers > 0);
         assert!(status.last_crawl.is_some());
         assert!(status.next_scheduled_crawl.is_some());
+        
+        // Clean up test environment
+        std::env::remove_var("FRED_API_KEY");
+        std::env::remove_var("BLS_API_KEY");
     }
 
     #[test]

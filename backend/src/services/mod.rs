@@ -1,5 +1,6 @@
 pub mod crawler;
 pub mod crawler_service;
+pub mod crawler_service_simple;
 pub mod queue_service;
 pub mod search_service;
 pub mod series_service;

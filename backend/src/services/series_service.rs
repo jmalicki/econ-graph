@@ -224,7 +224,7 @@ fn calculate_yoy_changes(data_points: Vec<DataPoint>) -> Vec<TransformedDataPoin
         let key = (previous_year, date.month(), date.day());
         
         let transformed_value = if let (Some(ref current_value), Some(previous_value)) = 
-            (&data_point.value, previous_year_values.get(&(date.year(), date.month(), date.day()))) {
+            (&data_point.value, previous_year_values.get(&(previous_year, date.month(), date.day()))) {
             data_point.calculate_yoy_change(Some(previous_value.clone()))
         } else {
             None
@@ -320,7 +320,7 @@ mod tests {
                 id: Uuid::new_v4(),
                 series_id: Uuid::new_v4(),
                 date: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-                value: Some(dec!(100.0)),
+                value: Some(BigDecimal::from(100)),
                 revision_date: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
                 is_original_release: true,
                 created_at: chrono::Utc::now(),
@@ -330,7 +330,7 @@ mod tests {
                 id: Uuid::new_v4(),
                 series_id: Uuid::new_v4(),
                 date: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-                value: Some(dec!(101.0)),
+                value: Some(BigDecimal::from(101)),
                 revision_date: NaiveDate::from_ymd_opt(2024, 2, 1).unwrap(), // Later revision
                 is_original_release: false,
                 created_at: chrono::Utc::now(),
@@ -343,7 +343,7 @@ mod tests {
         // Verify only latest revision is kept - important for accurate current analysis
         assert_eq!(filtered.len(), 1, "Should filter to only latest revision per date");
         // Verify correct revision value is preserved - ensures data accuracy
-        assert_eq!(filtered[0].value, Some(dec!(101.0)), "Should keep the later revision value");
+        assert_eq!(filtered[0].value, Some(BigDecimal::from(101)), "Should keep the later revision value");
         // Verify revision metadata is maintained - important for data provenance
         assert!(!filtered[0].is_original_release, "Should preserve revision metadata");
     }
@@ -359,7 +359,7 @@ mod tests {
                 id: Uuid::new_v4(),
                 series_id: Uuid::new_v4(),
                 date: NaiveDate::from_ymd_opt(2023, 1, 1).unwrap(),
-                value: Some(dec!(100.0)),
+                value: Some(BigDecimal::from(100)),
                 revision_date: NaiveDate::from_ymd_opt(2023, 1, 1).unwrap(),
                 is_original_release: true,
                 created_at: chrono::Utc::now(),
@@ -369,7 +369,7 @@ mod tests {
                 id: Uuid::new_v4(),
                 series_id: Uuid::new_v4(),
                 date: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-                value: Some(dec!(110.0)),
+                value: Some(BigDecimal::from(110)),
                 revision_date: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
                 is_original_release: true,
                 created_at: chrono::Utc::now(),
@@ -384,6 +384,6 @@ mod tests {
         // Verify first point has no YoY value - no previous year data available
         assert_eq!(transformed[0].transformed_value, None, "First point should have no YoY calculation");
         // Verify second point has correct YoY calculation: (110-100)/100 * 100 = 10%
-        assert_eq!(transformed[1].transformed_value, Some(dec!(10.0)), "YoY should be 10% increase");
+        assert_eq!(transformed[1].transformed_value, Some(BigDecimal::from(10)), "YoY should be 10% increase");
     }
 }

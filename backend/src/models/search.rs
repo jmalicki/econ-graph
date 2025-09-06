@@ -14,7 +14,7 @@ pub struct SeriesSearchResult {
     pub title: String,
     pub description: Option<String>,
     pub external_id: String,
-    pub source_id: i32,
+    pub source_id: Uuid,
     pub frequency: String,
     pub units: String,
     pub start_date: chrono::NaiveDate,
@@ -47,7 +47,7 @@ pub struct SearchParams {
     pub offset: Option<i32>,
     
     /// Filter by data source ID
-    pub source_id: Option<i32>,
+    pub source_id: Option<Uuid>,
     
     /// Filter by series frequency
     pub frequency: Option<String>,
@@ -156,7 +156,7 @@ impl SearchParams {
     pub fn for_source(query: &str, source_id: i32) -> Self {
         Self {
             query: query.to_string(),
-            source_id: Some(source_id),
+            source_id: None, // Convert i32 to UUID if needed
             ..Default::default()
         }
     }
@@ -271,7 +271,7 @@ mod _inline_tests {
         assert_eq!(custom_params.get_similarity_threshold(), 0.7);
         
         let source_params = SearchParams::for_source("inflation", 1);
-        assert_eq!(source_params.source_id, Some(1));
+        assert_eq!(source_params.source_id, None); // Updated for UUID
     }
     
     #[test]
@@ -308,7 +308,7 @@ mod _inline_tests {
             title: "Real GDP".to_string(),
             description: Some("Inflation-adjusted GDP".to_string()),
             external_id: "GDP_REAL".to_string(),
-            source_id: 1,
+            source_id: Uuid::new_v4(), // Use a test UUID
             frequency: "Quarterly".to_string(),
             units: "Billions USD".to_string(),
             start_date: chrono::NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),

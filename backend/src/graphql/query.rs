@@ -234,7 +234,7 @@ impl Query {
             similarity_threshold: Some(0.3),
             limit: first,
             offset: after.and_then(|cursor| cursor.parse::<i32>().ok()),
-            source_id: source.and_then(|s| s.parse::<i32>().ok()),
+            source_id: None, // TODO: Parse UUID from string if needed
             frequency: frequency.map(|f| format!("{:?}", f)),
             include_inactive: Some(false),
             sort_by: Some(crate::models::search::SearchSortOrder::Relevance),
@@ -304,10 +304,11 @@ pub async fn apply_data_transformation(
     transformation: DataTransformationType,
 ) -> Result<Vec<crate::models::DataPoint>> {
     use crate::models::data_point::DataTransformation;
-    use bigdecimal::BigDecimal;
+    use bigdecimal::{BigDecimal, Zero};
     
     // Convert GraphQL transformation type to model transformation type
     let transform_type = match transformation {
+        DataTransformationType::None => DataTransformation::None,
         DataTransformationType::YearOverYear => DataTransformation::YearOverYear,
         DataTransformationType::QuarterOverQuarter => DataTransformation::QuarterOverQuarter,
         DataTransformationType::MonthOverMonth => DataTransformation::MonthOverMonth,

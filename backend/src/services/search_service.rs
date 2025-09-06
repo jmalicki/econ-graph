@@ -58,18 +58,21 @@ impl SearchService {
         })?;
 
         let results = diesel::sql_query(
-            "SELECT id, title, description, external_id, source_id, frequency, 
-                    units, start_date, end_date, last_updated, is_active, rank, similarity_score
-             FROM fuzzy_search_series($1, $2) 
-             WHERE ($3::integer IS NULL OR source_id = $3)
-             AND ($4::text IS NULL OR frequency = $4)
-             AND ($5::boolean OR is_active = true)
-             ORDER BY rank DESC, title ASC
+            "SELECT es.id, es.title, es.description, es.external_id, es.source_id, es.frequency, 
+                    es.units, es.start_date, es.end_date, es.last_updated, es.is_active,
+                    CASE WHEN es.title ILIKE '%' || $1 || '%' THEN 1.0 ELSE 0.5 END as rank,
+                    CASE WHEN es.title ILIKE '%' || $1 || '%' THEN 1.0 ELSE 0.5 END as similarity_score
+             FROM economic_series es
+             WHERE (es.title ILIKE '%' || $1 || '%' OR es.description ILIKE '%' || $1 || '%')
+             AND ($3::uuid IS NULL OR es.source_id = $3)
+             AND ($4::text IS NULL OR es.frequency = $4)
+             AND ($5::boolean OR es.is_active = true)
+             ORDER BY rank DESC, es.title ASC
              LIMIT $6 OFFSET $7"
         )
         .bind::<diesel::sql_types::Text, _>(&search_query)
         .bind::<diesel::sql_types::Float4, _>(similarity_threshold)
-        .bind::<diesel::sql_types::Nullable<diesel::sql_types::Integer>, _>(source_filter)
+        .bind::<diesel::sql_types::Nullable<diesel::sql_types::Uuid>, _>(source_filter)
         .bind::<diesel::sql_types::Nullable<diesel::sql_types::Text>, _>(frequency_filter.as_deref())
         .bind::<diesel::sql_types::Bool, _>(include_inactive)
         .bind::<diesel::sql_types::Integer, _>(limit)
@@ -152,8 +155,8 @@ struct SeriesSearchResultRow {
     pub description: Option<String>,
     #[diesel(sql_type = diesel::sql_types::Text)]
     pub external_id: String,
-    #[diesel(sql_type = diesel::sql_types::Integer)]
-    pub source_id: i32,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    pub source_id: uuid::Uuid,
     #[diesel(sql_type = diesel::sql_types::Text)]
     pub frequency: String,
     #[diesel(sql_type = diesel::sql_types::Text)]

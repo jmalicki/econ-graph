@@ -192,11 +192,113 @@ jobs:
       run: npm run build
       working-directory: frontend
 
-    - name: Run integration tests
+    - name: Run backend integration tests
       run: cargo test --release integration_tests
       working-directory: backend
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
+
+    - name: Run backend e2e tests with testcontainers
+      run: cargo test --release e2e_tests --lib
+      working-directory: backend
+      env:
+        DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
+
+    - name: Run frontend integration tests
+      run: npm test -- --testNamePattern="End-to-End" --watchAll=false --coverage=false
+      working-directory: frontend
+      env:
+        NODE_ENV: test
+        REACT_APP_GRAPHQL_ENDPOINT: http://localhost:8080/graphql
+
+  comprehensive-e2e:
+    name: Comprehensive End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: testuser
+          POSTGRES_DB: econ_graph_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          backend/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('backend/Cargo.lock') }}
+
+    - name: Install diesel CLI
+      run: cargo install diesel_cli --no-default-features --features postgres
+
+    - name: Setup test database
+      run: |
+        diesel setup
+        diesel migration run
+      working-directory: backend
+      env:
+        DATABASE_URL: postgresql://testuser:testpassword@localhost:5433/econ_graph_test
+
+    - name: Build backend for e2e tests
+      run: cargo build --release
+      working-directory: backend
+
+    - name: Install frontend dependencies
+      run: npm ci
+      working-directory: frontend
+
+    - name: Run comprehensive e2e test suite
+      run: |
+        echo "🚀 Running Comprehensive End-to-End Tests"
+        echo "========================================="
+        
+        # Run backend e2e tests with testcontainers
+        echo "📋 Running backend e2e tests..."
+        cargo test --release e2e_tests --lib --verbose
+        
+        echo "✅ Backend e2e tests completed"
+        
+        # Run frontend integration tests
+        echo "📋 Running frontend integration tests..."
+        npm test -- --testNamePattern="End-to-End" --watchAll=false --verbose
+        
+        echo "✅ Frontend integration tests completed"
+        echo "🎉 All comprehensive e2e tests passed!"
+      working-directory: .
+      env:
+        DATABASE_URL: postgresql://testuser:testpassword@localhost:5433/econ_graph_test
+        NODE_ENV: test
+        REACT_APP_GRAPHQL_ENDPOINT: http://localhost:8080/graphql
+        RUST_LOG: info
 
   security-audit:
     name: Security Audit
