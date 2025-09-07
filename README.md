@@ -7,23 +7,38 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-blue)](https://github.com/jmalicki/econ-graph/tree/main/frontend)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎬 **PROFESSIONAL DEMO v2.0 - HD VIDEO SHOWCASE**
+## 🎬 **PROFESSIONAL DEMO VIDEOS - HD SHOWCASES WITH NARRATION**
 
-> **🚀 NEW: Professional Demo v2.0 featuring HD video recording (1920x1080) showcasing Bloomberg Terminal-level capabilities**
+> **🚀 NEW: Professional Demo Videos featuring HD recording (1920x1080) with professional voice narration showcasing Bloomberg Terminal-level capabilities**
 
-### 🎥 **HD Professional Demo Video**
-[![EconGraph Professional Demo](https://img.shields.io/badge/🎬%20Professional%20Demo%20v2.0-HD%20Video-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)
+### 🤝 **Collaboration-Focused Demo (Latest)**
+[![EconGraph Collaboration Demo](https://img.shields.io/badge/🤝%20Collaboration%20Demo-HD%20Video%20with%20Narration-blue?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp4)
 
-**[📺 Watch the Professional HD Demo](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)**
+**[📺 Watch the Collaboration Demo with Narration](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp4)**
 
-### ✨ **Professional Demo v2.0 Features:**
-- **🎬 HD Video Recording** - Crystal clear 1920x1080 resolution
-- **📺 Visual Feature Demonstration** - Clear showcase of platform capabilities
+### 📊 **General Features Demo**
+[![EconGraph Professional Demo](https://img.shields.io/badge/🎬%20Professional%20Demo%20v2.0-HD%20Video%20with%20Narration-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo-with-narration.mp4)
+
+**[📺 Watch the Professional HD Demo with Narration](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo-with-narration.mp4)**
+
+### ✨ **Demo Video Features:**
+- **🎬 HD Video Recording** - Crystal clear 1920x1080 resolution with professional voice narration
+- **🎤 Professional Narration** - 19 synchronized audio segments explaining features and business value
+- **🤝 Real-time Collaboration** - Team annotation systems, comment threading, and permission management
 - **💼 Bloomberg Terminal Positioning** - Enterprise-level feature demonstrations
 - **📱 Mobile Responsiveness Showcase** - Cross-device compatibility demo
-- **🏢 Institutional Presentation Quality** - Ready for financial institutions
+- **🏢 Institutional Presentation Quality** - Ready for financial institutions and team presentations
 
-### 🎯 **What You'll See in the Demo:**
+### 🎯 **What You'll See in the Collaboration Demo:**
+- 🤝 **Real-time Team Collaboration**: Live collaboration indicators showing online team members
+- 📝 **Chart Annotations System**: Professional annotation creation with multiple types and colors
+- 💬 **Comment Threading**: Team discussions directly on chart annotations with timestamps
+- 🔐 **Permission Management**: Role-based access control (view, comment, edit, admin)
+- 📌 **Annotation Management**: Toggle visibility, pin important annotations, organize by tags
+- 🔄 **Live Synchronization**: Real-time updates across all team members
+- 📊 **Professional Workflows**: Support for analysts, economists, and managers working together
+
+### 🎯 **What You'll See in the General Demo:**
 - 🔍 **Real-time Search**: Interactive search with autocomplete and relevance scoring
 - 📊 **Dynamic Results**: Search results with match percentages and detailed descriptions  
 - 📈 **Interactive Charts**: Hover tooltips showing exact data points and dates
