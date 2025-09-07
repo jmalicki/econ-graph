@@ -7,18 +7,18 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-blue)](https://github.com/jmalicki/econ-graph/tree/main/frontend)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎬 **PROFESSIONAL DEMO v2.0 - HD VIDEO WITH SYNCHRONIZED AUDIO**
+## 🎬 **PROFESSIONAL DEMO v2.0 - HD VIDEO SHOWCASE**
 
-> **🚀 NEW: Professional Demo v2.0 featuring HD video recording (1920x1080) with synchronized audio narration showcasing Bloomberg Terminal-level capabilities**
+> **🚀 NEW: Professional Demo v2.0 featuring HD video recording (1920x1080) showcasing Bloomberg Terminal-level capabilities**
 
 ### 🎥 **HD Professional Demo Video**
-[![EconGraph Professional Demo](https://img.shields.io/badge/🎬%20Professional%20Demo%20v2.0-HD%20Video%20%2B%20Audio-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)
+[![EconGraph Professional Demo](https://img.shields.io/badge/🎬%20Professional%20Demo%20v2.0-HD%20Video-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)
 
-**[🎧 Watch the Professional Demo with Audio Narration](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)**
+**[📺 Watch the Professional HD Demo](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)**
 
 ### ✨ **Professional Demo v2.0 Features:**
 - **🎬 HD Video Recording** - Crystal clear 1920x1080 resolution
-- **🎧 Synchronized Audio Narration** - 19 timed segments explaining features
+- **📺 Visual Feature Demonstration** - Clear showcase of platform capabilities
 - **💼 Bloomberg Terminal Positioning** - Enterprise-level feature demonstrations
 - **📱 Mobile Responsiveness Showcase** - Cross-device compatibility demo
 - **🏢 Institutional Presentation Quality** - Ready for financial institutions
@@ -281,7 +281,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **[🎬 Watch Professional Demo v2.0](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)** • **[🚀 Try the Live Demo](#getting-started)** • **[📚 Read the Docs](docs/)**
 
-> **🎧 NEW: Professional Demo v2.0 with HD video + synchronized audio narration**
+> **📺 NEW: Professional Demo v2.0 with HD video showcase**
 
 ---
 
