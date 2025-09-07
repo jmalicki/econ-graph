@@ -40,7 +40,7 @@ impl Default for EpicE2ETestConfig {
 mod epic_e2e_tests {
     use super::*;
     use serial_test::serial;
-    use testcontainers::{clients::Cli, images::postgres::Postgres};
+    use testcontainers_modules::postgres::Postgres;
 
     #[tokio::test]
     #[serial]
@@ -91,16 +91,19 @@ mod epic_e2e_tests {
         
         let series = crawl_result.unwrap();
         println!("✅ Successfully crawled series: {} with {} data points", 
-                series.title, series.data_points_count.unwrap_or(0));
+                series.title, data_points.len());
         
         // Phase 3: Data Verification and Search Testing
         println!("🔍 Phase 3: Testing search functionality...");
         
         let search_params = SearchParams {
-            query: Some(config.search_query.clone()),
+            query: config.search_query.unwrap_or("GDP".to_string()),
+            source_id: Some(data_source.id),
             limit: Some(10),
             offset: Some(0),
-            source_id: None,
+            frequency: None,
+            include_inactive: false,
+            similarity_threshold: 0.3,
         };
         
         // Note: Search functionality would be tested here with proper implementation
@@ -112,7 +115,7 @@ mod epic_e2e_tests {
         // Phase 4: GraphQL API Testing
         println!("📊 Phase 4: Testing GraphQL API integration...");
         
-        let schema = create_schema(pool.clone());
+        let schema = create_schema();
         
         // Test series detail query
         let series_detail_query = format!(r#"
