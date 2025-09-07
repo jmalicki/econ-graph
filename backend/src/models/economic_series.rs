@@ -167,6 +167,7 @@ impl EconomicSeries {
         let series = dsl::economic_series
             .filter(dsl::external_id.eq(external_id))
             .filter(dsl::source_id.eq(data_source_id))
+            .select(Self::as_select())
             .first::<Self>(&mut conn)
             .await?;
             
@@ -184,6 +185,7 @@ impl EconomicSeries {
         
         let series = diesel::insert_into(dsl::economic_series)
             .values(new_series)
+            .returning(Self::as_select())
             .get_result::<Self>(&mut conn)
             .await?;
             
@@ -242,6 +244,7 @@ impl EconomicSeries {
         
         let series = diesel::update(dsl::economic_series.filter(dsl::id.eq(series_id)))
             .set(&update_data)
+            .returning(Self::as_select())
             .get_result::<Self>(&mut conn)
             .await?;
             

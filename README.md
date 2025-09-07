@@ -7,14 +7,21 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-blue)](https://github.com/jmalicki/econ-graph/tree/main/frontend)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎬 **EPIC SYSTEM DEMONSTRATION**
+## 🎬 **PROFESSIONAL DEMO v2.0 - HD VIDEO WITH SYNCHRONIZED AUDIO**
 
-**Watch our comprehensive system demonstration showcasing the complete user journey from search to interactive visualization:**
+> **🚀 NEW: Professional Demo v2.0 featuring HD video recording (1920x1080) with synchronized audio narration showcasing Bloomberg Terminal-level capabilities**
 
-### 🎥 **Live Demo Video**
-[![EconGraph Demo Video](https://img.shields.io/badge/🎥%20Watch%20Demo-HD%20Video-red?style=for-the-badge)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)
+### 🎥 **HD Professional Demo Video**
+[![EconGraph Professional Demo](https://img.shields.io/badge/🎬%20Professional%20Demo%20v2.0-HD%20Video%20%2B%20Audio-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)
 
-**[Click here to download and watch the full HD demo video](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)**
+**[🎧 Watch the Professional Demo with Audio Narration](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)**
+
+### ✨ **Professional Demo v2.0 Features:**
+- **🎬 HD Video Recording** - Crystal clear 1920x1080 resolution
+- **🎧 Synchronized Audio Narration** - 19 timed segments explaining features
+- **💼 Bloomberg Terminal Positioning** - Enterprise-level feature demonstrations
+- **📱 Mobile Responsiveness Showcase** - Cross-device compatibility demo
+- **🏢 Institutional Presentation Quality** - Ready for financial institutions
 
 ### 🎯 **What You'll See in the Demo:**
 - 🔍 **Real-time Search**: Interactive search with autocomplete and relevance scoring
@@ -152,18 +159,30 @@ EconGraph is a **world-class economic data analysis platform** that rivals indus
 
 5. **🎉 Open your browser** to `http://localhost:3000` and explore!
 
-### **🎬 Run the Epic Demo**
+### **🎬 Create Professional Demo v2.0**
 ```bash
 # Install demo dependencies
 npm install playwright
 npx playwright install chromium
 
-# Create HD video demonstration
+# Create Professional HD Demo with Audio Narration
+node create-professional-demo-video.js
+
+# Run complete automation pipeline
+./professional-demo-orchestrator.sh
+
+# Alternative: Create basic HD video demonstration
 node create-demo-video.js
 
 # Run complete E2E test suite with video
 ./epic-e2e-demo.sh
 ```
+
+**🚀 Professional Demo v2.0 Capabilities:**
+- **HD Recording System** - 1920x1080 professional quality
+- **Synchronized Audio** - 19-segment narration explaining features
+- **Enterprise Positioning** - Bloomberg Terminal-level demonstrations
+- **Complete Automation** - End-to-end demo creation pipeline
 
 ---
 
@@ -260,7 +279,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### 🎯 **Ready to explore economic data like never before?**
 
-**[⬇️ Download the Demo Video](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)** • **[🚀 Try the Live Demo](#getting-started)** • **[📚 Read the Docs](docs/)**
+**[🎬 Watch Professional Demo v2.0](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/epic-system-demo.webm)** • **[🚀 Try the Live Demo](#getting-started)** • **[📚 Read the Docs](docs/)**
+
+> **🎧 NEW: Professional Demo v2.0 with HD video + synchronized audio narration**
 
 ---
 

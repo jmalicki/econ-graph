@@ -1,5 +1,6 @@
 use async_graphql::*;
 use uuid::Uuid;
+use diesel::SelectableHelper;
 
 use std::sync::Arc;
 use crate::{
@@ -78,6 +79,7 @@ impl Query {
         let mut conn = pool.get().await?;
         let source = dsl::data_sources
             .filter(dsl::id.eq(source_uuid))
+            .select(crate::models::DataSource::as_select())
             .first::<crate::models::DataSource>(&mut conn)
             .await
             .optional()?;
@@ -96,6 +98,7 @@ impl Query {
         let mut conn = pool.get().await?;
         let sources = data_sources::table
             .order_by(data_sources::name.asc())
+            .select(crate::models::DataSource::as_select())
             .load::<crate::models::DataSource>(&mut *conn)
             .await?;
         
@@ -259,6 +262,80 @@ impl Query {
         
         let suggestions = search_service.get_suggestions(&partial_query, limit.unwrap_or(10)).await?;
         Ok(suggestions.into_iter().map(|suggestion| suggestion.into()).collect())
+    }
+
+    /// Get annotations for a specific series
+    async fn annotations_for_series(
+        &self,
+        ctx: &Context<'_>,
+        series_id: String,
+        user_id: Option<ID>,
+    ) -> Result<Vec<ChartAnnotationType>> {
+        let pool = ctx.data::<DatabasePool>()?;
+        let collaboration_service = crate::services::CollaborationService::new(pool.clone());
+        
+        let user_uuid = if let Some(uid) = user_id {
+            Some(uuid::Uuid::parse_str(&uid)?)
+        } else {
+            None
+        };
+        
+        let annotations = collaboration_service.get_annotations_for_series(&series_id, user_uuid).await?;
+        Ok(annotations.into_iter().map(ChartAnnotationType::from).collect())
+    }
+
+    /// Get comments for a specific annotation
+    async fn comments_for_annotation(
+        &self,
+        ctx: &Context<'_>,
+        annotation_id: ID,
+    ) -> Result<Vec<AnnotationCommentType>> {
+        let pool = ctx.data::<DatabasePool>()?;
+        let collaboration_service = crate::services::CollaborationService::new(pool.clone());
+        
+        let annotation_uuid = uuid::Uuid::parse_str(&annotation_id)?;
+        let comments = collaboration_service.get_comments_for_annotation(annotation_uuid).await?;
+        Ok(comments.into_iter().map(AnnotationCommentType::from).collect())
+    }
+
+    /// Get collaborators for a specific chart
+    async fn chart_collaborators(
+        &self,
+        ctx: &Context<'_>,
+        chart_id: ID,
+    ) -> Result<Vec<ChartCollaboratorType>> {
+        let pool = ctx.data::<DatabasePool>()?;
+        let collaboration_service = crate::services::CollaborationService::new(pool.clone());
+        
+        let chart_uuid = uuid::Uuid::parse_str(&chart_id)?;
+        let collaborators = collaboration_service.get_collaborators(chart_uuid).await?;
+        Ok(collaborators.into_iter().map(|(collaborator, _user)| ChartCollaboratorType::from(collaborator)).collect())
+    }
+
+    /// Get user information by ID
+    async fn user(
+        &self,
+        ctx: &Context<'_>,
+        user_id: ID,
+    ) -> Result<Option<UserType>> {
+        let pool = ctx.data::<DatabasePool>()?;
+        
+        let user_uuid = uuid::Uuid::parse_str(&user_id)?;
+        
+        use diesel::prelude::*;
+        use diesel_async::RunQueryDsl;
+        use crate::schema::users;
+        
+        let mut conn = pool.get().await?;
+        
+        let user = users::table
+            .filter(users::id.eq(user_uuid))
+            .select(crate::models::User::as_select())
+            .first::<crate::models::User>(&mut conn)
+            .await
+            .optional()?;
+            
+        Ok(user.map(UserType::from))
     }
 }
 

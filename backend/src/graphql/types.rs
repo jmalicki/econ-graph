@@ -3,8 +3,9 @@ use chrono::{DateTime, NaiveDate, Utc};
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use diesel::SelectableHelper;
 
-use crate::models::{DataPoint, DataSource, EconomicSeries, SeriesSearchResult, SearchSuggestion, SearchStatistics, SuggestionType, SearchSortOrder};
+use crate::models::{DataPoint, DataSource, EconomicSeries, SeriesSearchResult, SearchSuggestion, SearchStatistics, SuggestionType, SearchSortOrder, ChartAnnotation, AnnotationComment, ChartCollaborator, User};
 
 /// GraphQL representation of an economic series
 #[derive(Clone)]
@@ -95,6 +96,7 @@ impl EconomicSeriesType {
         let mut conn = pool.get().await?;
         let source = dsl::data_sources
             .filter(dsl::id.eq(source_uuid))
+            .select(crate::models::DataSource::as_select())
             .first::<crate::models::DataSource>(&mut conn)
             .await
             .optional()?;
@@ -343,6 +345,7 @@ impl DataSourceType {
         let all_series = dsl::economic_series
             .filter(dsl::source_id.eq(source_uuid))
             .filter(dsl::is_active.eq(true))
+            .select(crate::models::EconomicSeries::as_select())
             .load::<crate::models::EconomicSeries>(&mut conn)
             .await?;
         
@@ -716,4 +719,246 @@ pub struct SearchParamsInput {
     pub include_inactive: Option<bool>,
     /// Sort order for results
     pub sort_by: Option<SearchSortOrderEnum>,
+}
+
+/// GraphQL representation of a chart annotation
+#[derive(Clone, SimpleObject)]
+pub struct ChartAnnotationType {
+    /// Annotation ID
+    pub id: ID,
+    /// User who created the annotation
+    pub user_id: ID,
+    /// Associated series ID (if applicable)
+    pub series_id: Option<String>,
+    /// Associated chart ID (if applicable)
+    pub chart_id: Option<ID>,
+    /// Date the annotation refers to
+    pub annotation_date: NaiveDate,
+    /// Value the annotation refers to (if applicable)
+    pub annotation_value: Option<BigDecimal>,
+    /// Annotation title
+    pub title: String,
+    /// Annotation description/content
+    pub description: Option<String>,
+    /// Annotation color for display
+    pub color: Option<String>,
+    /// Type of annotation (note, highlight, warning, etc.)
+    pub annotation_type: Option<String>,
+    /// Whether the annotation is visible to others
+    pub is_visible: Option<bool>,
+    /// Whether the annotation is pinned
+    pub is_pinned: Option<bool>,
+    /// Tags associated with the annotation
+    pub tags: Option<Vec<Option<String>>>,
+    /// Creation timestamp
+    pub created_at: Option<DateTime<Utc>>,
+    /// Last update timestamp
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+impl From<ChartAnnotation> for ChartAnnotationType {
+    fn from(annotation: ChartAnnotation) -> Self {
+        Self {
+            id: ID::from(annotation.id),
+            user_id: ID::from(annotation.user_id),
+            series_id: annotation.series_id,
+            chart_id: annotation.chart_id.map(ID::from),
+            annotation_date: annotation.annotation_date,
+            annotation_value: annotation.annotation_value,
+            title: annotation.title,
+            description: annotation.description,
+            color: annotation.color,
+            annotation_type: annotation.annotation_type,
+            is_visible: annotation.is_visible,
+            is_pinned: annotation.is_pinned,
+            tags: annotation.tags,
+            created_at: annotation.created_at,
+            updated_at: annotation.updated_at,
+        }
+    }
+}
+
+/// GraphQL representation of an annotation comment
+#[derive(Clone, SimpleObject)]
+pub struct AnnotationCommentType {
+    /// Comment ID
+    pub id: ID,
+    /// Associated annotation ID
+    pub annotation_id: ID,
+    /// User who created the comment
+    pub user_id: ID,
+    /// Comment content
+    pub content: String,
+    /// Whether the comment thread is resolved
+    pub is_resolved: Option<bool>,
+    /// Creation timestamp
+    pub created_at: Option<DateTime<Utc>>,
+    /// Last update timestamp
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+impl From<AnnotationComment> for AnnotationCommentType {
+    fn from(comment: AnnotationComment) -> Self {
+        Self {
+            id: ID::from(comment.id),
+            annotation_id: ID::from(comment.annotation_id),
+            user_id: ID::from(comment.user_id),
+            content: comment.content,
+            is_resolved: comment.is_resolved,
+            created_at: comment.created_at,
+            updated_at: comment.updated_at,
+        }
+    }
+}
+
+/// GraphQL representation of a chart collaborator
+#[derive(Clone, SimpleObject)]
+pub struct ChartCollaboratorType {
+    /// Collaborator entry ID
+    pub id: ID,
+    /// Chart ID being shared
+    pub chart_id: ID,
+    /// User ID of the collaborator
+    pub user_id: ID,
+    /// User who invited this collaborator
+    pub invited_by: Option<ID>,
+    /// Role/permission level
+    pub role: Option<String>,
+    /// Detailed permissions (JSON)
+    pub permissions: Option<String>, // Serialize JSON as string for GraphQL
+    /// Creation timestamp
+    pub created_at: Option<DateTime<Utc>>,
+    /// Last access timestamp
+    pub last_accessed_at: Option<DateTime<Utc>>,
+}
+
+impl From<ChartCollaborator> for ChartCollaboratorType {
+    fn from(collaborator: ChartCollaborator) -> Self {
+        Self {
+            id: ID::from(collaborator.id),
+            chart_id: ID::from(collaborator.chart_id),
+            user_id: ID::from(collaborator.user_id),
+            invited_by: collaborator.invited_by.map(ID::from),
+            role: collaborator.role,
+            permissions: collaborator.permissions.map(|p| serde_json::to_string(&p).unwrap_or_default()),
+            created_at: collaborator.created_at,
+            last_accessed_at: collaborator.last_accessed_at,
+        }
+    }
+}
+
+/// GraphQL representation of a user
+#[derive(Clone, SimpleObject)]
+pub struct UserType {
+    /// User ID
+    pub id: ID,
+    /// Email address
+    pub email: String,
+    /// Display name
+    pub name: String,
+    /// Avatar URL
+    pub avatar_url: Option<String>,
+    /// Authentication provider
+    pub provider: String,
+    /// User role
+    pub role: String,
+    /// Organization
+    pub organization: Option<String>,
+    /// UI theme preference
+    pub theme: Option<String>,
+    /// Default chart type preference
+    pub default_chart_type: Option<String>,
+    /// Whether notifications are enabled
+    pub notifications_enabled: Option<bool>,
+    /// Whether collaboration features are enabled
+    pub collaboration_enabled: Option<bool>,
+    /// Whether the account is active
+    pub is_active: Option<bool>,
+    /// Whether email is verified
+    pub email_verified: Option<bool>,
+    /// Creation timestamp
+    pub created_at: Option<DateTime<Utc>>,
+    /// Last update timestamp
+    pub updated_at: Option<DateTime<Utc>>,
+    /// Last login timestamp
+    pub last_login_at: Option<DateTime<Utc>>,
+}
+
+impl From<User> for UserType {
+    fn from(user: User) -> Self {
+        Self {
+            id: ID::from(user.id),
+            email: user.email,
+            name: user.name,
+            avatar_url: user.avatar_url,
+            provider: user.provider,
+            role: user.role,
+            organization: user.organization,
+            theme: user.theme,
+            default_chart_type: user.default_chart_type,
+            notifications_enabled: user.notifications_enabled,
+            collaboration_enabled: user.collaboration_enabled,
+            is_active: user.is_active,
+            email_verified: user.email_verified,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            last_login_at: user.last_login_at,
+        }
+    }
+}
+
+/// Input for creating a new annotation
+#[derive(InputObject)]
+pub struct CreateAnnotationInput {
+    /// User ID creating the annotation
+    pub user_id: ID,
+    /// Series ID the annotation is for
+    pub series_id: ID,
+    /// Date the annotation refers to
+    pub annotation_date: NaiveDate,
+    /// Value the annotation refers to (optional)
+    pub annotation_value: Option<BigDecimal>,
+    /// Annotation title
+    pub title: String,
+    /// Annotation content/description
+    pub content: String,
+    /// Type of annotation (note, highlight, warning, etc.)
+    pub annotation_type: String,
+    /// Color for display (optional)
+    pub color: Option<String>,
+    /// Whether the annotation is public (visible to others)
+    pub is_public: Option<bool>,
+}
+
+/// Input for adding a comment to an annotation
+#[derive(InputObject)]
+pub struct AddCommentInput {
+    /// User ID adding the comment
+    pub user_id: ID,
+    /// Annotation ID to comment on
+    pub annotation_id: ID,
+    /// Comment content
+    pub content: String,
+}
+
+/// Input for sharing a chart with another user
+#[derive(InputObject)]
+pub struct ShareChartInput {
+    /// Owner user ID (who is sharing)
+    pub owner_user_id: ID,
+    /// Target user ID (who to share with)
+    pub target_user_id: ID,
+    /// Chart ID to share
+    pub chart_id: ID,
+    /// Permission level (view, comment, edit, admin)
+    pub permission_level: String,
+}
+
+/// Input for deleting an annotation
+#[derive(InputObject)]
+pub struct DeleteAnnotationInput {
+    /// User ID requesting deletion
+    pub user_id: ID,
+    /// Annotation ID to delete
+    pub annotation_id: ID,
 }

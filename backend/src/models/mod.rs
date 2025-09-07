@@ -10,4 +10,8 @@ pub use data_source::*;
 pub use economic_series::*;
 pub use crawl_queue::*;
 pub use search::*;
-pub use user::*;
+pub use user::{
+    User, NewUser, UserSession, NewUserSession, Claims, 
+    ChartAnnotation, NewChartAnnotation, AnnotationComment, NewAnnotationComment,
+    ChartCollaborator, NewChartCollaborator
+};

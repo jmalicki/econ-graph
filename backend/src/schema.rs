@@ -95,7 +95,7 @@ diesel::table! {
         created_at -> Nullable<Timestamptz>,
         last_used_at -> Nullable<Timestamptz>,
         user_agent -> Nullable<Text>,
-        ip_address -> Nullable<Inet>,
+        ip_address -> Nullable<Text>,
     }
 }
 

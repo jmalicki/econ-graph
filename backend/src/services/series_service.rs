@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use diesel::SelectableHelper;
 use diesel_async::RunQueryDsl;
 use bigdecimal::BigDecimal;
 use serde_json::Value;
@@ -55,7 +56,7 @@ pub async fn list_series(
         .order_by(economic_series::last_updated.desc())
         .then_order_by(economic_series::title.asc());
     
-    let series = query.load::<EconomicSeries>(&mut *conn).await?;
+    let series = query.select(EconomicSeries::as_select()).load::<EconomicSeries>(&mut *conn).await?;
     
     Ok(series)
 }
@@ -69,6 +70,7 @@ pub async fn get_series_by_id(
     
     let series = economic_series::table
         .filter(economic_series::id.eq(series_id))
+        .select(EconomicSeries::as_select())
         .first::<EconomicSeries>(&mut *conn)
         .await
         .optional()?;

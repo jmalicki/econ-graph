@@ -9,16 +9,19 @@ use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
 
 use chrono::{DateTime, Utc, NaiveDate};
+use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use serde::{Deserialize, Serialize};
+use serde_json;
 use uuid::Uuid;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
-use std::net::IpAddr;
+// IP addresses stored as strings for Diesel compatibility
 
-#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name = users)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -71,8 +74,9 @@ pub struct UpdateUser {
     pub last_login_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name = user_sessions)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct UserSession {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -81,7 +85,7 @@ pub struct UserSession {
     pub created_at: Option<DateTime<Utc>>,
     pub last_used_at: Option<DateTime<Utc>>,
     pub user_agent: Option<String>,
-    pub ip_address: Option<IpAddr>,
+    pub ip_address: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -91,7 +95,7 @@ pub struct NewUserSession {
     pub token_hash: String,
     pub expires_at: DateTime<Utc>,
     pub user_agent: Option<String>,
-    pub ip_address: Option<IpAddr>,
+    pub ip_address: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -368,7 +372,7 @@ impl UserSession {
         pool: &DatabasePool,
         user_id: Uuid,
         user_agent: Option<String>,
-        ip_address: Option<IpAddr>,
+        ip_address: Option<String>,
         jwt_secret: &str,
     ) -> AppResult<(UserSession, String)> {
         let mut conn = pool.get().await.map_err(|e| {
@@ -412,6 +416,7 @@ impl UserSession {
 
         let session = diesel::insert_into(user_sessions::table)
             .values(&new_session)
+            .returning(UserSession::as_select())
             .get_result::<UserSession>(&mut conn)
             .await
             .map_err(|e| AppError::DatabaseError(e.to_string()))?;
@@ -482,4 +487,93 @@ impl UserSession {
 
         Ok(deleted)
     }
+}
+
+/// Chart annotation model for collaborative features
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[diesel(table_name = chart_annotations)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct ChartAnnotation {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub series_id: Option<String>,
+    pub chart_id: Option<Uuid>,
+    pub annotation_date: NaiveDate,
+    pub annotation_value: Option<BigDecimal>,
+    pub title: String,
+    pub description: Option<String>,
+    pub color: Option<String>,
+    pub annotation_type: Option<String>,
+    pub is_visible: Option<bool>,
+    pub is_pinned: Option<bool>,
+    pub tags: Option<Vec<Option<String>>>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+/// New chart annotation for insertion
+#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[diesel(table_name = chart_annotations)]
+pub struct NewChartAnnotation {
+    pub user_id: Uuid,
+    pub series_id: Option<String>,
+    pub chart_id: Option<Uuid>,
+    pub annotation_date: NaiveDate,
+    pub annotation_value: Option<BigDecimal>,
+    pub title: String,
+    pub description: Option<String>,
+    pub color: Option<String>,
+    pub annotation_type: Option<String>,
+    pub is_visible: Option<bool>,
+    pub is_pinned: Option<bool>,
+    pub tags: Option<Vec<Option<String>>>,
+}
+
+/// Annotation comment model for discussion threads
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[diesel(table_name = annotation_comments)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct AnnotationComment {
+    pub id: Uuid,
+    pub annotation_id: Uuid,
+    pub user_id: Uuid,
+    pub content: String,
+    pub is_resolved: Option<bool>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+/// New annotation comment for insertion
+#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[diesel(table_name = annotation_comments)]
+pub struct NewAnnotationComment {
+    pub annotation_id: Uuid,
+    pub user_id: Uuid,
+    pub content: String,
+}
+
+/// Chart collaborator model for sharing permissions
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[diesel(table_name = chart_collaborators)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct ChartCollaborator {
+    pub id: Uuid,
+    pub chart_id: Uuid, // Could be series_id or a chart collection
+    pub user_id: Uuid,
+    pub invited_by: Option<Uuid>,
+    pub role: Option<String>, // "view", "comment", "edit", "admin"
+    pub permissions: Option<serde_json::Value>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub last_accessed_at: Option<DateTime<Utc>>,
+}
+
+/// New chart collaborator for insertion
+#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[diesel(table_name = chart_collaborators)]
+pub struct NewChartCollaborator {
+    pub chart_id: Uuid,
+    pub user_id: Uuid,
+    pub invited_by: Option<Uuid>,
+    pub role: Option<String>,
+    pub permissions: Option<serde_json::Value>,
 }

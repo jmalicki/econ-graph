@@ -47,6 +47,18 @@ pub enum AppError {
     
     #[error("Unauthorized access")]
     Unauthorized,
+    
+    #[error("Authentication error: {0}")]
+    AuthenticationError(String),
+    
+    #[error("Internal error: {0}")]
+    InternalError(String),
+    
+    #[error("Database error: {0}")]
+    DatabaseError(String),
+    
+    #[error("Validation error: {0}")]
+    ValidationError(String),
 }
 
 impl IntoResponse for AppError {
@@ -116,6 +128,26 @@ impl IntoResponse for AppError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Database connection error",
                 "POOL_ERROR",
+            ),
+            AppError::AuthenticationError(msg) => (
+                StatusCode::UNAUTHORIZED,
+                msg.as_str(),
+                "AUTHENTICATION_ERROR",
+            ),
+            AppError::InternalError(msg) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                msg.as_str(),
+                "INTERNAL_ERROR",
+            ),
+            AppError::DatabaseError(msg) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                msg.as_str(),
+                "DATABASE_ERROR",
+            ),
+            AppError::ValidationError(msg) => (
+                StatusCode::BAD_REQUEST,
+                msg.as_str(),
+                "VALIDATION_ERROR",
             ),
         };
 

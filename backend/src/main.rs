@@ -1,10 +1,10 @@
 use axum::{
     extract::State,
-    http::StatusCode,
     response::{Html, Json},
     routing::{get, post},
     Router,
 };
+use async_graphql::Schema;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use std::sync::Arc;
@@ -33,7 +33,7 @@ use error::AppError;
 
 /// Configure CORS for production use
 fn configure_cors() -> CorsLayer {
-    use tower_http::cors::{Any, CorsLayer};
+    use tower_http::cors::CorsLayer;
     use axum::http::{HeaderValue, Method};
     
     // Get allowed origins from environment variable, default to localhost for development
@@ -114,7 +114,7 @@ async fn graphql_playground() -> Html<String> {
 pub struct AppState {
     pub db_pool: DatabasePool,
     pub config: Arc<Config>,
-    pub schema: graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
+    pub schema: Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
 }
 
 #[tokio::main]
@@ -149,11 +149,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = create_app(state.clone());
 
     // Start the crawler service in the background
-    let crawler_state = AppState {
-        db_pool: db_pool.clone(),
-        config: config.clone(),
-    };
-    tokio::spawn(services::crawler::start_crawler(crawler_state));
+    tokio::spawn(services::crawler::start_crawler());
 
     // Create server address
     let addr = format!("{}:{}", config.server.host, config.server.port);

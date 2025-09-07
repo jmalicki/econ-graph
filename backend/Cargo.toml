@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Web framework
-axum = "0.7"
+axum = "0.7.9"
 tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
 
@@ -13,7 +13,7 @@ tower-http = { version = "0.5", features = ["cors", "trace"] }
 tokio = { version = "1.0", features = ["full"] }
 
 # Database
-diesel = { version = "2.2", features = ["postgres", "chrono", "uuid", "numeric"] }
+diesel = { version = "2.2", features = ["postgres", "chrono", "uuid", "numeric", "serde_json"] }
 diesel-async = { version = "0.5", features = ["postgres", "bb8"] }
 bb8 = "0.8"
 
@@ -23,7 +23,7 @@ serde_json = "1.0"
 
 # GraphQL
 async-graphql = { version = "7.0", features = ["chrono", "uuid", "bigdecimal"] }
-async-graphql-axum = "7.0"
+async-graphql-axum = "7.0.17"
 dataloader = "0.17"
 
 # Date/Time
