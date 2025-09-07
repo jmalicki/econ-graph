@@ -19,6 +19,8 @@ pub struct DataSource {
     pub rate_limit_per_minute: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    #[serde(skip)]
+    pub search_vector: Option<String>,
 }
 
 /// New data source for insertion

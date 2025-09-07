@@ -41,6 +41,7 @@ diesel::table! {
         rate_limit_per_minute -> Int4,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
+        search_vector -> Nullable<Text>,
     }
 }
 
@@ -60,6 +61,7 @@ diesel::table! {
         is_active -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
+        search_vector -> Nullable<Text>,
     }
 }
 
