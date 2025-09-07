@@ -39,7 +39,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload Rust audit results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: rust-security-audit
         path: backend/rust-audit.json
@@ -59,7 +59,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload npm audit results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: npm-security-audit
         path: frontend/npm-audit.json
@@ -67,6 +67,10 @@ jobs:
   dependency-check:
     name: Dependency Vulnerability Check
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
     steps:
     - name: Checkout code
@@ -81,7 +85,7 @@ jobs:
         output: 'trivy-results.sarif'
 
     - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
@@ -158,14 +162,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript', 'typescript' ]
+        language: [ 'javascript' ]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
 
@@ -185,7 +189,7 @@ jobs:
       working-directory: frontend
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
 
   license-check:
     name: License Compliance Check
@@ -231,7 +235,7 @@ jobs:
       working-directory: frontend
 
     - name: Upload license reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: license-reports
         path: |
@@ -241,6 +245,10 @@ jobs:
   docker-security-scan:
     name: Docker Image Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
     steps:
     - name: Checkout code
@@ -252,7 +260,7 @@ jobs:
     - name: Build backend image for scanning
       uses: docker/build-push-action@v5
       with:
-        context: ./backend
+        context: .
         file: ./backend/Dockerfile
         load: true
         tags: econ-graph-backend:scan
@@ -282,14 +290,14 @@ jobs:
         output: 'frontend-trivy.sarif'
 
     - name: Upload backend scan results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: 'backend-trivy.sarif'
         category: 'backend-docker'
 
     - name: Upload frontend scan results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: 'frontend-trivy.sarif'

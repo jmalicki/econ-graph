@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy manifests
-COPY Cargo.toml Cargo.lock ./
+COPY backend/Cargo.toml backend/Cargo.lock ./
 
 # Copy source code
-COPY src ./src
-COPY diesel.toml ./
-COPY migrations ./migrations
+COPY backend/src ./src
+COPY backend/diesel.toml ./
+COPY backend/migrations ./migrations
 
 # Build application
 RUN cargo build --release
