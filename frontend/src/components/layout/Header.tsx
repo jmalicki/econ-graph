@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -8,12 +8,26 @@ import {
   InputBase,
   alpha,
   styled,
+  Button,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Search as SearchIcon,
   TrendingUp as TrendingUpIcon,
+  Person as PersonIcon,
+  Settings as SettingsIcon,
+  ExitToApp as ExitToAppIcon,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
+import { useAuth } from '../../contexts/AuthContext';
+import LoginDialog from '../auth/LoginDialog';
+import UserProfile from '../auth/UserProfile';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -63,7 +77,11 @@ interface HeaderProps {
  * This provides quick access to search and navigation, improving on FRED's UX
  */
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const { user, isAuthenticated, signOut } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -78,71 +96,183 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     }
   };
 
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleProfileClick = () => {
+    setProfileOpen(true);
+    handleUserMenuClose();
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    handleUserMenuClose();
+  };
+
   return (
-    <AppBar
-      position="fixed"
-      sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
-      }}
-    >
-      <Toolbar>
-        {/* Menu button for mobile navigation */}
-        <IconButton
-          color="inherit"
-          aria-label="open drawer"
-          edge="start"
-          onClick={onMenuClick}
-          sx={{ mr: 2, display: { sm: 'none' } }}
-        >
-          <MenuIcon />
-        </IconButton>
-
-        {/* Application title and logo */}
-        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 0 }}>
-          <TrendingUpIcon sx={{ mr: 1 }} />
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{
-              fontWeight: 600,
-              letterSpacing: '0.5px',
-            }}
+    <>
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
+        }}
+      >
+        <Toolbar>
+          {/* Menu button for mobile navigation */}
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={onMenuClick}
+            sx={{ mr: 2, display: { sm: 'none' } }}
           >
-            EconGraph
-          </Typography>
-        </Box>
+            <MenuIcon />
+          </IconButton>
 
-        {/* Search functionality */}
-        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-          <Box 
-            component="form"
-            onSubmit={handleSearchSubmit}
-            sx={{ maxWidth: 600, width: '100%' }}
-          >
-            <Search
-              sx={{ width: '100%' }}
+          {/* Application title and logo */}
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 0 }}>
+            <TrendingUpIcon sx={{ mr: 1 }} />
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{
+                fontWeight: 600,
+                letterSpacing: '0.5px',
+              }}
             >
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search economic series..."
-              inputProps={{ 'aria-label': 'search economic series' }}
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            </Search>
+              EconGraph
+            </Typography>
           </Box>
-        </Box>
 
-        {/* Right side actions (placeholder for future features) */}
-        <Box sx={{ flexGrow: 0 }}>
-          {/* Future: User menu, notifications, etc. */}
-        </Box>
-      </Toolbar>
-    </AppBar>
+          {/* Search functionality */}
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+            <Box 
+              component="form"
+              onSubmit={handleSearchSubmit}
+              sx={{ maxWidth: 600, width: '100%' }}
+            >
+              <Search
+                sx={{ width: '100%' }}
+              >
+              <SearchIconWrapper>
+                <SearchIcon />
+              </SearchIconWrapper>
+              <StyledInputBase
+                placeholder="Search economic series..."
+                inputProps={{ 'aria-label': 'search economic series' }}
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+              </Search>
+            </Box>
+          </Box>
+
+          {/* Authentication and user menu */}
+          <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+            {isAuthenticated ? (
+              <>
+                <Button
+                  color="inherit"
+                  startIcon={<AnalyticsIcon />}
+                  href="/analysis"
+                  sx={{ display: { xs: 'none', md: 'flex' } }}
+                >
+                  Professional Analysis
+                </Button>
+                
+                <IconButton
+                  onClick={handleUserMenuOpen}
+                  sx={{ p: 0 }}
+                >
+                  <Avatar 
+                    src={user?.avatar} 
+                    alt={user?.name}
+                    sx={{ width: 32, height: 32 }}
+                  >
+                    {user?.name?.[0]}
+                  </Avatar>
+                </IconButton>
+
+                <Menu
+                  anchorEl={userMenuAnchor}
+                  open={Boolean(userMenuAnchor)}
+                  onClose={handleUserMenuClose}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                >
+                  <MenuItem disabled>
+                    <Box>
+                      <Typography variant="subtitle2">{user?.name}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {user?.email}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem onClick={handleProfileClick}>
+                    <ListItemIcon>
+                      <SettingsIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Profile & Settings</ListItemText>
+                  </MenuItem>
+                  <MenuItem onClick={() => window.location.href = '/analysis'}>
+                    <ListItemIcon>
+                      <AnalyticsIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Professional Analysis</ListItemText>
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem onClick={handleSignOut}>
+                    <ListItemIcon>
+                      <ExitToAppIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Sign Out</ListItemText>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <Button
+                color="inherit"
+                variant="outlined"
+                startIcon={<PersonIcon />}
+                onClick={() => setLoginOpen(true)}
+                sx={{ 
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                  '&:hover': {
+                    borderColor: 'white',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
+              >
+                Sign In
+              </Button>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Login Dialog */}
+      <LoginDialog
+        open={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        onSuccess={() => setLoginOpen(false)}
+      />
+
+      {/* User Profile Dialog */}
+      {user && (
+        <UserProfile
+          open={profileOpen}
+          onClose={() => setProfileOpen(false)}
+        />
+      )}
+    </>
   );
 };
 

@@ -58,6 +58,13 @@ bigdecimal = { version = "0.4", features = ["serde"] }
 # CSV parsing for data feeds
 csv = "1.3"
 
+# Authentication and security
+bcrypt = "0.15"
+jsonwebtoken = "9.2"
+
+# OAuth clients
+oauth2 = "4.4"
+
 # Cron job scheduling
 tokio-cron-scheduler = "0.9"
 
