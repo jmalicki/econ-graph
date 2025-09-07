@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Grid,
   Card,
@@ -14,6 +14,9 @@ import {
   ListItemIcon,
   Button,
   IconButton,
+  Fab,
+  Tooltip,
+  Badge,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -22,16 +25,19 @@ import {
   Update as UpdateIcon,
   Refresh as RefreshIcon,
   OpenInNew as OpenInNewIcon,
+  Groups as CollaborationIcon,
 } from '@mui/icons-material';
+
 import { useNavigate } from 'react-router-dom';
 
 /**
- * REQUIREMENT: Dashboard overview similar to FRED but with modern design
- * PURPOSE: Provide quick access to key economic indicators and recent data
- * This improves on FRED's homepage by showing relevant data upfront
+ * REQUIREMENT: Dashboard overview with Bloomberg Terminal-level collaboration
+ * PURPOSE: Provide quick access to key economic indicators with professional collaboration
+ * This improves on FRED's homepage by adding institutional-grade collaboration features
  */
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [collaborationMode, setCollaborationMode] = useState(false);
 
   // Mock data - in real app this would come from GraphQL queries
   const featuredIndicators = [
@@ -94,6 +100,11 @@ const Dashboard: React.FC = () => {
     },
   ];
 
+  // Collaboration handlers
+  const handleToggleCollaboration = useCallback(() => {
+    setCollaborationMode(!collaborationMode);
+  }, [collaborationMode]);
+
   const getChangeColor = (changeType: 'positive' | 'negative' | 'neutral') => {
     switch (changeType) {
       case 'positive':
@@ -117,14 +128,25 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Box>
-      {/* Page header */}
+    <Box sx={{ position: 'relative' }}>
+      {/* Page header with collaboration info */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Economic Dashboard
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="h4" component="h1">
+            Economic Dashboard
+          </Typography>
+          
+          {/* Collaboration toggle */}
+          <Button
+            variant={collaborationMode ? "contained" : "outlined"}
+            startIcon={<CollaborationIcon />}
+            onClick={handleToggleCollaboration}
+          >
+            {collaborationMode ? 'Collaboration On' : 'Enable Collaboration'}
+          </Button>
+        </Box>
         <Typography variant="body1" color="text.secondary">
-          Key economic indicators and recent data releases
+          Key economic indicators with professional collaboration features
         </Typography>
       </Box>
 
@@ -143,10 +165,14 @@ const Dashboard: React.FC = () => {
                 height: '100%',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease-in-out',
+                position: 'relative',
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: 4,
                 },
+                ...(collaborationMode && {
+                  borderLeft: `4px solid ${collaborationMode ? '#1976d2' : 'transparent'}`,
+                }),
               }}
               onClick={() => navigate(`/series/${indicator.id}`)}
             >
@@ -164,6 +190,17 @@ const Dashboard: React.FC = () => {
                       sx={{ mt: 0.5 }}
                     />
                   </Box>
+                  
+                  {/* Collaboration indicator */}
+                  {collaborationMode && (
+                    <Tooltip title="Collaboration enabled">
+                      <IconButton size="small" sx={{ ml: 1 }}>
+                        <Badge badgeContent="3" color="primary" max={99}>
+                          <CollaborationIcon fontSize="small" />
+                        </Badge>
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
 
                 <Typography variant="h4" component="div" sx={{ mb: 1, fontWeight: 600 }}>
@@ -184,6 +221,24 @@ const Dashboard: React.FC = () => {
                     {indicator.period}
                   </Typography>
                 </Box>
+
+                {/* Collaboration activity indicators */}
+                {collaborationMode && (
+                  <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      label="2 annotations"
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                    />
+                    <Chip
+                      label="1 collaborator"
+                      size="small"
+                      variant="outlined"
+                      color="secondary"
+                    />
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -318,6 +373,30 @@ const Dashboard: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Floating collaboration status */}
+      {collaborationMode && (
+        <Tooltip title="Collaboration Mode Active">
+          <Fab
+            color="primary"
+            sx={{
+              position: 'fixed',
+              bottom: 24,
+              right: 24,
+              zIndex: 1000,
+            }}
+            onClick={handleToggleCollaboration}
+          >
+            <Badge 
+              badgeContent="5" 
+              color="secondary"
+              max={99}
+            >
+              <CollaborationIcon />
+            </Badge>
+          </Fab>
+        </Tooltip>
+      )}
     </Box>
   );
 };
