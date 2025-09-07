@@ -3,8 +3,7 @@ use diesel::SelectableHelper;
 use diesel_async::RunQueryDsl;
 use bigdecimal::BigDecimal;
 use serde_json::Value;
-use chrono::{Datelike, NaiveDate, Utc};
-use std::collections::HashMap;
+use chrono::Datelike;
 
 use crate::{
     database::DatabasePool,
@@ -223,9 +222,9 @@ fn calculate_yoy_changes(data_points: Vec<DataPoint>) -> Vec<TransformedDataPoin
     for data_point in data_points {
         let date = data_point.date;
         let previous_year = date.year() - 1;
-        let key = (previous_year, date.month(), date.day());
+        let _key = (previous_year, date.month(), date.day());
         
-        let transformed_value = if let (Some(ref current_value), Some(previous_value)) = 
+        let transformed_value = if let (Some(ref _current_value), Some(previous_value)) = 
             (&data_point.value, previous_year_values.get(&(previous_year, date.month(), date.day()))) {
             data_point.calculate_yoy_change(Some(previous_value.clone()))
         } else {
@@ -256,7 +255,7 @@ fn calculate_qoq_changes(data_points: Vec<DataPoint>) -> Vec<TransformedDataPoin
     let mut previous_quarter_value: Option<bigdecimal::BigDecimal> = None;
     
     for data_point in data_points {
-        let transformed_value = if let Some(ref current_value) = data_point.value {
+        let transformed_value = if let Some(ref _current_value) = data_point.value {
             data_point.calculate_qoq_change(previous_quarter_value.as_ref())
         } else {
             None
@@ -283,7 +282,7 @@ fn calculate_mom_changes(data_points: Vec<DataPoint>) -> Vec<TransformedDataPoin
     let mut previous_month_value: Option<bigdecimal::BigDecimal> = None;
     
     for data_point in data_points {
-        let transformed_value = if let Some(ref current_value) = data_point.value {
+        let transformed_value = if let Some(ref _current_value) = data_point.value {
             data_point.calculate_mom_change(previous_month_value.as_ref())
         } else {
             None

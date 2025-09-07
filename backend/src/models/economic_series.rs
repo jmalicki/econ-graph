@@ -26,8 +26,6 @@ pub struct EconomicSeries {
     pub is_active: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    #[serde(skip)]
-    pub search_vector: Option<String>,
 }
 
 /// New economic series for insertion

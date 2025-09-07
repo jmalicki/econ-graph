@@ -295,14 +295,14 @@ impl CollaborationService {
     }
 
     /// Check if user has permission to annotate a series
-    async fn check_annotation_permission(&self, user_id: Uuid, series_id: Uuid) -> AppResult<bool> {
+    async fn check_annotation_permission(&self, _user_id: Uuid, _series_id: Uuid) -> AppResult<bool> {
         // For now, allow any authenticated user to annotate
         // In the future, this could check series ownership or collaboration permissions
         Ok(true)
     }
 
     /// Check if user has permission to comment on a series
-    async fn check_comment_permission(&self, user_id: Uuid, series_id: &str) -> AppResult<bool> {
+    async fn check_comment_permission(&self, _user_id: Uuid, _series_id: &str) -> AppResult<bool> {
         // For now, allow any authenticated user to comment
         // In the future, this could check collaboration permissions
         Ok(true)

@@ -347,7 +347,7 @@ pub async fn create_demo_data_for_ui(
         ("DEXUSEU", "U.S. / Euro Foreign Exchange Rate", "U.S. Dollars to One Euro"),
     ];
     
-    for (id, title, units) in series_configs {
+    for (id, title, _units) in series_configs {
         let series = simulate_fred_crawl(
             pool,
             &data_source,

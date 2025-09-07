@@ -406,7 +406,7 @@ pub async fn apply_data_transformation(
     match transform_type {
         DataTransformation::YearOverYear => {
             // For YoY, we need to find the value from exactly one year ago
-            for (i, point) in sorted_points.iter().enumerate() {
+            for (_i, point) in sorted_points.iter().enumerate() {
                 let previous_year_value = sorted_points
                     .iter()
                     .find(|p| {
@@ -427,7 +427,7 @@ pub async fn apply_data_transformation(
         
         DataTransformation::QuarterOverQuarter => {
             // For QoQ, compare with previous quarter (approximately 3 months)
-            for (i, point) in sorted_points.iter().enumerate() {
+            for (_i, point) in sorted_points.iter().enumerate() {
                 let previous_quarter_value = sorted_points
                     .iter()
                     .find(|p| {
@@ -446,7 +446,7 @@ pub async fn apply_data_transformation(
         
         DataTransformation::MonthOverMonth => {
             // For MoM, compare with previous month
-            for (i, point) in sorted_points.iter().enumerate() {
+            for (_i, point) in sorted_points.iter().enumerate() {
                 let previous_month_value = sorted_points
                     .iter()
                     .find(|p| {

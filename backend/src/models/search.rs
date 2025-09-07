@@ -153,7 +153,7 @@ impl SearchParams {
     }
     
     /// Create search parameters for a specific data source
-    pub fn for_source(query: &str, source_id: i32) -> Self {
+    pub fn for_source(query: &str, _source_id: i32) -> Self {
         Self {
             query: query.to_string(),
             source_id: None, // Convert i32 to UUID if needed

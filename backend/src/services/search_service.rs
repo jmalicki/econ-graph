@@ -39,7 +39,7 @@ impl SearchService {
             AppError::Validation(format!("Invalid search parameters: {}", e))
         })?;
         
-        let conn = self.pool.get().await.map_err(|e| {
+        let _conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
             AppError::ExternalApiError(format!("Connection error: {}", e))
         })?;
