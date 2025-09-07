@@ -36,7 +36,7 @@ import {
   Settings as SettingsIcon,
   Fullscreen as FullscreenIcon,
   GetApp as ExportIcon,
-  Annotations as AnnotationsIcon,
+  Note as AnnotationsIcon,
 } from '@mui/icons-material';
 import {
   Chart as ChartJS,
@@ -371,7 +371,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
     }
 
     // Custom annotations
-    annotations.forEach((annotation, index) => {
+    annotations.forEach((annotation: any, index: number) => {
       annotations[`custom${index}`] = {
         type: annotation.type,
         xMin: annotation.date,

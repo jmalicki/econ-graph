@@ -41,7 +41,7 @@ impl SearchService {
         
         let conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
-            AppError::ExternalApi(format!("Connection error: {}", e))
+            AppError::ExternalApiError(format!("Connection error: {}", e))
         })?;
         
         let search_query = params.query.clone();
@@ -54,7 +54,7 @@ impl SearchService {
         
         let mut conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
-            AppError::ExternalApi(format!("Connection error: {}", e))
+            AppError::ExternalApiError(format!("Connection error: {}", e))
         })?;
 
         let results = diesel::sql_query(
@@ -81,7 +81,7 @@ impl SearchService {
         .await
         .map_err(|e| {
             error!("Search query execution failed: {}", e);
-            AppError::ExternalApi(format!("Query execution error: {}", e))
+            AppError::ExternalApiError(format!("Query execution error: {}", e))
         })?;
         
         let execution_time = start_time.elapsed();
@@ -107,7 +107,7 @@ impl SearchService {
         
         let mut conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
-            AppError::ExternalApi(format!("Connection error: {}", e))
+            AppError::ExternalApiError(format!("Connection error: {}", e))
         })?;
         
         let query = partial_query.to_lowercase().trim().to_string();
@@ -126,7 +126,7 @@ impl SearchService {
         .await
         .map_err(|e| {
             error!("Suggestions query execution failed: {}", e);
-            AppError::ExternalApi(format!("Query execution error: {}", e))
+            AppError::ExternalApiError(format!("Query execution error: {}", e))
         })?;
         
         let search_suggestions: Vec<SearchSuggestion> = suggestions

@@ -30,7 +30,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 
-import InteractiveChart from '../components/charts/InteractiveChart';
+import InteractiveChartWithCollaboration from '../components/charts/InteractiveChartWithCollaboration';
 
 interface SeriesData {
   id: string;
@@ -240,9 +240,10 @@ const SeriesDetail: React.FC = () => {
       <Grid container spacing={3}>
         {/* Chart */}
         <Grid item xs={12} lg={8}>
-          <InteractiveChart
+          <InteractiveChartWithCollaboration
             data={seriesData.dataPoints}
-            title={seriesData.title}
+            seriesId={seriesData.id}
+            seriesTitle={seriesData.title}
             units={seriesData.units}
             frequency={seriesData.frequency}
           />

@@ -245,6 +245,81 @@ export const QUERIES = {
       }
     }
   `,
+
+  // Collaboration queries
+  GET_ANNOTATIONS_FOR_SERIES: `
+    query GetAnnotationsForSeries($seriesId: String!, $userId: ID) {
+      annotationsForSeries(seriesId: $seriesId, userId: $userId) {
+        id
+        userId
+        seriesId
+        chartId
+        annotationDate
+        annotationValue
+        title
+        description
+        color
+        annotationType
+        isVisible
+        isPinned
+        tags
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  GET_COMMENTS_FOR_ANNOTATION: `
+    query GetCommentsForAnnotation($annotationId: ID!) {
+      commentsForAnnotation(annotationId: $annotationId) {
+        id
+        annotationId
+        userId
+        content
+        isResolved
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  GET_CHART_COLLABORATORS: `
+    query GetChartCollaborators($chartId: ID!) {
+      chartCollaborators(chartId: $chartId) {
+        id
+        chartId
+        userId
+        invitedBy
+        role
+        permissions
+        createdAt
+        lastAccessedAt
+      }
+    }
+  `,
+
+  GET_USER: `
+    query GetUser($userId: ID!) {
+      user(userId: $userId) {
+        id
+        email
+        name
+        avatarUrl
+        provider
+        role
+        organization
+        theme
+        defaultChartType
+        notificationsEnabled
+        collaborationEnabled
+        isActive
+        emailVerified
+        createdAt
+        updatedAt
+        lastLoginAt
+      }
+    }
+  `,
 };
 
 // Common GraphQL mutations
@@ -258,6 +333,64 @@ export const MUTATIONS = {
         lastCrawl
         nextScheduledCrawl
       }
+    }
+  `,
+
+  // Collaboration mutations
+  CREATE_ANNOTATION: `
+    mutation CreateAnnotation($input: CreateAnnotationInput!) {
+      createAnnotation(input: $input) {
+        id
+        userId
+        seriesId
+        chartId
+        annotationDate
+        annotationValue
+        title
+        description
+        color
+        annotationType
+        isVisible
+        isPinned
+        tags
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  ADD_COMMENT: `
+    mutation AddComment($input: AddCommentInput!) {
+      addComment(input: $input) {
+        id
+        annotationId
+        userId
+        content
+        isResolved
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  SHARE_CHART: `
+    mutation ShareChart($input: ShareChartInput!) {
+      shareChart(input: $input) {
+        id
+        chartId
+        userId
+        invitedBy
+        role
+        permissions
+        createdAt
+        lastAccessedAt
+      }
+    }
+  `,
+
+  DELETE_ANNOTATION: `
+    mutation DeleteAnnotation($input: DeleteAnnotationInput!) {
+      deleteAnnotation(input: $input)
     }
   `,
 };
@@ -338,4 +471,111 @@ export interface SearchSeriesResponse {
     query: string;
     tookMs: number;
   };
+}
+
+// Collaboration types
+export interface ChartAnnotationType {
+  id: string;
+  userId: string;
+  seriesId?: string;
+  chartId?: string;
+  annotationDate: string;
+  annotationValue?: number;
+  title: string;
+  description?: string;
+  color?: string;
+  annotationType?: string;
+  isVisible?: boolean;
+  isPinned?: boolean;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AnnotationCommentType {
+  id: string;
+  annotationId: string;
+  userId: string;
+  content: string;
+  isResolved?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ChartCollaboratorType {
+  id: string;
+  chartId: string;
+  userId: string;
+  invitedBy?: string;
+  role?: string;
+  permissions?: string;
+  createdAt?: string;
+  lastAccessedAt?: string;
+}
+
+export interface UserType {
+  id: string;
+  email: string;
+  name: string;
+  avatarUrl?: string;
+  provider: string;
+  role: string;
+  organization?: string;
+  theme?: string;
+  defaultChartType?: string;
+  notificationsEnabled?: boolean;
+  collaborationEnabled?: boolean;
+  isActive?: boolean;
+  emailVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string;
+}
+
+// Collaboration input types
+export interface CreateAnnotationInput {
+  userId: string;
+  seriesId: string;
+  annotationDate: string;
+  annotationValue?: number;
+  title: string;
+  content: string;
+  annotationType: string;
+  color?: string;
+  isPublic?: boolean;
+}
+
+export interface AddCommentInput {
+  userId: string;
+  annotationId: string;
+  content: string;
+}
+
+export interface ShareChartInput {
+  ownerUserId: string;
+  targetUserId: string;
+  chartId: string;
+  permissionLevel: string;
+}
+
+export interface DeleteAnnotationInput {
+  userId: string;
+  annotationId: string;
+}
+
+// Response types
+export interface AnnotationsForSeriesResponse {
+  annotationsForSeries: ChartAnnotationType[];
+}
+
+export interface CommentsForAnnotationResponse {
+  commentsForAnnotation: AnnotationCommentType[];
+}
+
+export interface ChartCollaboratorsResponse {
+  chartCollaborators: ChartCollaboratorType[];
+}
+
+export interface UserResponse {
+  user: UserType | null;
 }

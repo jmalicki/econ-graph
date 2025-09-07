@@ -94,7 +94,7 @@ impl CollaborationService {
 
         // Check if user has permission to annotate this series
         if !self.check_annotation_permission(user_id, series_id).await? {
-            return Err(AppError::Unauthorized);
+            return Err(AppError::Unauthorized("Unauthorized".to_string()));
         }
 
         let new_annotation = NewChartAnnotation {
@@ -176,14 +176,14 @@ impl CollaborationService {
         // Check permission to comment on this series
         if let Some(series_id) = &annotation.series_id {
             if !self.check_comment_permission(user_id, series_id).await? {
-                return Err(AppError::Unauthorized);
+                return Err(AppError::Unauthorized("Unauthorized".to_string()));
             }
         } else if let Some(chart_id) = annotation.chart_id {
             if !self.check_admin_permission(user_id, chart_id).await? {
-                return Err(AppError::Unauthorized);
+                return Err(AppError::Unauthorized("Unauthorized".to_string()));
             }
         } else {
-            return Err(AppError::Unauthorized);
+            return Err(AppError::Unauthorized("Unauthorized".to_string()));
         }
 
         let new_comment = NewAnnotationComment {
@@ -232,7 +232,7 @@ impl CollaborationService {
 
         // Check if the owner has admin permission on this chart
         if !self.check_admin_permission(owner_user_id, chart_id).await? {
-            return Err(AppError::Unauthorized);
+            return Err(AppError::Unauthorized("Unauthorized".to_string()));
         }
 
         // Check if collaboration already exists
@@ -354,10 +354,10 @@ impl CollaborationService {
             // If not owner, check admin permission
             if let Some(chart_id) = annotation.chart_id {
                 if !self.check_admin_permission(user_id, chart_id).await? {
-                    return Err(AppError::Unauthorized);
+                    return Err(AppError::Unauthorized("Unauthorized".to_string()));
                 }
             } else {
-                return Err(AppError::Unauthorized);
+                return Err(AppError::Unauthorized("Unauthorized".to_string()));
             }
         }
 

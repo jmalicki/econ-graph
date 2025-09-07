@@ -83,7 +83,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
       preferences: {
         ...prev.preferences,
         [preference]: event.target.checked,
-      },
+      } as User['preferences'],
     }));
   }, []);
 
@@ -95,7 +95,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
         preferences: {
           ...prev.preferences,
           [prefField]: event.target.value,
-        },
+        } as User['preferences'],
       }));
     } else {
       setFormData(prev => ({

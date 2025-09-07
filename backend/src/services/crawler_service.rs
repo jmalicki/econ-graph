@@ -118,7 +118,7 @@ impl CrawlerService {
     /// Fetch FRED series metadata
     async fn fetch_fred_series_metadata(&self, series_id: &str) -> AppResult<FredSeries> {
         let api_key = self.fred_api_key.as_ref()
-            .ok_or_else(|| AppError::ExternalApi("FRED API key not configured".to_string()))?;
+            .ok_or_else(|| AppError::ExternalApiError("FRED API key not configured".to_string()))?;
 
         let url = format!(
             "https://api.stlouisfed.org/fred/series?series_id={}&api_key={}&file_type=json",
@@ -129,10 +129,10 @@ impl CrawlerService {
             .get(&url)
             .send()
             .await
-            .map_err(|e| AppError::ExternalApi(format!("FRED API request failed: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("FRED API request failed: {}", e)))?;
 
         if !response.status().is_success() {
-            return Err(AppError::ExternalApi(format!(
+            return Err(AppError::ExternalApiError(format!(
                 "FRED API returned status: {}", 
                 response.status()
             )));
@@ -141,18 +141,18 @@ impl CrawlerService {
         let fred_response: FredSeriesResponse = response
             .json()
             .await
-            .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED response: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("Failed to parse FRED response: {}", e)))?;
 
         fred_response.seriess
             .into_iter()
             .next()
-            .ok_or_else(|| AppError::ExternalApi("No series found in FRED response".to_string()))
+            .ok_or_else(|| AppError::ExternalApiError("No series found in FRED response".to_string()))
     }
 
     /// Fetch FRED observations
     async fn fetch_fred_observations(&self, series_id: &str) -> AppResult<Vec<FredObservation>> {
         let api_key = self.fred_api_key.as_ref()
-            .ok_or_else(|| AppError::ExternalApi("FRED API key not configured".to_string()))?;
+            .ok_or_else(|| AppError::ExternalApiError("FRED API key not configured".to_string()))?;
 
         let url = format!(
             "https://api.stlouisfed.org/fred/series/observations?series_id={}&api_key={}&file_type=json&realtime_start=1776-07-04&realtime_end=9999-12-31",
@@ -163,10 +163,10 @@ impl CrawlerService {
             .get(&url)
             .send()
             .await
-            .map_err(|e| AppError::ExternalApi(format!("FRED observations request failed: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("FRED observations request failed: {}", e)))?;
 
         if !response.status().is_success() {
-            return Err(AppError::ExternalApi(format!(
+            return Err(AppError::ExternalApiError(format!(
                 "FRED observations API returned status: {}", 
                 response.status()
             )));
@@ -175,7 +175,7 @@ impl CrawlerService {
         let fred_response: FredObservationsResponse = response
             .json()
             .await
-            .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED observations: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("Failed to parse FRED observations: {}", e)))?;
 
         Ok(fred_response.observations)
     }
@@ -196,10 +196,10 @@ impl CrawlerService {
             .json(&request_body)
             .send()
             .await
-            .map_err(|e| AppError::ExternalApi(format!("BLS API request failed: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("BLS API request failed: {}", e)))?;
 
         if !response.status().is_success() {
-            return Err(AppError::ExternalApi(format!(
+            return Err(AppError::ExternalApiError(format!(
                 "BLS API returned status: {}", 
                 response.status()
             )));
@@ -208,10 +208,10 @@ impl CrawlerService {
         let bls_response: BlsResponse = response
             .json()
             .await
-            .map_err(|e| AppError::ExternalApi(format!("Failed to parse BLS response: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("Failed to parse BLS response: {}", e)))?;
 
         if bls_response.status != "REQUEST_SUCCEEDED" {
-            return Err(AppError::ExternalApi(format!(
+            return Err(AppError::ExternalApiError(format!(
                 "BLS API error: {}", 
                 bls_response.message.join(", ")
             )));
@@ -234,7 +234,7 @@ impl CrawlerService {
                     units: Some(fred_series.units.clone()),
                     seasonal_adjustment: Some(fred_series.seasonal_adjustment.clone()),
                     last_updated: Some(DateTime::parse_from_str(&fred_series.last_updated, "%Y-%m-%d %H:%M:%S%z")
-                        .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED last_updated: {}", e)))?
+                        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse FRED last_updated: {}", e)))?
                         .with_timezone(&Utc)),
                     updated_at: Utc::now(),
                     ..Default::default()
@@ -253,9 +253,9 @@ impl CrawlerService {
                     frequency: fred_series.frequency.clone(),
                     seasonal_adjustment: Some(fred_series.seasonal_adjustment.clone()),
                     start_date: Some(NaiveDate::parse_from_str(&fred_series.observation_start, "%Y-%m-%d")
-                        .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED start date: {}", e)))?),
+                        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse FRED start date: {}", e)))?),
                     end_date: Some(NaiveDate::parse_from_str(&fred_series.observation_end, "%Y-%m-%d")
-                        .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED end date: {}", e)))?),
+                        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse FRED end date: {}", e)))?),
                     is_active: true,
                 };
                 
@@ -310,16 +310,16 @@ impl CrawlerService {
             if obs.value != "." {  // FRED uses "." for missing values
                 if let Ok(value) = obs.value.parse::<f64>() {
                     let date = NaiveDate::parse_from_str(&obs.date, "%Y-%m-%d")
-                        .map_err(|e| AppError::ExternalApi(format!("Failed to parse observation date: {}", e)))?;
+                        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse observation date: {}", e)))?;
                     
                     let revision_date = NaiveDate::parse_from_str(&obs.realtime_end, "%Y-%m-%d")
-                        .map_err(|e| AppError::ExternalApi(format!("Failed to parse revision date: {}", e)))?;
+                        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse revision date: {}", e)))?;
                     
                     let data_point = NewDataPoint {
                         series_id: economic_series.id,
                         date,
                         value: Some(BigDecimal::from_f64(value).ok_or_else(|| {
-                            AppError::ExternalApi(format!("Failed to convert value to BigDecimal: {}", value))
+                            AppError::ExternalApiError(format!("Failed to convert value to BigDecimal: {}", value))
                         })?),
                         revision_date,
                         is_original_release: obs.realtime_start == obs.realtime_end,
@@ -367,7 +367,7 @@ impl CrawlerService {
                         series_id: economic_series.id,
                         date,
                         value: Some(BigDecimal::from_f64(value).ok_or_else(|| {
-                            AppError::ExternalApi(format!("Failed to convert BLS value to BigDecimal: {}", value))
+                            AppError::ExternalApiError(format!("Failed to convert BLS value to BigDecimal: {}", value))
                         })?),
                         revision_date: date, // BLS typically doesn't revise historical data
                         is_original_release: true,
@@ -390,7 +390,7 @@ impl CrawlerService {
     /// Parse BLS date from year and period
     fn parse_bls_date(&self, year: &str, period: &str) -> AppResult<NaiveDate> {
         let year_num: i32 = year.parse()
-            .map_err(|e| AppError::ExternalApi(format!("Failed to parse BLS year: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("Failed to parse BLS year: {}", e)))?;
             
         // Handle different period formats
         let date = match period {
@@ -415,7 +415,7 @@ impl CrawlerService {
             _ => NaiveDate::from_ymd_opt(year_num, 12, 31),     // Annual data
         };
         
-        date.ok_or_else(|| AppError::ExternalApi(format!("Invalid BLS date: {} {}", year, period)))
+        date.ok_or_else(|| AppError::ExternalApiError(format!("Invalid BLS date: {} {}", year, period)))
     }
 
     /// Schedule FRED crawl by adding to queue
@@ -458,7 +458,7 @@ impl CrawlerService {
                 let result = match item.source.as_str() {
                     "FRED" => self.crawl_fred_series(pool, &item.series_id).await,
                     "BLS" => self.crawl_bls_series(pool, &item.series_id).await,
-                    _ => Err(AppError::ExternalApi(format!("Unknown source: {}", item.source))),
+                    _ => Err(AppError::ExternalApiError(format!("Unknown source: {}", item.source))),
                 };
                 
                 match result {
@@ -484,7 +484,7 @@ impl CrawlerService {
         match source.to_uppercase().as_str() {
             "FRED" => self.crawl_fred_series(pool, series_id).await,
             "BLS" => self.crawl_bls_series(pool, series_id).await,
-            _ => Err(AppError::ExternalApi(format!("Unknown source: {}", source))),
+            _ => Err(AppError::ExternalApiError(format!("Unknown source: {}", source))),
         }
     }
 }

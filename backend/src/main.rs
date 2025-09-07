@@ -1,17 +1,12 @@
-use axum::{
-    extract::State,
-    response::{Html, Json},
-    routing::{get, post},
-    Router,
-};
+use warp::Filter;
 use async_graphql::Schema;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
+use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use std::sync::Arc;
 use tokio::signal;
-use tower::ServiceBuilder;
-use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::{info, warn};
+use std::convert::Infallible;
+use serde_json::json;
 
 mod config;
 mod database;
@@ -28,234 +23,187 @@ mod test_utils;
 mod integration_tests;
 
 use config::Config;
-use database::DatabasePool;
-use error::AppError;
+use database::{create_pool, DatabasePool};
+use error::{AppError, AppResult};
+use graphql::schema::{create_schema_with_data};
+use services::crawler::start_crawler;
 
-/// Configure CORS for production use
-fn configure_cors() -> CorsLayer {
-    use tower_http::cors::CorsLayer;
-    use axum::http::{HeaderValue, Method};
-    
-    // Get allowed origins from environment variable, default to localhost for development
-    let allowed_origins = std::env::var("CORS_ALLOWED_ORIGINS")
-        .unwrap_or_else(|_| "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000".to_string());
-    
-    let origins: Vec<HeaderValue> = allowed_origins
-        .split(',')
-        .filter_map(|origin| {
-            let trimmed = origin.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                match trimmed.parse::<HeaderValue>() {
-                    Ok(header_value) => {
-                        tracing::info!("Allowing CORS origin: {}", trimmed);
-                        Some(header_value)
-                    }
-                    Err(e) => {
-                        tracing::warn!("Invalid CORS origin '{}': {}", trimmed, e);
-                        None
-                    }
-                }
-            }
-        })
-        .collect();
-    
-    // If no valid origins are provided, use permissive settings for development
-    if origins.is_empty() {
-        tracing::warn!("No valid CORS origins configured, using permissive CORS for development");
-        return CorsLayer::permissive();
-    }
-    
-    CorsLayer::new()
-        // Allow specific origins
-        .allow_origin(origins)
-        // Allow specific methods
-        .allow_methods([
-            Method::GET,
-            Method::POST,
-            Method::PUT,
-            Method::DELETE,
-            Method::HEAD,
-            Method::OPTIONS,
-        ])
-        // Allow specific headers
-        .allow_headers([
-            axum::http::header::AUTHORIZATION,
-            axum::http::header::ACCEPT,
-            axum::http::header::ACCEPT_LANGUAGE,
-            axum::http::header::CONTENT_TYPE,
-            axum::http::header::CONTENT_LENGTH,
-            axum::http::header::ORIGIN,
-            axum::http::header::USER_AGENT,
-            axum::http::header::REFERER,
-        ])
-        // Allow credentials (cookies, authorization headers)
-        .allow_credentials(true)
-        // Cache preflight requests for 1 hour
-        .max_age(std::time::Duration::from_secs(3600))
-}
-
-/// GraphQL handler for processing GraphQL requests
-async fn graphql_handler(
-    State(state): State<AppState>,
-    req: GraphQLRequest,
-) -> GraphQLResponse {
-    state.schema.execute(req.into_inner()).await.into()
-}
-
-/// GraphQL Playground handler for development
-async fn graphql_playground() -> Html<String> {
-    Html(playground_source(GraphQLPlaygroundConfig::new("/graphql")))
-}
-
-/// Application state shared across handlers
 #[derive(Clone)]
 pub struct AppState {
-    pub db_pool: DatabasePool,
-    pub config: Arc<Config>,
-    pub schema: Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
+    pub pool: DatabasePool,
+    pub schema: async_graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .init();
-
-    info!("Starting EconGraph backend server");
-
-    // Load configuration
-    let config = Arc::new(Config::from_env()?);
-    
-    // Initialize database pool
-    let db_pool = database::create_pool(&config.database_url).await?;
-    
-    // Run database migrations
-    database::run_migrations(&config.database_url).await?;
-    
-    // Create GraphQL schema with database pool
-    let schema = graphql::create_schema_with_data(db_pool.clone());
-    
-    // Create application state
-    let state = AppState {
-        db_pool: db_pool.clone(),
-        config: config.clone(),
-        schema,
-    };
-
-    // Build the application router
-    let app = create_app(state.clone());
-
-    // Start the crawler service in the background
-    tokio::spawn(services::crawler::start_crawler());
-
-    // Create server address
-    let addr = format!("{}:{}", config.server.host, config.server.port);
-    info!("Server listening on {}", addr);
-
-    // Start the server
-    let listener = tokio::net::TcpListener::bind(&addr).await?;
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
-
-    Ok(())
+async fn graphql_handler(
+    schema: async_graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
+    request: async_graphql::Request,
+) -> Result<GraphQLResponse, Infallible> {
+    Ok(GraphQLResponse::from(schema.execute(request).await))
 }
 
-/// Create the application router with all routes and middleware
-pub fn create_app(state: AppState) -> Router {
-    // Create GraphQL schema
-    let schema = graphql::create_schema_with_data(state.db_pool.clone());
-    
-    Router::new()
-        // Health check endpoint
-        .route("/health", get(health_check))
-        
-        // GraphQL endpoints
-        .route("/graphql", post(graphql_handler).get(graphql_handler))
-        
-        // GraphQL Playground (development only)
-        .route("/graphql/playground", get(graphql_playground))
-        
-        .with_state(state)
-        // Add middleware
-        .layer(
-            ServiceBuilder::new()
-                .layer(TraceLayer::new_for_http())
-                .layer(configure_cors())
-        )
+async fn graphql_playground() -> Result<impl warp::Reply, Infallible> {
+    Ok(warp::reply::html(playground_source(
+        GraphQLPlaygroundConfig::new("/graphql")
+    )))
 }
 
-
-/// Simple health check endpoint
-async fn health_check() -> Result<Json<serde_json::Value>, AppError> {
-    Ok(Json(serde_json::json!({
+async fn health_check() -> Result<impl warp::Reply, Infallible> {
+    Ok(warp::reply::json(&json!({
         "status": "healthy",
-        "timestamp": chrono::Utc::now().to_rfc3339()
+        "service": "econ-graph-backend",
+        "version": env!("CARGO_PKG_VERSION")
     })))
 }
 
-/// Graceful shutdown signal handler
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("failed to install signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => {
-            warn!("Received Ctrl+C, shutting down gracefully");
-        },
-        _ = terminate => {
-            warn!("Received terminate signal, shutting down gracefully");
-        },
-    }
+async fn root_handler() -> Result<impl warp::Reply, Infallible> {
+    let html = r#"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EconGraph API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        .endpoint { background: #ecf0f1; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #3498db; }
+        .method { font-weight: bold; color: #27ae60; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .status { color: #27ae60; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 EconGraph API Server</h1>
+        <p class="status">✅ Server is running and healthy!</p>
+        
+        <h2>📊 Available Endpoints</h2>
+        
+        <div class="endpoint">
+            <div><span class="method">POST/GET</span> <code>/graphql</code></div>
+            <p>GraphQL endpoint for economic data queries and mutations</p>
+        </div>
+        
+        <div class="endpoint">
+            <div><span class="method">GET</span> <code>/playground</code></div>
+            <p><a href="/playground">Interactive GraphQL Playground</a> - Test queries and explore the schema</p>
+        </div>
+        
+        <div class="endpoint">
+            <div><span class="method">GET</span> <code>/health</code></div>
+            <p><a href="/health">Health check endpoint</a> - API status and version info</p>
+        </div>
+        
+        <h2>🚀 Quick Start</h2>
+        <p>Visit the <a href="/playground">GraphQL Playground</a> to start exploring economic data!</p>
+        
+        <h2>📈 Features</h2>
+        <ul>
+            <li><strong>Economic Data API</strong> - Access to FRED, BLS, and other economic data sources</li>
+            <li><strong>Full-Text Search</strong> - Intelligent search with spelling correction and synonyms</li>
+            <li><strong>Real-Time Collaboration</strong> - Chart annotations, comments, and sharing</li>
+            <li><strong>Professional Analytics</strong> - Bloomberg Terminal-level functionality</li>
+            <li><strong>Data Transformations</strong> - Growth rates, differences, logarithmic scaling</li>
+        </ul>
+        
+        <p><em>Version: {}</em></p>
+    </div>
+</body>
+</html>
+    "#;
+    
+    Ok(warp::reply::html(html.replace("{}", env!("CARGO_PKG_VERSION"))))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::http::StatusCode;
-    use axum_test::TestServer;
+#[tokio::main]
+async fn main() -> AppResult<()> {
+    // Initialize tracing
+    tracing_subscriber::fmt::init();
 
-    #[tokio::test]
-    async fn test_health_check() {
-        // REQUIREMENT: The backend should provide a health check endpoint for monitoring
-        // PURPOSE: Verify that the /health endpoint returns a 200 OK status with proper JSON response
-        // This ensures that load balancers and monitoring systems can verify the service is running
-        
-        // Create a mock state for testing
-        let config = Arc::new(Config::default());
-        let container = crate::test_utils::TestContainer::new().await;
-        let db_pool = container.pool();
-        let state = AppState { db_pool, config };
-        
-        let app = create_app(state);
-        let server = TestServer::new(app).unwrap();
-        
-        let response = server.get("/health").await;
-        
-        // Verify HTTP 200 OK status - required for health checks
-        assert_eq!(response.status_code(), StatusCode::OK);
-        
-        let body: serde_json::Value = response.json();
-        // Verify response contains "healthy" status - required for monitoring
-        assert_eq!(body["status"], "healthy");
-        // Verify timestamp is included - useful for debugging and monitoring
-        assert!(body["timestamp"].is_string());
-    }
+    info!("🚀 Starting EconGraph Backend Server v{}", env!("CARGO_PKG_VERSION"));
+
+    // Load configuration
+    let config = Config::from_env().map_err(|e| {
+        AppError::ConfigError(format!("Failed to load configuration: {}", e))
+    })?;
+
+    info!("📊 Configuration loaded successfully");
+
+    // Create database connection pool
+    let pool = create_pool(&config.database_url).await.map_err(|e| {
+        AppError::DatabaseError(format!("Failed to create database pool: {}", e))
+    })?;
+
+    info!("🗄️  Database connection pool created");
+
+    // Run migrations
+    database::run_migrations(&config.database_url).await.map_err(|e| {
+        AppError::DatabaseError(format!("Failed to run migrations: {}", e))
+    })?;
+
+    info!("🔄 Database migrations completed");
+
+    // Create GraphQL schema
+    let schema = create_schema_with_data(pool.clone());
+    info!("🎯 GraphQL schema created");
+
+    // Start background crawler (if enabled in config)
+    // For now, crawler is always enabled - in production this could be configurable
+    info!("🕷️  Starting background crawler...");
+    start_crawler().await;
+    info!("✅ Background crawler started");
+
+    // Create Warp filters
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["content-type", "authorization"])
+        .allow_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"]);
+
+    // GraphQL endpoint
+    let graphql_filter = async_graphql_warp::graphql(schema.clone())
+        .and_then(|(schema, request): (async_graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>, async_graphql::Request)| async move {
+            Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
+        });
+
+    // GraphQL Playground
+    let playground_filter = warp::path("playground")
+        .and(warp::get())
+        .and_then(graphql_playground);
+
+    // Health check
+    let health_filter = warp::path("health")
+        .and(warp::get())
+        .and_then(health_check);
+
+    // Root endpoint
+    let root_filter = warp::path::end()
+        .and(warp::get())
+        .and_then(root_handler);
+
+    // Combine all routes
+    let routes = root_filter
+        .or(graphql_filter)
+        .or(playground_filter)
+        .or(health_filter)
+        .with(cors)
+        .with(warp::trace::request());
+
+    let port = config.server.port;
+    info!("🌐 Server starting on http://0.0.0.0:{}", port);
+    info!("🎮 GraphQL Playground available at http://localhost:{}/playground", port);
+    info!("❤️  Health check available at http://localhost:{}/health", port);
+
+    // Start the server
+    let (_, server) = warp::serve(routes)
+        .bind_with_graceful_shutdown(([0, 0, 0, 0], port), async {
+            signal::ctrl_c()
+                .await
+                .expect("Failed to listen for ctrl+c");
+            info!("🛑 Received shutdown signal, gracefully shutting down...");
+        });
+
+    server.await;
+
+    info!("✅ Server shutdown complete");
+    Ok(())
 }

@@ -138,10 +138,10 @@ pub async fn crawl_fred_series(
         .get(&series_url)
         .send()
         .await
-        .map_err(|e| AppError::ExternalApi(format!("FRED API request failed: {}", e)))?;
+        .map_err(|e| AppError::ExternalApiError(format!("FRED API request failed: {}", e)))?;
     
     if !series_response.status().is_success() {
-        return Err(AppError::ExternalApi(format!(
+        return Err(AppError::ExternalApiError(format!(
             "FRED API returned status: {}", 
             series_response.status()
         )));
@@ -150,7 +150,7 @@ pub async fn crawl_fred_series(
     let series_data: FredSeriesResponse = series_response
         .json()
         .await
-        .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED series response: {}", e)))?;
+        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse FRED series response: {}", e)))?;
     
     let fred_series = series_data.seriess
         .into_iter()
@@ -188,10 +188,10 @@ pub async fn crawl_fred_series(
         .get(&observations_url)
         .send()
         .await
-        .map_err(|e| AppError::ExternalApi(format!("FRED observations request failed: {}", e)))?;
+        .map_err(|e| AppError::ExternalApiError(format!("FRED observations request failed: {}", e)))?;
     
     if !obs_response.status().is_success() {
-        return Err(AppError::ExternalApi(format!(
+        return Err(AppError::ExternalApiError(format!(
             "FRED observations API returned status: {}", 
             obs_response.status()
         )));
@@ -200,7 +200,7 @@ pub async fn crawl_fred_series(
     let obs_data: FredObservationsResponse = obs_response
         .json()
         .await
-        .map_err(|e| AppError::ExternalApi(format!("Failed to parse FRED observations response: {}", e)))?;
+        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse FRED observations response: {}", e)))?;
     
     // Process observations and store in database
     let mut processed_count = 0;
@@ -224,10 +224,10 @@ pub async fn crawl_fred_series(
         };
         
         let date = NaiveDate::parse_from_str(&observation.date, "%Y-%m-%d")
-            .map_err(|e| AppError::ExternalApi(format!("Invalid date format: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("Invalid date format: {}", e)))?;
         
         let revision_date = NaiveDate::parse_from_str(&observation.realtime_start, "%Y-%m-%d")
-            .map_err(|e| AppError::ExternalApi(format!("Invalid revision date format: {}", e)))?;
+            .map_err(|e| AppError::ExternalApiError(format!("Invalid revision date format: {}", e)))?;
         
         // Track date range for series metadata
         match min_date {
@@ -371,10 +371,10 @@ pub async fn crawl_bls_series(
         .json(&request_data)
         .send()
         .await
-        .map_err(|e| AppError::ExternalApi(format!("BLS API request failed: {}", e)))?;
+        .map_err(|e| AppError::ExternalApiError(format!("BLS API request failed: {}", e)))?;
     
     if !response.status().is_success() {
-        return Err(AppError::ExternalApi(format!(
+        return Err(AppError::ExternalApiError(format!(
             "BLS API returned status: {}", 
             response.status()
         )));
@@ -383,17 +383,17 @@ pub async fn crawl_bls_series(
     let bls_response: BlsResponse = response
         .json()
         .await
-        .map_err(|e| AppError::ExternalApi(format!("Failed to parse BLS response: {}", e)))?;
+        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse BLS response: {}", e)))?;
     
     if bls_response.status != "REQUEST_SUCCEEDED" {
         let error_msg = bls_response.message
             .map(|msgs| msgs.join(", "))
             .unwrap_or_else(|| "Unknown BLS API error".to_string());
-        return Err(AppError::ExternalApi(format!("BLS API error: {}", error_msg)));
+        return Err(AppError::ExternalApiError(format!("BLS API error: {}", error_msg)));
     }
     
     let results = bls_response.results
-        .ok_or_else(|| AppError::ExternalApi("No results in BLS response".to_string()))?;
+        .ok_or_else(|| AppError::ExternalApiError("No results in BLS response".to_string()))?;
     
     let bls_series = results.series
         .into_iter()
@@ -514,7 +514,7 @@ fn convert_bls_period_to_date(year: &str, period: &str) -> AppResult<NaiveDate> 
     // PURPOSE: Handle BLS-specific date formatting (M01-M12, Q01-Q04, etc.)
     
     let year: i32 = year.parse()
-        .map_err(|e| AppError::ExternalApi(format!("Invalid year in BLS data: {}", e)))?;
+        .map_err(|e| AppError::ExternalApiError(format!("Invalid year in BLS data: {}", e)))?;
     
     let date = match period {
         // Monthly data (M01-M12)
@@ -550,7 +550,7 @@ fn convert_bls_period_to_date(year: &str, period: &str) -> AppResult<NaiveDate> 
         }
     };
     
-    date.ok_or_else(|| AppError::ExternalApi(format!("Invalid date: {} {}", year, period)))
+    date.ok_or_else(|| AppError::ExternalApiError(format!("Invalid date: {} {}", year, period)))
 }
 
 /// Determine BLS series frequency from data points

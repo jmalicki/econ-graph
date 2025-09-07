@@ -21,7 +21,7 @@ pub async fn create_pool(database_url: &str) -> AppResult<DatabasePool> {
         .connection_timeout(Duration::from_secs(30))
         .build(config)
         .await
-        .map_err(|e| AppError::Internal(format!("Failed to create database pool: {}", e)))?;
+        .map_err(|e| AppError::InternalError(format!("Failed to create database pool: {}", e)))?;
     
     info!("Database connection pool created successfully");
     Ok(pool)
@@ -32,7 +32,7 @@ pub async fn test_connection(pool: &DatabasePool) -> AppResult<()> {
     use diesel_async::RunQueryDsl;
     
     let mut conn = pool.get().await
-        .map_err(|e| AppError::Internal(format!("Failed to get database connection: {}", e)))?;
+        .map_err(|e| AppError::InternalError(format!("Failed to get database connection: {}", e)))?;
     
     // Test with a simple query
     let result: i32 = diesel_async::RunQueryDsl::get_result(
@@ -40,13 +40,13 @@ pub async fn test_connection(pool: &DatabasePool) -> AppResult<()> {
         &mut conn
     )
         .await
-        .map_err(|e| AppError::Internal(format!("Database connection test failed: {}", e)))?;
+        .map_err(|e| AppError::InternalError(format!("Database connection test failed: {}", e)))?;
     
     if result == 1 {
         info!("Database connection test successful");
         Ok(())
     } else {
-        Err(AppError::Internal("Database connection test returned unexpected result".to_string()))
+        Err(AppError::InternalError("Database connection test returned unexpected result".to_string()))
     }
 }
 
@@ -62,15 +62,15 @@ pub async fn run_migrations(database_url: &str) -> AppResult<()> {
     let database_url = database_url.to_string();
     tokio::task::spawn_blocking(move || -> AppResult<()> {
         let mut conn = diesel::PgConnection::establish(&database_url)
-            .map_err(|e| AppError::Internal(format!("Failed to establish sync connection for migrations: {}", e)))?;
+            .map_err(|e| AppError::InternalError(format!("Failed to establish sync connection for migrations: {}", e)))?;
         
         conn.run_pending_migrations(MIGRATIONS)
-            .map_err(|e| AppError::Internal(format!("Failed to run migrations: {}", e)))?;
+            .map_err(|e| AppError::InternalError(format!("Failed to run migrations: {}", e)))?;
         
         Ok(())
     })
     .await
-    .map_err(|e| AppError::Internal(format!("Migration task failed: {}", e)))??;
+    .map_err(|e| AppError::InternalError(format!("Migration task failed: {}", e)))??;
     
     info!("Database migrations completed successfully");
     Ok(())
@@ -89,7 +89,7 @@ where
     E: From<diesel::result::Error> + From<AppError> + Send,
 {
     let mut conn = pool.get().await
-        .map_err(|e| E::from(AppError::Internal(format!("Failed to get database connection: {}", e))))?;
+        .map_err(|e| E::from(AppError::InternalError(format!("Failed to get database connection: {}", e))))?;
     
     // Execute the function with the dereferenced connection
     f(&mut *conn).await
