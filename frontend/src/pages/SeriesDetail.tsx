@@ -74,26 +74,85 @@ const SeriesDetail: React.FC = () => {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Mock data based on series ID
+        // Mock data based on series ID - FIX: Handle all actual series IDs from SeriesExplorer
+        const getSeriesData = (seriesId: string) => {
+          switch (seriesId) {
+            case 'test-series-1':
+            case 'gdp-real':
+              return {
+                title: 'Real Gross Domestic Product',
+                description: 'Real GDP measures the inflation-adjusted value of all goods and services produced',
+                source: 'Federal Reserve Economic Data',
+                frequency: 'Quarterly',
+                units: 'Billions of Chained 2017 Dollars',
+              };
+            case 'gdp-nominal':
+              return {
+                title: 'Nominal GDP',
+                description: 'Current dollar value of all goods and services produced',
+                source: 'Bureau of Economic Analysis',
+                frequency: 'Quarterly',
+                units: 'Billions of Dollars',
+              };
+            case 'gdp-per-capita':
+              return {
+                title: 'Real GDP Per Capita',
+                description: 'Real GDP divided by population',
+                source: 'Federal Reserve Economic Data',
+                frequency: 'Annual',
+                units: 'Chained 2017 Dollars',
+              };
+            case 'unemployment-rate':
+              return {
+                title: 'Unemployment Rate',
+                description: 'Percent of labor force that is unemployed',
+                source: 'Bureau of Labor Statistics',
+                frequency: 'Monthly',
+                units: 'Percent',
+              };
+            case 'cpi-all':
+              return {
+                title: 'Consumer Price Index for All Urban Consumers: All Items',
+                description: 'Measure of average change in prices paid by urban consumers',
+                source: 'Bureau of Labor Statistics',
+                frequency: 'Monthly',
+                units: 'Index 1982-84=100',
+              };
+            case 'fed-funds-rate':
+              return {
+                title: 'Federal Funds Effective Rate',
+                description: 'Interest rate at which banks lend to each other overnight',
+                source: 'Federal Reserve Economic Data',
+                frequency: 'Daily',
+                units: 'Percent',
+              };
+            case 'industrial-production':
+              return {
+                title: 'Industrial Production Index',
+                description: 'Measure of real output of manufacturing, mining, and utilities',
+                source: 'Federal Reserve Economic Data',
+                frequency: 'Monthly',
+                units: 'Index 2017=100',
+              };
+            default:
+              return {
+                title: `Economic Series (${seriesId})`,
+                description: 'Economic time series data',
+                source: 'Economic Data Source',
+                frequency: 'Monthly',
+                units: 'Various',
+              };
+          }
+        };
+
+        const seriesInfo = getSeriesData(id || 'unknown');
         const mockData: SeriesData = {
           id: id || 'unknown',
-          title: id === 'gdp-real' 
-            ? 'Real Gross Domestic Product'
-            : id === 'unemployment-rate'
-            ? 'Unemployment Rate'
-            : 'Consumer Price Index for All Urban Consumers: All Items',
-          description: id === 'gdp-real'
-            ? 'Inflation-adjusted measure of the value of all goods and services produced in the economy'
-            : id === 'unemployment-rate'
-            ? 'The unemployment rate represents the number of unemployed as a percentage of the labor force'
-            : 'A measure of the average change over time in the prices paid by urban consumers for a market basket of consumer goods and services',
-          source: id === 'gdp-real' ? 'Bureau of Economic Analysis' : 'Bureau of Labor Statistics',
-          frequency: id === 'gdp-real' ? 'Quarterly' : 'Monthly',
-          units: id === 'gdp-real' 
-            ? 'Billions of Chained 2017 Dollars'
-            : id === 'unemployment-rate'
-            ? 'Percent'
-            : 'Index 1982-84=100',
+          title: seriesInfo.title,
+          description: seriesInfo.description,
+          source: seriesInfo.source,
+          frequency: seriesInfo.frequency,
+          units: seriesInfo.units,
           seasonalAdjustment: 'Seasonally Adjusted Annual Rate',
           startDate: '1947-01-01',
           endDate: '2024-09-30',
@@ -119,9 +178,37 @@ const SeriesDetail: React.FC = () => {
     const points = [];
     const startDate = new Date('2020-01-01');
     const endDate = new Date('2024-12-01');
-    const isQuarterly = seriesId === 'gdp-real';
+    // Determine frequency based on series type
+    const isQuarterly = ['test-series-1', 'gdp-real', 'gdp-nominal'].includes(seriesId);
+    const isAnnual = seriesId === 'gdp-per-capita';
+    const isDaily = seriesId === 'fed-funds-rate';
     
-    let baseValue = seriesId === 'gdp-real' ? 21000 : seriesId === 'unemployment-rate' ? 5.0 : 250;
+    // Generate appropriate base values for different series types
+    let baseValue: number;
+    switch (seriesId) {
+      case 'test-series-1':
+      case 'gdp-real':
+      case 'gdp-nominal':
+        baseValue = 21000; // GDP in billions
+        break;
+      case 'gdp-per-capita':
+        baseValue = 65000; // GDP per capita in dollars
+        break;
+      case 'unemployment-rate':
+        baseValue = 5.0; // Unemployment rate as percentage
+        break;
+      case 'cpi-all':
+        baseValue = 280; // CPI index value
+        break;
+      case 'fed-funds-rate':
+        baseValue = 2.5; // Fed funds rate as percentage
+        break;
+      case 'industrial-production':
+        baseValue = 105; // Industrial production index
+        break;
+      default:
+        baseValue = 100; // Generic index value
+    }
     let currentDate = new Date(startDate);
     
     while (currentDate <= endDate) {
@@ -136,11 +223,15 @@ const SeriesDetail: React.FC = () => {
         revisionDate: currentDate.toISOString().split('T')[0],
       });
       
-      // Increment date
-      if (isQuarterly) {
+      // Increment date based on frequency
+      if (isDaily) {
+        currentDate.setDate(currentDate.getDate() + 7); // Weekly for demo (daily would be too many points)
+      } else if (isQuarterly) {
         currentDate.setMonth(currentDate.getMonth() + 3);
+      } else if (isAnnual) {
+        currentDate.setFullYear(currentDate.getFullYear() + 1);
       } else {
-        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate.setMonth(currentDate.getMonth() + 1); // Monthly default
       }
     }
     
