@@ -1,0 +1,34 @@
+Professional EconGraph Business Impact Demonstration - Narration Script
+=======================================================================
+
+[0:00 - 0:08]
+Welcome to EconGraph, the revolutionary open-source economic analysis platform that delivers Bloomberg Terminal-level capabilities at a fraction of the cost. While Bloomberg costs twenty-four thousand dollars annually, and Thomson Reuters twenty-two thousand, EconGraph provides institutional-grade analysis completely free.
+
+[0:08 - 0:16]
+Here's our professional dashboard, featuring real-time economic indicators with collaboration tools that rival premium financial terminals. Notice the clean Material-UI interface and responsive design that outperforms traditional systems.
+
+[0:16 - 0:25]
+Let's explore our breakthrough Global Economic Network Analysis. Click the menu to access Global Analysis. This interactive world map visualizes economic correlations between countries - a feature typically found only in premium terminals costing thousands per month.
+
+[0:25 - 0:35]
+The network visualization shows economic interconnections with D3.js-powered graphics. Node sizes represent economic centrality, colors indicate health, and connections show correlation strength. This level of analysis previously required expensive Bloomberg or CapIQ subscriptions.
+
+[0:35 - 0:45]
+Switch to our Multi-Country Dashboard for comparative analysis across major economies. This Bloomberg Terminal-style interface provides GDP, inflation, and trade relationship analysis with synchronized charts and real-time correlation calculations.
+
+[0:45 - 0:55]
+Our Global Events Explorer tracks major economic crises including the 2008 financial crisis, COVID-19 pandemic, and Brexit impacts. This comprehensive event analysis typically costs institutions twelve thousand dollars annually through S&P Capital IQ.
+
+[0:55 - 1:05]
+The business impact is transformative. Financial institutions can save hundreds of thousands annually by replacing expensive terminal subscriptions. Research teams gain access to institutional-grade tools without budget constraints.
+
+[1:05 - 1:15]
+EconGraph's open-source architecture enables customization impossible with proprietary systems. Built with Rust backend for performance and React frontend for modern user experience, delivering enterprise capabilities with startup agility.
+
+[1:15 - 1:25]
+For economic research, policy analysis, and institutional decision-making, EconGraph provides the comprehensive tools previously exclusive to premium financial terminals. Experience Bloomberg Terminal-level analysis, completely free and open-source.
+
+[1:25 - 1:30]
+Transform your economic analysis workflow with EconGraph - the future of accessible, professional economic data visualization.
+
+Total Duration: ~90 seconds
