@@ -39,8 +39,9 @@ impl Default for EpicE2ETestConfig {
 #[cfg(test)]
 mod epic_e2e_tests {
     use super::*;
-    use serial_test::serial;
-    use testcontainers_modules::postgres::Postgres;
+use serial_test::serial;
+use testcontainers_modules::postgres::Postgres;
+use testcontainers::clients::Cli;
 
     #[tokio::test]
     #[serial]
@@ -97,13 +98,14 @@ mod epic_e2e_tests {
         println!("🔍 Phase 3: Testing search functionality...");
         
         let search_params = SearchParams {
-            query: config.search_query.unwrap_or("GDP".to_string()),
+            query: config.search_query,
             source_id: Some(data_source.id),
             limit: Some(10),
             offset: Some(0),
             frequency: None,
-            include_inactive: false,
-            similarity_threshold: 0.3,
+            include_inactive: Some(false),
+            similarity_threshold: Some(0.3),
+            sort_by: None,
         };
         
         // Note: Search functionality would be tested here with proper implementation

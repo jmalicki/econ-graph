@@ -27,7 +27,7 @@ impl GlobalAnalysisService {
         
         let mut conn = pool.get().await.map_err(|e| {
             tracing::error!("Failed to get database connection: {}", e);
-            AppError::DatabaseConnectionError
+            AppError::database_error("Database connection failed".to_string())
         })?;
 
         let countries_data = countries
@@ -37,7 +37,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load countries: {}", e);
-                AppError::DatabaseQueryError(e.to_string())
+                 AppError::database_error(e.to_string())
             })?;
 
         let mut result = Vec::new();
@@ -71,7 +71,7 @@ impl GlobalAnalysisService {
     ) -> AppResult<Vec<CountryCorrelation>> {
         let mut conn = pool.get().await.map_err(|e| {
             tracing::error!("Failed to get database connection: {}", e);
-            AppError::DatabaseConnectionError
+            AppError::database_error("Database connection failed".to_string())
         })?;
 
         // Get all country pairs
@@ -81,7 +81,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load countries: {}", e);
-                AppError::DatabaseQueryError(e.to_string())
+                 AppError::database_error(e.to_string())
             })?;
 
         let mut correlations = Vec::new();
@@ -139,7 +139,7 @@ impl GlobalAnalysisService {
                 .await
                 .map_err(|e| {
                     tracing::error!("Failed to store correlation: {}", e);
-                    AppError::DatabaseQueryError(e.to_string())
+                    AppError::database_error(e.to_string())
                 })?;
         }
 
@@ -156,7 +156,7 @@ impl GlobalAnalysisService {
         
         let mut conn = pool.get().await.map_err(|e| {
             tracing::error!("Failed to get database connection: {}", e);
-            AppError::DatabaseConnectionError
+            AppError::database_error("Database connection failed".to_string())
         })?;
 
         // Get significant correlations for the category
@@ -168,7 +168,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load correlations: {}", e);
-                AppError::DatabaseQueryError(e.to_string())
+                 AppError::database_error(e.to_string())
             })?;
 
         // Build network nodes
@@ -184,7 +184,7 @@ impl GlobalAnalysisService {
                     .await
                     .map_err(|e| {
                         tracing::error!("Failed to load country: {}", e);
-                        AppError::DatabaseQueryError(e.to_string())
+                        AppError::database_error(e.to_string())
                     })?;
                 countries_map.insert(correlation.country_a_id, country);
             }
@@ -196,7 +196,7 @@ impl GlobalAnalysisService {
                     .await
                     .map_err(|e| {
                         tracing::error!("Failed to load country: {}", e);
-                        AppError::DatabaseQueryError(e.to_string())
+                        AppError::database_error(e.to_string())
                     })?;
                 countries_map.insert(correlation.country_b_id, country);
             }
@@ -261,17 +261,17 @@ impl GlobalAnalysisService {
         
         let mut conn = pool.get().await.map_err(|e| {
             tracing::error!("Failed to get database connection: {}", e);
-            AppError::DatabaseConnectionError
+            AppError::database_error("Database connection failed".to_string())
         })?;
 
         let mut query = global_economic_events.into_boxed();
         
         if let Some(start) = start_date {
-            query = query.filter(start_date.ge(start));
+            query = query.filter(crate::schema::global_economic_events::start_date.ge(start));
         }
         
         if let Some(end) = end_date {
-            query = query.filter(start_date.le(end));
+            query = query.filter(crate::schema::global_economic_events::end_date.le(end));
         }
         
         if let Some(min_score) = min_impact_score {
@@ -284,7 +284,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load global events: {}", e);
-                AppError::DatabaseQueryError(e.to_string())
+                 AppError::database_error(e.to_string())
             })?;
 
         let mut result = Vec::new();
@@ -321,7 +321,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load trade relationships: {}", e);
-                AppError::DatabaseQueryError(e.to_string())
+                 AppError::database_error(e.to_string())
             })?;
 
         let mut partners = Vec::new();
@@ -339,7 +339,7 @@ impl GlobalAnalysisService {
                 .await
                 .map_err(|e| {
                     tracing::error!("Failed to load partner country: {}", e);
-                    AppError::DatabaseQueryError(e.to_string())
+                    AppError::database_error(e.to_string())
                 })?;
             
             let trade_value = trade.export_value_usd.unwrap_or_default();
@@ -375,7 +375,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load indicators: {}", e);
-                AppError::DatabaseQueryError(e.to_string())
+                 AppError::database_error(e.to_string())
             })?;
 
         let mut result = HashMap::new();
@@ -397,7 +397,7 @@ impl GlobalAnalysisService {
 
     /// Calculate economic health score based on indicators
     fn calculate_economic_health_score(indicators: &HashMap<String, Decimal>) -> Option<f64> {
-        let mut score = 50.0; // Base score
+        let mut score: f64 = 50.0; // Base score
         let mut factors = 0;
 
         // GDP growth factor
@@ -484,7 +484,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load event impacts: {}", e);
-                AppError::DatabaseQueryError(e.to_string())
+                 AppError::database_error(e.to_string())
             })?;
 
         let mut result = Vec::new();
@@ -496,7 +496,7 @@ impl GlobalAnalysisService {
                 .await
                 .map_err(|e| {
                     tracing::error!("Failed to load country: {}", e);
-                    AppError::DatabaseQueryError(e.to_string())
+                    AppError::database_error(e.to_string())
                 })?;
             
             let impact_severity = Self::classify_impact_severity(&impact);

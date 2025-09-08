@@ -423,9 +423,13 @@ mod collaboration_integration_tests {
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create multiple users
-        let users = futures::future::try_join_all((0..10).map(|i| {
-            create_test_user(&pool, &format!("user{}@test.com", i), &format!("User {}", i))
-        })).await?;
+        let mut users = Vec::new();
+        for i in 0..10 {
+            let email = format!("user{}@test.com", i);
+            let name = format!("User {}", i);
+            let user = create_test_user(&pool, &email, &name).await?;
+            users.push(user);
+        }
 
         let series_id = Uuid::new_v4();
         let chart_id = Uuid::new_v4();

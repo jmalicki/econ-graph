@@ -282,6 +282,54 @@
             font-weight: bold;
         }
         
+        .country-selector {
+            width: 100%;
+        }
+        
+        .selected-countries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            min-height: 40px;
+            align-items: center;
+        }
+        
+        .country-chip {
+            background: #2196F3;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .country-chip:hover {
+            background: #1976D2;
+            transform: scale(1.05);
+        }
+        
+        .add-more {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px dashed #4CAF50;
+            transition: all 0.2s ease;
+        }
+        
+        .add-more:hover {
+            background: rgba(76, 175, 80, 0.2);
+            transform: scale(1.05);
+        }
+        
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-30px); }
             to { opacity: 1; transform: translateY(0); }
@@ -334,6 +382,31 @@
                             <option value="unemployment">Unemployment Rate</option>
                             <option value="trade">Trade Balance</option>
                         </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Region Filter:</label>
+                        <select onchange="updateRegion(this.value)">
+                            <option value="all">All Regions</option>
+                            <option value="Americas">Americas</option>
+                            <option value="Asia">Asia</option>
+                            <option value="Europe">Europe</option>
+                            <option value="Oceania">Oceania</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group" style="flex: 2;">
+                        <label>Select Countries:</label>
+                        <div class="country-selector">
+                            <div class="selected-countries" id="selected-countries">
+                                <span class="country-chip">US</span>
+                                <span class="country-chip">CN</span>
+                                <span class="country-chip">JP</span>
+                                <span class="country-chip">DE</span>
+                                <span class="country-chip">GB</span>
+                                <span class="add-more" onclick="showCountryDropdown()">+ Add Countries</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="control-group">
@@ -529,8 +602,50 @@
         }
         
         function updateIndicator() {
-            // Simulate indicator change
-            console.log('Indicator updated');
+            // Simulate indicator change with visual feedback
+            const indicator = event.target.value;
+            console.log('Indicator updated to:', indicator);
+            
+            // Show visual feedback
+            const notice = document.createElement('div');
+            notice.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; z-index: 1000;';
+            notice.textContent = `Switched to ${indicator.toUpperCase()} indicator`;
+            document.body.appendChild(notice);
+            setTimeout(() => document.body.removeChild(notice), 2000);
+        }
+        
+        function updateRegion(region) {
+            console.log('Region filter updated to:', region);
+            
+            // Show visual feedback
+            const notice = document.createElement('div');
+            notice.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #2196F3; color: white; padding: 10px 20px; border-radius: 5px; z-index: 1000;';
+            notice.textContent = region === 'all' ? 'Showing all regions' : `Filtered to ${region}`;
+            document.body.appendChild(notice);
+            setTimeout(() => document.body.removeChild(notice), 2000);
+        }
+        
+        function showCountryDropdown() {
+            // Simulate showing additional countries
+            const countries = ['FR', 'IN', 'BR', 'CA', 'IT', 'KR', 'AU'];
+            const container = document.getElementById('selected-countries');
+            const addButton = container.querySelector('.add-more');
+            
+            if (container.children.length < 8) {
+                const newCountry = countries[Math.floor(Math.random() * countries.length)];
+                const chip = document.createElement('span');
+                chip.className = 'country-chip';
+                chip.textContent = newCountry;
+                chip.onclick = () => chip.remove();
+                container.insertBefore(chip, addButton);
+                
+                // Show feedback
+                const notice = document.createElement('div');
+                notice.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #FF9800; color: white; padding: 10px 20px; border-radius: 5px; z-index: 1000;';
+                notice.textContent = `Added ${newCountry} to analysis`;
+                document.body.appendChild(notice);
+                setTimeout(() => document.body.removeChild(notice), 2000);
+            }
         }
         
         function updateThreshold(value) {
@@ -546,6 +661,13 @@
                     line.style.opacity = '0.2';
                 }
             });
+            
+            // Show feedback
+            const notice = document.createElement('div');
+            notice.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #9C27B0; color: white; padding: 10px 20px; border-radius: 5px; z-index: 1000;';
+            notice.textContent = `Correlation threshold: ${value}`;
+            document.body.appendChild(notice);
+            setTimeout(() => document.body.removeChild(notice), 1500);
         }
         
         function selectCountry(countryCode) {

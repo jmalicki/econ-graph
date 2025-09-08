@@ -389,7 +389,7 @@ mod tests {
         let container = TestContainer::new().await;
         let pool = container.pool();
         
-        let service = CollaborationService::new(pool);
+        let service = CollaborationService::new(pool.clone());
         
         // Test that service can be created
         assert!(true);
