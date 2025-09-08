@@ -166,7 +166,7 @@ const GlobalAnalysis: React.FC = () => {
             and connections show correlation strength between countries.
           </Typography>
         </Box>
-        <GlobalEconomicNetworkMap height={700} />
+        <GlobalEconomicNetworkMap />
       </TabPanel>
 
       <TabPanel value={activeTab} index={1}>

@@ -1,30 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
   Typography,
   Grid,
-  Autocomplete,
-  TextField,
   Card,
   CardContent,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Chip,
-  IconButton,
   Tabs,
   Tab,
-  Switch,
-  FormControlLabel,
-  Alert,
-  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
   Tooltip,
 } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
-  TrendingFlat,
-  CompareArrows,
-  Delete,
-  Add,
+  Compare,
+  Assessment,
+  Public,
   Info,
 } from '@mui/icons-material';
 import {
@@ -36,11 +39,9 @@ import {
   Title,
   Tooltip as ChartTooltip,
   Legend,
-  ChartOptions,
+  Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { useQuery } from '@apollo/client';
-import { gql } from '@apollo/client';
 
 ChartJS.register(
   CategoryScale,
@@ -49,256 +50,167 @@ ChartJS.register(
   LineElement,
   Title,
   ChartTooltip,
-  Legend
+  Legend,
+  Filler
 );
 
-// GraphQL queries
-const GET_COUNTRIES_WITH_ECONOMIC_DATA = gql`
-  query GetCountriesWithEconomicData {
-    countriesWithEconomicData {
-      country {
-        id
-        name
-        isoCode
-        region
-        currencyCode
-        gdpUsd
-      }
-      latestGdp
-      latestGdpGrowth
-      latestInflation
-      latestUnemployment
-      economicHealthScore
-      tradePartners {
-        country {
-          name
-          isoCode
-        }
-        tradeValueUsd
-        relationshipType
-      }
-    }
-  }
-`;
-
-// Mock time series data (in production, this would come from GraphQL)
-const generateMockTimeSeriesData = (countryCode: string, indicator: string) => {
-  const months = [
-    '2023-01', '2023-02', '2023-03', '2023-04', '2023-05', '2023-06',
-    '2023-07', '2023-08', '2023-09', '2023-10', '2023-11', '2023-12',
-    '2024-01', '2024-02', '2024-03', '2024-04', '2024-05', '2024-06',
-  ];
-
-  const baseValues: Record<string, Record<string, number>> = {
-    'GDP': {
-      'USA': 25000, 'CHN': 17500, 'JPN': 5000, 'DEU': 4200, 'GBR': 3100,
-      'FRA': 2900, 'IND': 3700, 'ITA': 2100, 'BRA': 2000, 'CAN': 2100,
-    },
-    'Inflation': {
-      'USA': 3.2, 'CHN': 2.1, 'JPN': 1.8, 'DEU': 2.4, 'GBR': 4.1,
-      'FRA': 2.9, 'IND': 5.8, 'ITA': 3.5, 'BRA': 4.7, 'CAN': 2.8,
-    },
-    'Unemployment': {
-      'USA': 3.7, 'CHN': 5.2, 'JPN': 2.6, 'DEU': 3.1, 'GBR': 4.2,
-      'FRA': 7.3, 'IND': 6.1, 'ITA': 8.2, 'BRA': 9.3, 'CAN': 5.1,
-    },
-  };
-
-  const baseValue = baseValues[indicator]?.[countryCode] || 100;
-  
-  return months.map((month, index) => {
-    const randomVariation = (Math.random() - 0.5) * 0.2;
-    const trendFactor = indicator === 'GDP' ? 1 + (index * 0.005) : 1;
-    const seasonalFactor = 1 + Math.sin(index * Math.PI / 6) * 0.05;
-    
-    return {
-      date: month,
-      value: baseValue * trendFactor * seasonalFactor * (1 + randomVariation),
-    };
-  });
-};
-
-// Types
+// Sample data for demo
 interface CountryData {
   id: string;
   name: string;
-  isoCode: string;
-  region: string;
-  currencyCode?: string;
-  gdpUsd?: string;
-  latestGdp?: string;
-  latestGdpGrowth?: string;
-  latestInflation?: string;
-  latestUnemployment?: string;
-  economicHealthScore?: number;
-  tradePartners?: Array<{
-    country: { name: string; isoCode: string };
-    tradeValueUsd: string;
-    relationshipType: string;
-  }>;
+  isoAlpha2: string;
+  gdp: number;
+  gdpGrowth: number;
+  inflation: number;
+  unemployment: number;
+  population: number;
 }
 
-interface TimeSeriesPoint {
-  date: string;
-  value: number;
-}
+const sampleCountries: CountryData[] = [
+  {
+    id: '1',
+    name: 'United States',
+    isoAlpha2: 'US',
+    gdp: 23.32,
+    gdpGrowth: 2.1,
+    inflation: 3.2,
+    unemployment: 3.7,
+    population: 331.9,
+  },
+  {
+    id: '2',
+    name: 'China',
+    isoAlpha2: 'CN',
+    gdp: 17.73,
+    gdpGrowth: 6.1,
+    inflation: 2.1,
+    unemployment: 4.3,
+    population: 1441.0,
+  },
+  {
+    id: '3',
+    name: 'Japan',
+    isoAlpha2: 'JP',
+    gdp: 4.94,
+    gdpGrowth: 0.3,
+    inflation: 0.2,
+    unemployment: 2.8,
+    population: 125.8,
+  },
+  {
+    id: '4',
+    name: 'Germany',
+    isoAlpha2: 'DE',
+    gdp: 4.26,
+    gdpGrowth: 0.6,
+    inflation: 1.4,
+    unemployment: 3.2,
+    population: 83.2,
+  },
+  {
+    id: '5',
+    name: 'United Kingdom',
+    isoAlpha2: 'GB',
+    gdp: 3.13,
+    gdpGrowth: 1.4,
+    inflation: 2.5,
+    unemployment: 4.0,
+    population: 67.9,
+  },
+];
 
-// Component
 const MultiCountryDashboard: React.FC = () => {
-  const [selectedCountries, setSelectedCountries] = useState<CountryData[]>([]);
-  const [selectedIndicator, setSelectedIndicator] = useState<string>('GDP');
-  const [syncCharts, setSyncCharts] = useState<boolean>(true);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>(['1', '2', '3']);
   const [activeTab, setActiveTab] = useState<number>(0);
 
-  const { data, loading, error } = useQuery(GET_COUNTRIES_WITH_ECONOMIC_DATA);
+  const availableCountries = sampleCountries;
 
-  const availableCountries: CountryData[] = data?.countriesWithEconomicData?.map((item: any) => ({
-    id: item.country.id,
-    name: item.country.name,
-    isoCode: item.country.isoCode,
-    region: item.country.region,
-    currencyCode: item.country.currencyCode,
-    gdpUsd: item.country.gdpUsd,
-    latestGdp: item.latestGdp,
-    latestGdpGrowth: item.latestGdpGrowth,
-    latestInflation: item.latestInflation,
-    latestUnemployment: item.latestUnemployment,
-    economicHealthScore: item.economicHealthScore,
-    tradePartners: item.tradePartners,
-  })) || [];
-
-  // Initialize with major economies
-  useEffect(() => {
-    if (availableCountries.length > 0 && selectedCountries.length === 0) {
-      const majorEconomies = availableCountries
-        .filter(country => ['USA', 'CHN', 'JPN', 'DEU', 'GBR'].includes(country.isoCode))
-        .slice(0, 3);
-      setSelectedCountries(majorEconomies);
-    }
-  }, [availableCountries]);
-
-  const handleAddCountry = (country: CountryData | null) => {
-    if (country && !selectedCountries.find(c => c.id === country.id)) {
-      setSelectedCountries([...selectedCountries, country]);
-    }
+  const handleCountryChange = (event: any) => {
+    setSelectedCountries(event.target.value);
   };
 
-  const handleRemoveCountry = (countryId: string) => {
-    setSelectedCountries(selectedCountries.filter(c => c.id !== countryId));
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
-  const getIndicatorColor = (countryIndex: number) => {
-    const colors = [
-      '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-      '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-    ];
-    return colors[countryIndex % colors.length];
-  };
-
-  const getTrendIcon = (value?: string, threshold = 0) => {
-    if (!value) return <TrendingFlat />;
-    const numValue = parseFloat(value);
-    if (numValue > threshold) return <TrendingUp color="success" />;
-    if (numValue < threshold) return <TrendingDown color="error" />;
-    return <TrendingFlat color="warning" />;
-  };
-
-  const formatValue = (value?: string, type = 'number') => {
-    if (!value) return 'N/A';
-    const numValue = parseFloat(value);
-    
-    switch (type) {
-      case 'currency':
-        return `$${numValue.toLocaleString()}B`;
-      case 'percentage':
-        return `${numValue.toFixed(1)}%`;
-      default:
-        return numValue.toLocaleString();
-    }
-  };
-
-  const generateChartData = () => {
-    if (selectedCountries.length === 0) return null;
-
-    const timeSeriesData = selectedCountries.map(country =>
-      generateMockTimeSeriesData(country.isoCode, selectedIndicator)
+  const getSelectedCountriesData = () => {
+    return availableCountries.filter(country => 
+      selectedCountries.includes(country.id)
     );
-
-    const labels = timeSeriesData[0]?.map(point => point.date) || [];
-
-    const datasets = selectedCountries.map((country, index) => ({
-      label: country.name,
-      data: timeSeriesData[index]?.map(point => point.value) || [],
-      borderColor: getIndicatorColor(index),
-      backgroundColor: getIndicatorColor(index) + '20',
-      fill: false,
-      tension: 0.4,
-    }));
-
-    return { labels, datasets };
   };
 
-  const chartOptions: ChartOptions<'line'> = {
+  const getComparisonChartData = (metric: 'gdp' | 'gdpGrowth' | 'inflation' | 'unemployment') => {
+    const countries = getSelectedCountriesData();
+    
+    return {
+      labels: countries.map(c => c.name),
+      datasets: [
+        {
+          label: getMetricLabel(metric),
+          data: countries.map(c => c[metric]),
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(255, 205, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(153, 102, 255, 0.6)',
+          ],
+          borderColor: [
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 99, 132, 1)',
+            'rgba(255, 205, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+          ],
+          borderWidth: 2,
+        },
+      ],
+    };
+  };
+
+  const getMetricLabel = (metric: string): string => {
+    switch (metric) {
+      case 'gdp': return 'GDP (Trillions USD)';
+      case 'gdpGrowth': return 'GDP Growth (%)';
+      case 'inflation': return 'Inflation Rate (%)';
+      case 'unemployment': return 'Unemployment Rate (%)';
+      default: return metric;
+    }
+  };
+
+  const getMetricIcon = (metric: string, value: number) => {
+    if (metric === 'gdpGrowth') {
+      return value > 0 ? <TrendingUp color="success" /> : <TrendingDown color="error" />;
+    }
+    if (metric === 'inflation' || metric === 'unemployment') {
+      return value > 3 ? <TrendingUp color="warning" /> : <TrendingDown color="success" />;
+    }
+    return <Assessment color="primary" />;
+  };
+
+  const chartOptions = {
     responsive: true,
-    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top' as const,
       },
       title: {
         display: true,
-        text: `${selectedIndicator} Comparison Across Countries`,
+        text: 'Multi-Country Economic Comparison',
       },
     },
     scales: {
       y: {
-        beginAtZero: false,
-        title: {
-          display: true,
-          text: selectedIndicator === 'GDP' ? 'Billion USD' : 
-                selectedIndicator === 'Inflation' ? 'Percentage' :
-                selectedIndicator === 'Unemployment' ? 'Percentage' : 'Value',
-        },
+        beginAtZero: true,
       },
-      x: {
-        title: {
-          display: true,
-          text: 'Time Period',
-        },
-      },
-    },
-    interaction: {
-      mode: 'index' as const,
-      intersect: false,
     },
   };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height={400}>
-        <CircularProgress />
-        <Typography variant="body1" sx={{ ml: 2 }}>
-          Loading country data...
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert severity="error">
-        Failed to load country data: {error.message}
-      </Alert>
-    );
-  }
-
-  const chartData = generateChartData();
-
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         📊 Multi-Country Economic Dashboard
-        <Tooltip title="Compare economic indicators across multiple countries in real-time">
+        <Tooltip title="Compare economic indicators across multiple countries with interactive charts and analysis">
           <IconButton size="small">
             <Info />
           </IconButton>
@@ -307,218 +219,179 @@ const MultiCountryDashboard: React.FC = () => {
 
       {/* Country Selection */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Selected Countries ({selectedCountries.length}/10)
-        </Typography>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-          <Autocomplete
-            sx={{ minWidth: 250 }}
-            options={availableCountries}
-            getOptionLabel={(option) => `${option.name} (${option.isoCode})`}
-            groupBy={(option) => option.region}
-            onChange={(_, value) => handleAddCountry(value)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Add Country"
-                placeholder="Search countries..."
-              />
-            )}
-            renderOption={(props, option) => (
-              <li {...props}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2">
-                    {option.name} ({option.isoCode})
-                  </Typography>
-                  <Chip
-                    label={option.region}
-                    size="small"
-                    variant="outlined"
-                  />
-                </Box>
-              </li>
-            )}
-          />
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {selectedCountries.map((country, index) => (
-            <Chip
-              key={country.id}
-              label={`${country.name} (${country.isoCode})`}
-              onDelete={() => handleRemoveCountry(country.id)}
-              color="primary"
-              variant="outlined"
-              sx={{
-                borderColor: getIndicatorColor(index),
-                color: getIndicatorColor(index),
-              }}
-            />
-          ))}
-        </Box>
-      </Paper>
-
-      {/* Controls */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-          <Tabs
-            value={activeTab}
-            onChange={(_, value) => setActiveTab(value)}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            <Tab label="GDP" onClick={() => setSelectedIndicator('GDP')} />
-            <Tab label="Inflation" onClick={() => setSelectedIndicator('Inflation')} />
-            <Tab label="Unemployment" onClick={() => setSelectedIndicator('Unemployment')} />
-            <Tab label="Trade" onClick={() => setSelectedIndicator('Trade')} />
-          </Tabs>
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={syncCharts}
-                onChange={(e) => setSyncCharts(e.target.checked)}
-              />
-            }
-            label="Sync Charts"
-          />
-        </Box>
-      </Paper>
-
-      {selectedCountries.length === 0 ? (
-        <Alert severity="info">
-          Please select countries to compare their economic indicators.
-        </Alert>
-      ) : (
-        <>
-          {/* Key Metrics Cards */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            {selectedCountries.map((country, index) => (
-              <Grid item xs={12} md={6} lg={4} key={country.id}>
-                <Card sx={{ height: '100%', border: `2px solid ${getIndicatorColor(index)}20` }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                      <Typography variant="h6" sx={{ color: getIndicatorColor(index) }}>
-                        {country.name}
-                      </Typography>
-                      <Chip
-                        label={country.region}
-                        size="small"
-                        sx={{ bgcolor: getIndicatorColor(index) + '20' }}
-                      />
-                    </Box>
-
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" color="textSecondary">
-                            GDP
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                            {getTrendIcon(country.latestGdpGrowth)}
-                            <Typography variant="h6">
-                              {formatValue(country.latestGdp, 'currency')}
-                            </Typography>
-                          </Box>
-                          <Typography variant="caption" color="textSecondary">
-                            Growth: {formatValue(country.latestGdpGrowth, 'percentage')}
-                          </Typography>
-                        </Box>
-                      </Grid>
-
-                      <Grid item xs={6}>
-                        <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" color="textSecondary">
-                            Inflation
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                            {getTrendIcon(country.latestInflation, 2)}
-                            <Typography variant="h6">
-                              {formatValue(country.latestInflation, 'percentage')}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Grid>
-
-                      <Grid item xs={6}>
-                        <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" color="textSecondary">
-                            Unemployment
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                            {getTrendIcon(country.latestUnemployment, 5)}
-                            <Typography variant="h6">
-                              {formatValue(country.latestUnemployment, 'percentage')}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Grid>
-
-                      <Grid item xs={6}>
-                        <Box sx={{ textAlign: 'center' }}>
-                          <Typography variant="caption" color="textSecondary">
-                            Health Score
-                          </Typography>
-                          <Typography variant="h6" sx={{
-                            color: (country.economicHealthScore || 0) > 70 ? 'success.main' :
-                                   (country.economicHealthScore || 0) > 50 ? 'warning.main' : 'error.main'
-                          }}>
-                            {(country.economicHealthScore || 0).toFixed(1)}/100
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    </Grid>
-
-                    {/* Top Trade Partners */}
-                    {country.tradePartners && country.tradePartners.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="caption" color="textSecondary" gutterBottom>
-                          Top Trade Partners:
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          {country.tradePartners.slice(0, 3).map((partner, idx) => (
-                            <Chip
-                              key={idx}
-                              label={partner.country.isoCode}
-                              size="small"
-                              variant="outlined"
-                            />
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-
-          {/* Time Series Chart */}
-          <Paper sx={{ p: 2, height: 500 }}>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CompareArrows />
-              {selectedIndicator} Trends Comparison
-            </Typography>
-            
-            {chartData && (
-              <Box sx={{ height: 400 }}>
-                <Line data={chartData} options={chartOptions} />
+        <FormControl fullWidth>
+          <InputLabel>Select Countries to Compare</InputLabel>
+          <Select
+            multiple
+            value={selectedCountries}
+            onChange={handleCountryChange}
+            label="Select Countries to Compare"
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => {
+                  const country = availableCountries.find(c => c.id === value);
+                  return (
+                    <Chip
+                      key={value}
+                      label={`${country?.name} (${country?.isoAlpha2})`}
+                      size="small"
+                    />
+                  );
+                })}
               </Box>
             )}
-          </Paper>
+          >
+            {availableCountries.map((country) => (
+              <MenuItem key={country.id} value={country.id}>
+                {country.name} ({country.isoAlpha2})
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Paper>
 
-          {/* Correlation Matrix (placeholder) */}
-          <Paper sx={{ p: 2, mt: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              📊 Economic Correlation Matrix
-            </Typography>
-            <Alert severity="info">
-              Correlation matrix showing relationships between selected countries' {selectedIndicator.toLowerCase()} indicators will be displayed here.
-              This feature calculates Pearson correlation coefficients between country pairs.
-            </Alert>
-          </Paper>
-        </>
+      {/* Tabs for different views */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs value={activeTab} onChange={handleTabChange} centered>
+          <Tab label="Overview Cards" icon={<Assessment />} />
+          <Tab label="Comparison Charts" icon={<Compare />} />
+          <Tab label="Data Table" icon={<Public />} />
+        </Tabs>
+      </Paper>
+
+      {/* Tab Content */}
+      {activeTab === 0 && (
+        <Grid container spacing={3}>
+          {getSelectedCountriesData().map((country) => (
+            <Grid item xs={12} md={6} lg={4} key={country.id}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {country.name}
+                    <Chip label={country.isoAlpha2} size="small" color="primary" />
+                  </Typography>
+                  
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Assessment color="primary" />
+                        <Box>
+                          <Typography variant="h6">${country.gdp}T</Typography>
+                          <Typography variant="caption" color="textSecondary">GDP</Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {getMetricIcon('gdpGrowth', country.gdpGrowth)}
+                        <Box>
+                          <Typography variant="h6">{country.gdpGrowth}%</Typography>
+                          <Typography variant="caption" color="textSecondary">Growth</Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {getMetricIcon('inflation', country.inflation)}
+                        <Box>
+                          <Typography variant="h6">{country.inflation}%</Typography>
+                          <Typography variant="caption" color="textSecondary">Inflation</Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {getMetricIcon('unemployment', country.unemployment)}
+                        <Box>
+                          <Typography variant="h6">{country.unemployment}%</Typography>
+                          <Typography variant="caption" color="textSecondary">Unemployment</Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      {activeTab === 1 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>GDP Comparison</Typography>
+              <Line data={getComparisonChartData('gdp')} options={chartOptions} />
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>GDP Growth Comparison</Typography>
+              <Line data={getComparisonChartData('gdpGrowth')} options={chartOptions} />
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>Inflation Rate Comparison</Typography>
+              <Line data={getComparisonChartData('inflation')} options={chartOptions} />
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>Unemployment Rate Comparison</Typography>
+              <Line data={getComparisonChartData('unemployment')} options={chartOptions} />
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
+
+      {activeTab === 2 && (
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>Economic Indicators Comparison Table</Typography>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Country</TableCell>
+                  <TableCell align="right">GDP (Trillions USD)</TableCell>
+                  <TableCell align="right">GDP Growth (%)</TableCell>
+                  <TableCell align="right">Inflation (%)</TableCell>
+                  <TableCell align="right">Unemployment (%)</TableCell>
+                  <TableCell align="right">Population (Millions)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {getSelectedCountriesData().map((country) => (
+                  <TableRow key={country.id}>
+                    <TableCell component="th" scope="row">
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {country.name}
+                        <Chip label={country.isoAlpha2} size="small" variant="outlined" />
+                      </Box>
+                    </TableCell>
+                    <TableCell align="right">${country.gdp}</TableCell>
+                    <TableCell align="right" sx={{ color: country.gdpGrowth > 0 ? 'success.main' : 'error.main' }}>
+                      {country.gdpGrowth}%
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: country.inflation > 3 ? 'warning.main' : 'text.primary' }}>
+                      {country.inflation}%
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: country.unemployment > 5 ? 'error.main' : 'text.primary' }}>
+                      {country.unemployment}%
+                    </TableCell>
+                    <TableCell align="right">{country.population}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
     </Box>
   );

@@ -3,12 +3,6 @@ import {
   Box,
   Paper,
   Typography,
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
   Card,
   CardContent,
   Grid,
@@ -16,144 +10,181 @@ import {
   IconButton,
   Collapse,
   Alert,
-  CircularProgress,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Slider,
   Switch,
   FormControlLabel,
-  Tooltip,
-  LinearProgress,
-  Avatar,
+  Slider,
   List,
   ListItem,
-  ListItemAvatar,
   ListItemText,
+  ListItemIcon,
+  Tooltip,
+  Divider,
 } from '@mui/material';
 import {
   ExpandMore,
   ExpandLess,
-  Crisis,
+  FilterList,
+  DateRange,
   Policy,
-  NaturalDisaster,
+  Nature,
   TrendingDown,
   TrendingUp,
   Public,
-  Timeline as TimelineIcon,
+  Schedule as TimelineIcon,
   Assessment,
   Warning,
   Error,
   Info,
 } from '@mui/icons-material';
-import { useQuery } from '@apollo/client';
-import { gql } from '@apollo/client';
 
-// GraphQL query
-const GET_GLOBAL_EVENTS_WITH_IMPACTS = gql`
-  query GetGlobalEventsWithImpacts(
-    $startDate: String
-    $endDate: String
-    $minImpactScore: Float
-  ) {
-    globalEventsWithImpacts(
-      startDate: $startDate
-      endDate: $endDate
-      minImpactScore: $minImpactScore
-    ) {
-      event {
-        id
-        name
-        description
-        eventType
-        severity
-        startDate
-        endDate
-        economicImpactScore
-        affectedRegions
-      }
-      countryImpacts {
-        country {
-          id
-          name
-          isoCode
-          region
-        }
-        impact {
-          impactType
-          impactMagnitude
-          impactDurationDays
-          recoveryTimeDays
-          confidenceScore
-        }
-        impactSeverity
-        recoveryStatus
-      }
-      affectedCountryCount
-      totalEconomicImpact
-    }
-  }
-`;
-
-// Types
-interface GlobalEvent {
-  id: string;
-  name: string;
-  description?: string;
-  eventType: string;
-  severity: string;
-  startDate: string;
-  endDate?: string;
-  economicImpactScore?: string;
-  affectedRegions?: string[];
-}
-
-interface CountryImpact {
-  country: {
+// Sample data for demo purposes
+interface GlobalEventData {
+  event: {
     id: string;
     name: string;
-    isoCode: string;
-    region: string;
+    description: string;
+    eventType: string;
+    severity: number;
+    startDate: string;
+    endDate?: string;
   };
-  impact: {
-    impactType: string;
-    impactMagnitude?: string;
-    impactDurationDays?: number;
-    recoveryTimeDays?: number;
-    confidenceScore?: string;
-  };
-  impactSeverity: string;
-  recoveryStatus: string;
-}
-
-interface EventWithImpacts {
-  event: GlobalEvent;
-  countryImpacts: CountryImpact[];
+  countryImpacts: Array<{
+    country: { name: string; isoCode: string };
+    impactSeverity: number;
+    recoveryStatus: string;
+    impactDescription: string;
+  }>;
   affectedCountryCount: number;
-  totalEconomicImpact?: string;
 }
 
-// Component
-const GlobalEventsExplorer: React.FC = () => {
-  const [selectedEventType, setSelectedEventType] = useState<string>('all');
-  const [minImpactScore, setMinImpactScore] = useState<number>(50);
-  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
-  const [showRecoveredCountries, setShowRecoveredCountries] = useState<boolean>(false);
-
-  const { data, loading, error } = useQuery(GET_GLOBAL_EVENTS_WITH_IMPACTS, {
-    variables: {
-      minImpactScore,
+const sampleGlobalEvents: GlobalEventData[] = [
+  {
+    event: {
+      id: '1',
+      name: '2008 Global Financial Crisis',
+      description: 'Worldwide financial crisis that began in 2007-2008',
+      eventType: 'Financial Crisis',
+      severity: 5,
+      startDate: '2008-09-15',
+      endDate: '2009-06-01',
     },
-  });
+    countryImpacts: [
+      {
+        country: { name: 'United States', isoCode: 'US' },
+        impactSeverity: 5,
+        recoveryStatus: 'recovered',
+        impactDescription: 'Major banking sector collapse, housing market crash',
+      },
+      {
+        country: { name: 'United Kingdom', isoCode: 'GB' },
+        impactSeverity: 4,
+        recoveryStatus: 'recovered',
+        impactDescription: 'Banking sector stress, economic recession',
+      },
+      {
+        country: { name: 'Germany', isoCode: 'DE' },
+        impactSeverity: 3,
+        recoveryStatus: 'recovered',
+        impactDescription: 'Export decline, manufacturing slowdown',
+      },
+    ],
+    affectedCountryCount: 3,
+  },
+  {
+    event: {
+      id: '2',
+      name: 'COVID-19 Pandemic',
+      description: 'Global pandemic causing widespread economic disruption',
+      eventType: 'Pandemic',
+      severity: 5,
+      startDate: '2020-03-01',
+    },
+    countryImpacts: [
+      {
+        country: { name: 'China', isoCode: 'CN' },
+        impactSeverity: 4,
+        recoveryStatus: 'recovering',
+        impactDescription: 'Initial outbreak, supply chain disruption',
+      },
+      {
+        country: { name: 'Italy', isoCode: 'IT' },
+        impactSeverity: 5,
+        recoveryStatus: 'recovering',
+        impactDescription: 'Early European epicenter, severe lockdowns',
+      },
+      {
+        country: { name: 'United States', isoCode: 'US' },
+        impactSeverity: 4,
+        recoveryStatus: 'recovering',
+        impactDescription: 'Massive unemployment, fiscal stimulus',
+      },
+    ],
+    affectedCountryCount: 3,
+  },
+  {
+    event: {
+      id: '3',
+      name: 'Brexit',
+      description: 'UK withdrawal from the European Union',
+      eventType: 'Political',
+      severity: 3,
+      startDate: '2020-01-31',
+    },
+    countryImpacts: [
+      {
+        country: { name: 'United Kingdom', isoCode: 'GB' },
+        impactSeverity: 4,
+        recoveryStatus: 'ongoing',
+        impactDescription: 'Trade disruption, regulatory changes',
+      },
+      {
+        country: { name: 'Ireland', isoCode: 'IE' },
+        impactSeverity: 2,
+        recoveryStatus: 'ongoing',
+        impactDescription: 'Border trade complications',
+      },
+    ],
+    affectedCountryCount: 2,
+  },
+];
 
-  const events: EventWithImpacts[] = data?.globalEventsWithImpacts || [];
+const GlobalEventsExplorer: React.FC = () => {
+  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
+  const [minImpactScore, setMinImpactScore] = useState<number>(1);
+  const [showRecoveredCountries, setShowRecoveredCountries] = useState<boolean>(false);
+  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+
+  const eventTypes = ['Financial Crisis', 'Pandemic', 'Political', 'Natural Disaster', 'Trade War'];
 
   const filteredEvents = useMemo(() => {
-    return events.filter(eventData => 
-      selectedEventType === 'all' || eventData.event.eventType.toLowerCase() === selectedEventType.toLowerCase()
-    );
-  }, [events, selectedEventType]);
+    return sampleGlobalEvents.filter(eventData => {
+      const { event } = eventData;
+      
+      // Filter by event type
+      if (selectedEventTypes.length > 0 && !selectedEventTypes.includes(event.eventType)) {
+        return false;
+      }
+      
+      // Filter by minimum impact score
+      if (event.severity < minImpactScore) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [selectedEventTypes, minImpactScore]);
+
+  const handleEventTypeChange = (event: any) => {
+    setSelectedEventTypes(event.target.value);
+  };
+
+  const handleMinImpactChange = (event: any, newValue: number | number[]) => {
+    setMinImpactScore(newValue as number);
+  };
 
   const toggleEventExpansion = (eventId: string) => {
     const newExpanded = new Set(expandedEvents);
@@ -165,149 +196,96 @@ const GlobalEventsExplorer: React.FC = () => {
     setExpandedEvents(newExpanded);
   };
 
-  const getEventIcon = (eventType: string, severity: string) => {
-    const iconProps = {
-      sx: {
-        color: severity === 'Critical' ? '#f44336' :
-               severity === 'High' ? '#ff9800' :
-               severity === 'Medium' ? '#2196f3' : '#4caf50'
-      }
-    };
+  const getSeverityColor = (severity: number): string => {
+    if (severity >= 5) return '#f44336'; // red
+    if (severity >= 4) return '#ff9800'; // orange
+    if (severity >= 3) return '#ffeb3b'; // yellow
+    if (severity >= 2) return '#4caf50'; // green
+    return '#2196f3'; // blue
+  };
 
+  const getEventIcon = (eventType: string, severity: number) => {
     switch (eventType.toLowerCase()) {
-      case 'crisis':
-        return <Crisis {...iconProps} />;
-      case 'policy':
-        return <Policy {...iconProps} />;
+      case 'financial crisis':
+        return <TrendingDown />;
+      case 'pandemic':
+        return <Warning />;
+      case 'political':
+        return <Policy />;
       case 'natural disaster':
-        return <NaturalDisaster {...iconProps} />;
+        return <Nature />;
+      case 'trade war':
+        return <Public />;
       default:
-        return <Public {...iconProps} />;
+        return <Info />;
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case 'critical':
-        return '#f44336';
-      case 'high':
-        return '#ff9800';
-      case 'medium':
-        return '#2196f3';
-      case 'low':
-        return '#4caf50';
-      default:
-        return '#9e9e9e';
-    }
-  };
-
-  const getImpactSeverityIcon = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case 'critical':
-        return <Error color="error" />;
-      case 'severe':
-        return <Warning color="warning" />;
-      case 'moderate':
-        return <Info color="info" />;
-      default:
-        return <Info color="action" />;
-    }
-  };
-
-  const getRecoveryStatusColor = (status: string) => {
+  const getRecoveryStatusColor = (status: string): 'success' | 'warning' | 'error' | 'info' => {
     switch (status.toLowerCase()) {
-      case 'recovered':
-        return 'success';
-      case 'recovering':
-        return 'warning';
-      case 'ongoing':
-        return 'error';
-      default:
-        return 'default';
+      case 'recovered': return 'success';
+      case 'recovering': return 'warning';
+      case 'ongoing': return 'error';
+      default: return 'info';
     }
   };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const calculateRecoveryProgress = (impact: CountryImpact) => {
-    if (impact.recoveryStatus.toLowerCase() === 'recovered') return 100;
-    if (impact.recoveryStatus.toLowerCase() === 'ongoing') return 0;
-    
-    // For "recovering" status, estimate progress based on recovery time
-    const recoveryDays = impact.impact.recoveryTimeDays || 365;
-    const impactDays = impact.impact.impactDurationDays || 90;
-    
-    // Simple progress estimation
-    return Math.min(75, (impactDays / recoveryDays) * 100);
-  };
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height={400}>
-        <CircularProgress />
-        <Typography variant="body1" sx={{ ml: 2 }}>
-          Loading global economic events...
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert severity="error">
-        Failed to load global economic events: {error.message}
-      </Alert>
-    );
-  }
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         🌍 Global Economic Events Explorer
         <TimelineIcon />
       </Typography>
 
-      {/* Controls */}
+      {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Event Type</InputLabel>
+        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <FilterList />
+          Event Filters
+        </Typography>
+        
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Event Types</InputLabel>
               <Select
-                value={selectedEventType}
-                onChange={(e) => setSelectedEventType(e.target.value)}
-                label="Event Type"
+                multiple
+                value={selectedEventTypes}
+                onChange={handleEventTypeChange}
+                label="Event Types"
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip key={value} label={value} size="small" />
+                    ))}
+                  </Box>
+                )}
               >
-                <MenuItem value="all">All Events</MenuItem>
-                <MenuItem value="crisis">Financial Crisis</MenuItem>
-                <MenuItem value="policy">Policy Changes</MenuItem>
-                <MenuItem value="natural disaster">Natural Disasters</MenuItem>
+                {eventTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Typography variant="caption" gutterBottom>
+            <Typography gutterBottom>
               Minimum Impact Score: {minImpactScore}
             </Typography>
             <Slider
               value={minImpactScore}
-              onChange={(_, value) => setMinImpactScore(value as number)}
-              min={0}
-              max={100}
-              step={10}
+              onChange={handleMinImpactChange}
+              min={1}
+              max={5}
+              step={1}
               marks
               valueLabelDisplay="auto"
             />
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={4}>
             <FormControlLabel
               control={
                 <Switch
@@ -318,12 +296,6 @@ const GlobalEventsExplorer: React.FC = () => {
               label="Show Recovered Countries"
             />
           </Grid>
-
-          <Grid item xs={12} md={2}>
-            <Typography variant="body2" color="textSecondary">
-              {filteredEvents.length} events found
-            </Typography>
-          </Grid>
         </Grid>
       </Paper>
 
@@ -333,7 +305,7 @@ const GlobalEventsExplorer: React.FC = () => {
           No global economic events match the current filters.
         </Alert>
       ) : (
-        <Timeline position="alternate">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {filteredEvents.map((eventData, index) => {
             const { event, countryImpacts, affectedCountryCount } = eventData;
             const isExpanded = expandedEvents.has(event.id);
@@ -342,15 +314,26 @@ const GlobalEventsExplorer: React.FC = () => {
               : countryImpacts.filter(impact => impact.recoveryStatus.toLowerCase() !== 'recovered');
 
             return (
-              <TimelineItem key={event.id}>
-                <TimelineSeparator>
-                  <TimelineDot sx={{ bgcolor: getSeverityColor(event.severity), p: 1 }}>
-                    {getEventIcon(event.eventType, event.severity)}
-                  </TimelineDot>
-                  {index < filteredEvents.length - 1 && <TimelineConnector />}
-                </TimelineSeparator>
+              <Box key={event.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                {/* Event Icon */}
+                <Box
+                  sx={{
+                    bgcolor: getSeverityColor(event.severity),
+                    borderRadius: '50%',
+                    p: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: 48,
+                    minHeight: 48,
+                    mt: 1,
+                  }}
+                >
+                  {getEventIcon(event.eventType, event.severity)}
+                </Box>
 
-                <TimelineContent>
+                {/* Event Content */}
+                <Box sx={{ flex: 1 }}>
                   <Card sx={{ mb: 2 }}>
                     <CardContent>
                       {/* Event Header */}
@@ -373,7 +356,6 @@ const GlobalEventsExplorer: React.FC = () => {
                               sx={{ 
                                 bgcolor: getSeverityColor(event.severity) + '20',
                                 color: getSeverityColor(event.severity),
-                                border: `1px solid ${getSeverityColor(event.severity)}`,
                               }}
                             />
                             <Chip
@@ -381,153 +363,104 @@ const GlobalEventsExplorer: React.FC = () => {
                               size="small"
                               variant="outlined"
                             />
-                            {event.economicImpactScore && (
-                              <Chip
-                                label={`Impact: ${parseFloat(event.economicImpactScore).toFixed(0)}/100`}
-                                size="small"
-                                color="warning"
-                                variant="outlined"
-                              />
-                            )}
                           </Box>
-
-                          <Typography variant="body2" color="textSecondary" gutterBottom>
-                            {formatDate(event.startDate)}
-                            {event.endDate && ` - ${formatDate(event.endDate)}`}
+                          
+                          <Typography variant="body2" color="textSecondary" paragraph>
+                            {event.description}
                           </Typography>
-
-                          {event.description && (
-                            <Typography variant="body2" paragraph>
-                              {event.description}
-                            </Typography>
-                          )}
+                          
+                          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <DateRange fontSize="small" />
+                            <strong>Start:</strong> {new Date(event.startDate).toLocaleDateString()}
+                            {event.endDate && (
+                              <>
+                                {' • '}
+                                <strong>End:</strong> {new Date(event.endDate).toLocaleDateString()}
+                              </>
+                            )}
+                          </Typography>
                         </Box>
-
+                        
                         <IconButton
                           onClick={() => toggleEventExpansion(event.id)}
-                          size="small"
+                          sx={{ ml: 1 }}
                         >
                           {isExpanded ? <ExpandLess /> : <ExpandMore />}
                         </IconButton>
                       </Box>
 
-                      {/* Country Impacts Summary */}
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" gutterBottom>
-                          Economic Impact Summary
-                        </Typography>
-                        
-                        <Grid container spacing={2}>
-                          <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="h6" color="error">
-                                {countryImpacts.filter(i => i.impactSeverity === 'Critical').length}
-                              </Typography>
-                              <Typography variant="caption">Critical</Typography>
-                            </Box>
-                          </Grid>
-                          <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="h6" color="warning">
-                                {countryImpacts.filter(i => i.impactSeverity === 'Severe').length}
-                              </Typography>
-                              <Typography variant="caption">Severe</Typography>
-                            </Box>
-                          </Grid>
-                          <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="h6" color="info">
-                                {countryImpacts.filter(i => i.impactSeverity === 'Moderate').length}
-                              </Typography>
-                              <Typography variant="caption">Moderate</Typography>
-                            </Box>
-                          </Grid>
-                          <Grid item xs={6} sm={3}>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="h6" color="success">
-                                {countryImpacts.filter(i => i.recoveryStatus === 'Recovered').length}
-                              </Typography>
-                              <Typography variant="caption">Recovered</Typography>
-                            </Box>
-                          </Grid>
-                        </Grid>
+                      {/* Country Impact Summary */}
+                      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Public fontSize="small" />
+                          <Typography variant="body2">
+                            <strong>{affectedCountryCount}</strong> countries affected
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Assessment fontSize="small" />
+                          <Typography variant="body2">
+                            <strong>{countryImpacts.filter(i => i.recoveryStatus === 'recovered').length}</strong> recovered
+                          </Typography>
+                        </Box>
                       </Box>
 
-                      {/* Expanded Country Details */}
+                      {/* Expandable Country Impacts */}
                       <Collapse in={isExpanded}>
-                        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
-                          <Typography variant="subtitle2" gutterBottom>
-                            Country Impact Details ({visibleImpacts.length} countries)
-                          </Typography>
-                          
+                        <Divider sx={{ mb: 2 }} />
+                        <Typography variant="h6" gutterBottom>
+                          Country-Specific Impacts
+                        </Typography>
+                        
+                        <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           <List dense>
-                            {visibleImpacts.map((countryImpact, idx) => {
-                              const recoveryProgress = calculateRecoveryProgress(countryImpact);
-                              
-                              return (
-                                <ListItem key={idx} sx={{ px: 0 }}>
-                                  <ListItemAvatar>
-                                    <Avatar sx={{ width: 32, height: 32, fontSize: '0.75rem' }}>
-                                      {countryImpact.country.isoCode}
-                                    </Avatar>
-                                  </ListItemAvatar>
-                                  
-                                  <ListItemText
-                                    primary={
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="body2" fontWeight="medium">
-                                          {countryImpact.country.name}
-                                        </Typography>
-                                        {getImpactSeverityIcon(countryImpact.impactSeverity)}
+                            {visibleImpacts.map((impact, impactIndex) => (
+                              <ListItem key={impactIndex} sx={{ pl: 0 }}>
+                                <ListItemIcon>
+                                  <Chip
+                                    label={impact.country.isoCode}
+                                    size="small"
+                                    color={getRecoveryStatusColor(impact.recoveryStatus)}
+                                    variant="outlined"
+                                  />
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <Typography variant="body2" fontWeight="medium">
+                                        {impact.country.name}
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', gap: 1 }}>
                                         <Chip
-                                          label={countryImpact.recoveryStatus}
+                                          label={`Impact: ${impact.impactSeverity}/5`}
                                           size="small"
-                                          color={getRecoveryStatusColor(countryImpact.recoveryStatus) as any}
-                                          variant="outlined"
+                                          sx={{
+                                            bgcolor: getSeverityColor(impact.impactSeverity) + '20',
+                                            color: getSeverityColor(impact.impactSeverity),
+                                          }}
+                                        />
+                                        <Chip
+                                          label={impact.recoveryStatus}
+                                          size="small"
+                                          color={getRecoveryStatusColor(impact.recoveryStatus)}
                                         />
                                       </Box>
-                                    }
-                                    secondary={
-                                      <Box sx={{ mt: 1 }}>
-                                        <Typography variant="caption" display="block">
-                                          Impact Type: {countryImpact.impact.impactType}
-                                          {countryImpact.impact.impactMagnitude && 
-                                            ` | Magnitude: ${parseFloat(countryImpact.impact.impactMagnitude).toFixed(1)}%`
-                                          }
-                                        </Typography>
-                                        
-                                        {countryImpact.recoveryStatus.toLowerCase() !== 'recovered' && (
-                                          <Box sx={{ mt: 0.5 }}>
-                                            <Typography variant="caption" color="textSecondary">
-                                              Recovery Progress: {recoveryProgress.toFixed(0)}%
-                                            </Typography>
-                                            <LinearProgress
-                                              variant="determinate"
-                                              value={recoveryProgress}
-                                              sx={{ mt: 0.5, height: 4, borderRadius: 2 }}
-                                              color={
-                                                recoveryProgress > 75 ? 'success' :
-                                                recoveryProgress > 50 ? 'warning' : 'error'
-                                              }
-                                            />
-                                          </Box>
-                                        )}
-                                      </Box>
-                                    }
-                                  />
-                                </ListItem>
-                              );
-                            })}
+                                    </Box>
+                                  }
+                                  secondary={impact.impactDescription}
+                                />
+                              </ListItem>
+                            ))}
                           </List>
                         </Box>
                       </Collapse>
                     </CardContent>
                   </Card>
-                </TimelineContent>
-              </TimelineItem>
+                </Box>
+              </Box>
             );
           })}
-        </Timeline>
+        </Box>
       )}
 
       {/* Global Impact Statistics */}
@@ -562,11 +495,11 @@ const GlobalEventsExplorer: React.FC = () => {
           
           <Grid item xs={12} md={3}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="error">
-                {filteredEvents.filter(e => e.event.severity === 'Critical').length}
+              <Typography variant="h4" color="error.main">
+                {Math.round(filteredEvents.reduce((sum, e) => sum + e.event.severity, 0) / filteredEvents.length * 10) / 10 || 0}
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                Critical Severity Events
+                Average Severity
               </Typography>
             </Box>
           </Grid>
@@ -574,15 +507,12 @@ const GlobalEventsExplorer: React.FC = () => {
           <Grid item xs={12} md={3}>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h4" color="success.main">
-                {Math.round(
-                  filteredEvents.reduce((sum, e) => {
-                    const recoveredCount = e.countryImpacts.filter(i => i.recoveryStatus === 'Recovered').length;
-                    return sum + (recoveredCount / e.affectedCountryCount * 100);
-                  }, 0) / Math.max(filteredEvents.length, 1)
-                )}%
+                {filteredEvents.reduce((sum, e) => 
+                  sum + e.countryImpacts.filter(i => i.recoveryStatus === 'recovered').length, 0
+                )}
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                Average Recovery Rate
+                Countries Recovered
               </Typography>
             </Box>
           </Grid>
