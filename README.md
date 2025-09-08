@@ -12,11 +12,11 @@
 > **🚀 NEW: Professional Business Impact Demo v3.5.0 - Bloomberg Terminal competitive analysis with ACTUAL interface**
 
 ### 🏢 **Professional Business Impact Demo (Latest - v3.5.0!)**
-[![EconGraph Professional Business Impact Demo](https://img.shields.io/badge/🏢%20Professional%20Business%20Impact-Bloomberg%20Terminal%20Alternative-gold?style=for-the-badge&logo=trending-up)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/professional_business_impact_narration.mp3)
+[![EconGraph Professional Business Impact Demo](https://img.shields.io/badge/🏢%20Professional%20Business%20Impact-Bloomberg%20Terminal%20Alternative-gold?style=for-the-badge&logo=trending-up)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/professional-business-impact-demo.mp4)
 
-**[💰 Professional Business Impact Demo - Bloomberg ($24k) vs EconGraph (FREE)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/professional_business_impact_narration.mp3)**
+**[💰 Professional Business Impact Demo - Bloomberg ($24k) vs EconGraph (FREE)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/professional-business-impact-demo.mp4)**
 
-> **💎 BUSINESS VALUE: Replaces Bloomberg Terminal ($24k), Thomson Reuters ($22k), and S&P CapIQ ($12k) with institutional-grade open-source capabilities. Demonstrates hundreds of thousands in annual savings for financial institutions.**
+> **💎 BUSINESS VALUE: Replaces Bloomberg Terminal ($24k), Thomson Reuters ($22k), and S&P CapIQ ($12k) with institutional-grade open-source capabilities. Shows actual interface features with professional business impact analysis.**
 
 ### 🌍 **Real EconGraph Interface Demo (v3.4.0)**
 [![EconGraph Real Interface Demo](https://img.shields.io/badge/🌍%20Real%20Interface%20Demo-Actual%20React%20Application-brightgreen?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/real-econ-graph-interface.mp4)
