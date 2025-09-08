@@ -1,166 +1,124 @@
 # 🏛️ EconGraph - Economic Data Visualization Prototype
 
-> **An economic time series visualization prototype with interactive charts and sample data demonstrations**
+> **A working prototype for economic time series visualization with React frontend and Rust backend**
 
 [![Tests](https://img.shields.io/badge/Tests-157%20Passing-brightgreen)](https://github.com/jmalicki/econ-graph/actions)
 [![Backend](https://img.shields.io/badge/Backend-Rust%20%2B%20Axum-orange)](https://github.com/jmalicki/econ-graph/tree/main/backend)
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-blue)](https://github.com/jmalicki/econ-graph/tree/main/frontend)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎬 **PROFESSIONAL DEMONSTRATIONS**
+## 🎬 **PROTOTYPE DEMONSTRATIONS**
 
-> **🚀 NEW: Professional Business Impact Demo v3.5.0 - Bloomberg Terminal competitive analysis with ACTUAL interface**
+> **Honest demos showing actual implemented features**
 
-### 🏢 **Professional Business Impact Demo (Latest - v3.5.0!)**
-[![EconGraph Professional Business Impact Demo](https://img.shields.io/badge/🏢%20Professional%20Business%20Impact-Bloomberg%20Terminal%20Alternative-gold?style=for-the-badge&logo=trending-up)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/professional-business-impact-demo.mp4)
-
-**[💰 Professional Business Impact Demo - Bloomberg ($24k) vs EconGraph (FREE)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/professional-business-impact-demo.mp4)**
-
-> **💎 BUSINESS VALUE: Replaces Bloomberg Terminal ($24k), Thomson Reuters ($22k), and S&P CapIQ ($12k) with institutional-grade open-source capabilities. Shows actual interface features with professional business impact analysis.**
-
-### 🌍 **Real EconGraph Interface Demo (v3.4.0)**
+### 🌍 **Real Interface Demo - Actual React Application**
 [![EconGraph Real Interface Demo](https://img.shields.io/badge/🌍%20Real%20Interface%20Demo-Actual%20React%20Application-brightgreen?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/real-econ-graph-interface.mp4)
 
 **[📺 Watch the REAL Interface Demo - 77sec HD Screen Recording](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/real-econ-graph-interface.mp4)**
 
-> **✅ BREAKTHROUGH: No more fake text boxes! This shows the ACTUAL running React application with genuine Material-UI components, working navigation, and real interface interactions.**
+> **✅ ACTUAL PROTOTYPE: Shows the real running React application with genuine Material-UI components, working navigation, and functional interface elements.**
 
 ### 🤝 **Collaboration Features Demo**
-[![EconGraph Enhanced Collaboration Demo](https://img.shields.io/badge/🤝%20Enhanced%20Collaboration%20Demo-Team%20Workflow%20Features-blue?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp4)
+[![EconGraph Enhanced Collaboration Demo](https://img.shields.io/badge/🤝%20Enhanced%20Collaboration%20Demo-Team%20Workflow%20Features-blue?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp3)
 
-**[📺 Watch the Enhanced Collaboration Demo with Visual-Audio Sync](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp4)**
+**[📺 Watch the Collaboration Demo with Audio](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp3)**
 
-### 🏢 **Professional Business Impact Features (v3.5.0):**
-- **💰 Cost Savings Analysis** - Replaces Bloomberg Terminal ($24k), Thomson Reuters ($22k), S&P CapIQ ($12k)
-- **🏛️ Institutional-Grade Capabilities** - Bloomberg Terminal-level interface and analysis tools
-- **📊 Professional ROI Demonstration** - Hundreds of thousands in annual savings for financial institutions
-- **🚀 Open-Source Competitive Advantage** - Enterprise capabilities with customization flexibility
-- **🎯 Business Value Positioning** - Professional economic analysis at zero cost
-- **💼 Target Market Focus** - Financial institutions, research teams, policy analysts, economic consultants
-- **📈 Professional Presentation Quality** - Material-UI interface rivaling premium terminals
+### ✨ **Actually Implemented Features:**
+- **🌍 React Frontend** - Working React application with Material-UI components
+- **📊 Interactive Charts** - Chart.js integration with hover tooltips and zoom
+- **🔄 Data Transformations** - Year-over-Year (YoY), Quarter-over-Quarter (QoQ), Month-over-Month (MoM)
+- **🗃️ GraphQL API** - Rust backend with GraphQL endpoint for data queries
+- **🔍 Search & Filtering** - Full-text search with autocomplete and filtering
+- **📈 Time Series Visualization** - Economic data plotting with date range selection
+- **🏗️ Database Integration** - PostgreSQL with Diesel ORM for data persistence
 
-### ✨ **Real Interface Features (v3.4.0):**
-- **🌍 Interactive World Map** - Actual D3.js visualization running in browser with real React components
-- **📊 Multi-Country Dashboard** - Live Material-UI components with working navigation and interactions
-- **📈 Global Events Explorer** - Real React pages with functional routing and state management
-- **🎯 Working Application** - Genuine React app running at localhost:3000 with full functionality
-- **🎬 Real Screen Recording** - 77-second HD capture of actual browser window with live interface
-- **💻 Professional UI Components** - Actual Material-UI components, not mockups or static images
-- **🔧 Production-Ready Interface** - Real React application with professional styling and interactions
-
-
-### 🎯 **What You'll See in the Real Interface Demo (v3.4.0):**
+### 🎯 **What You'll See in the Real Interface Demo:**
 - 🌍 **Live React Application**: Actual browser window showing the running EconGraph interface
 - 📊 **Material-UI Components**: Real buttons, navigation, cards, and layouts in action
 - 📈 **Working Navigation**: Functional React Router with live page transitions
 - 🎛️ **Interactive Elements**: Real clickable components and working state management
 - 🏷️ **Professional Styling**: Actual Material-UI theme with responsive design
-- 🎤 **Professional Narration**: 77-second description synchronized with real interface actions
+- 🎤 **Honest Narration**: 77-second description of what's actually implemented
 - 🎯 **Zero Fake Content**: No text overlays, Unicode boxes, or static mockups
 - ✅ **Genuine Demonstration**: Authentic screen recording of the actual running application
-
-### 🎯 **What You'll See in the Collaboration Demo:**
-- 🟢 **Green Dots for Online Users**: Live pulsing indicators showing which team members are actively online
-- 📊 **COVID-19 Vertical Line**: Professional annotation marker showing March 2020 economic impact period
-- 🤝 **Real-time Team Collaboration**: Live collaboration indicators with authentic status display
-- 📝 **Chart Annotations System**: Professional annotation creation with visual markers and labels
-- 💬 **Comment Threading**: Team discussions directly on chart annotations with timestamps
-- 🔐 **Permission Management**: Role-based access control (view, comment, edit, admin)
 
 ---
 
 ## 🚀 **System Overview**
 
-EconGraph is a **revolutionary Global Economic Network Analysis System** that surpasses industry leaders like Bloomberg Terminal ($24,000/year), Thomson Reuters ($22,000/year), and S&P Capital IQ ($12,000/year). Built with cutting-edge technologies and comprehensive testing, it provides the world's first open-source institutional-grade global economic network analysis and visualization platform.
+EconGraph is a **working prototype** for economic data visualization. It's built with modern technologies and demonstrates a complete full-stack application with React frontend, Rust backend, and PostgreSQL database.
 
-### ✨ **Key Features**
+### ✨ **Actual Features**
 
-#### 🌍 **Global Economic Network Analysis (v3.0.0 - Revolutionary!)**
-- **Interactive World Economic Map** with D3.js-powered correlation network visualization
-- **Multi-Country Comparison Dashboard** with Bloomberg Terminal-style interface
-- **Global Economic Events Timeline** tracking major crises (2008, COVID-19, Brexit) with impact analysis
-- **Advanced Correlation Engine** with statistical significance testing and bilateral trade flow mapping
-- **Economic Network Visualization** showing how 20+ major economies influence each other
-- **Institutional-Grade UI** rivaling $20,000+/year premium financial terminals
+#### 📊 **Data Visualization**
+- **Interactive Time Series Charts** with Chart.js
+- **Data Transformations**: YoY, QoQ, MoM calculations
+- **Hover Tooltips** with detailed data point information
+- **Date Range Selection** with calendar pickers
+- **Zoom and Pan** functionality on charts
 
-#### 📊 **Advanced Data Visualization**
-- **Interactive Time Series Charts** with professional tooltips and hover effects
-- **Multiple Data Transformations**: Year-over-Year (YoY), Quarter-over-Quarter (QoQ), Month-over-Month (MoM)
-- **Original vs. Revised Data** comparison with visual indicators
-- **Real-time Chart Updates** with smooth animations
-- **Export Capabilities** for reports and presentations
+#### 🔍 **Search & Discovery**
+- **Full-text Search** across economic data series
+- **Autocomplete Suggestions** in search interface
+- **Filtering** by data source, frequency, and date range
+- **Search Results** with relevance-based ranking
 
-#### 🔍 **Intelligent Search & Discovery**
-- **Full-text Search** with relevance scoring and ranking
-- **Autocomplete Suggestions** with smart matching
-- **Advanced Filtering** by data source, frequency, and date range
-- **Search Analytics** with performance metrics
-- **Saved Searches** and user preferences
+#### 🗃️ **Data Management**
+- **PostgreSQL Database** with structured economic data
+- **Diesel ORM** for type-safe database operations
+- **Data Models** for economic series and data sources
+- **Sample Data** from Federal Reserve (FRED) API
 
-#### 🕷️ **Automated Data Pipeline**
-- **Multi-source Crawling**: Federal Reserve (FRED), Bureau of Labor Statistics (BLS)
-- **Queue-based Processing** with retry logic and error handling
-- **Real-time Updates** with change detection
-- **Data Validation** and quality assurance
-- **Monitoring & Alerting** for data pipeline health
-
-#### 🏗️ **Production Architecture**
-- **Microservices Design** with clear separation of concerns
+#### 🏗️ **Technical Architecture**
+- **React Frontend** with TypeScript and Material-UI
+- **Rust Backend** with Axum web framework
 - **GraphQL API** for efficient data fetching
-- **Async Processing** with high-performance Rust backend
-- **Horizontal Scaling** with Kubernetes orchestration
-- **Comprehensive Monitoring** with Grafana dashboards
+- **Async Processing** with Tokio runtime
+- **Docker Support** for containerized deployment
 
 ---
 
-## 🧪 **Comprehensive Testing Suite**
+## 🧪 **Testing**
 
-### **📊 Test Coverage: 157 Tests, 0 Failures**
+### **📊 Test Coverage: 157 Tests Passing**
 
 - ✅ **Backend Tests**: 64 passing (Database, GraphQL, Services, Models)
-- ✅ **Frontend Tests**: 93 passing (Components, Hooks, Integration, E2E)
-- ✅ **Integration Tests**: TestContainers with real database scenarios
-- ✅ **End-to-End Tests**: Complete user journey automation
-- ✅ **Performance Tests**: Load testing and concurrent operations
+- ✅ **Frontend Tests**: 93 passing (Components, Hooks, Integration)
+- ✅ **Integration Tests**: Database integration with real PostgreSQL
+- ✅ **Unit Tests**: Individual component and function testing
 
-### 🎬 **Epic E2E Integration Tests**
+### 🎬 **E2E Testing**
 ```bash
-# Run the complete epic demonstration
+# Run the complete test suite
 ./epic-e2e-demo.sh
 ```
 
 **Features:**
-- **TestContainers Integration**: Real PostgreSQL database testing
-- **Data Crawling Simulation**: 100+ realistic economic data points
-- **GraphQL API Testing**: Complete schema and query validation
-- **UI Automation**: Playwright-based user journey recording
-- **HD Video Output**: Professional demo recordings
-- **Performance Metrics**: Detailed system performance analysis
+- **Database Testing**: Real PostgreSQL integration tests
+- **GraphQL Testing**: Complete API schema validation
+- **Frontend Testing**: Component and integration tests
+- **Performance Testing**: Basic load testing capabilities
 
 ---
 
-## 🏗️ **Technical Architecture**
+## 🏗️ **Technical Stack**
 
-### **Backend Stack**
-- **🦀 Rust + Axum**: High-performance web framework with async support
-- **🗃️ PostgreSQL + Diesel**: Robust database with async ORM
-- **📊 GraphQL**: Modern API with efficient data fetching
+### **Backend**
+- **🦀 Rust + Axum**: Web framework with async support
+- **🗃️ PostgreSQL + Diesel**: Database with type-safe ORM
+- **📊 GraphQL**: API layer for data queries
 - **⚡ Tokio**: Async runtime for concurrent processing
-- **🔍 Full-text Search**: Advanced search with ranking algorithms
 
-### **Frontend Stack** 
-- **⚛️ React + TypeScript**: Modern component-based architecture
-- **📈 Chart.js + D3.js**: Professional data visualization
-- **🎨 Material-UI**: Beautiful, responsive design system
-- **🔄 React Query**: Intelligent data caching and synchronization
-- **🧪 Jest + Testing Library**: Comprehensive test coverage
+### **Frontend** 
+- **⚛️ React + TypeScript**: Component-based UI architecture
+- **📈 Chart.js**: Interactive data visualization
+- **🎨 Material-UI**: Professional design system
+- **🔄 React Query**: Data fetching and caching
 
-### **DevOps & Infrastructure**
-- **🐳 Docker + Kubernetes**: Containerized deployment
-- **🏗️ Terraform**: Infrastructure as Code
-- **📊 Grafana + Prometheus**: Monitoring and alerting
+### **DevOps**
+- **🐳 Docker**: Containerization support
 - **🔄 GitHub Actions**: CI/CD pipeline
-- **☁️ Cloud Ready**: AWS, GCP, Azure compatible
+- **🧪 Jest + Playwright**: Testing frameworks
 
 ---
 
@@ -170,9 +128,9 @@ EconGraph is a **revolutionary Global Economic Network Analysis System** that su
 - Node.js 18+ and npm
 - Rust 1.70+ and Cargo
 - PostgreSQL 14+
-- Docker (optional, for containerized setup)
+- Docker (optional)
 
-### **🎯 Quick Start (5 minutes)**
+### **🎯 Quick Start**
 
 1. **Clone the repository**
    ```bash
@@ -201,32 +159,19 @@ EconGraph is a **revolutionary Global Economic Network Analysis System** that su
    # Frontend running on http://localhost:3000
    ```
 
-5. **🎉 Open your browser** to `http://localhost:3000` and explore!
+5. **🎉 Open your browser** to `http://localhost:3000`
 
-### **🎬 Create Professional Demo v2.0**
+### **🎬 Create Demo Videos**
 ```bash
-# Install demo dependencies
-npm install playwright
-npx playwright install chromium
+# Create realistic demo showing actual features
+./create-realistic-demo.sh
 
-# Create Professional HD Demo with Audio Narration
-node create-professional-demo-video.js
+# Alternative automated approach
+./create-automated-ui-demo.sh
 
-# Run complete automation pipeline
-./professional-demo-orchestrator.sh
-
-# Alternative: Create basic HD video demonstration
-node create-demo-video.js
-
-# Run complete E2E test suite with video
-./epic-e2e-demo.sh
+# Manual recording approach
+./create-real-interface-demo.sh
 ```
-
-**🚀 Professional Demo v2.0 Capabilities:**
-- **HD Recording System** - 1920x1080 professional quality
-- **Synchronized Audio** - 19-segment narration explaining features
-- **Enterprise Positioning** - Bloomberg Terminal-level demonstrations
-- **Complete Automation** - End-to-end demo creation pipeline
 
 ---
 
@@ -249,50 +194,42 @@ econ-graph/
 │   │   ├── pages/           # Application pages and routes
 │   │   ├── hooks/           # Custom React hooks for data fetching
 │   │   └── utils/           # Utility functions and GraphQL client
-│   └── __tests__/           # Comprehensive test suites
+│   └── __tests__/           # Frontend test suites
 │
-├── 🏗️ terraform/           # Infrastructure as Code
+├── 🏗️ terraform/           # Infrastructure as Code (deployment ready)
 │   ├── modules/             # Reusable Terraform modules
 │   └── environments/       # Environment-specific configurations
 │
-├── 📊 grafana-dashboards/  # Monitoring and alerting
+├── 📊 grafana-dashboards/  # Monitoring configurations
 │   ├── system-metrics.json
-│   ├── api-performance.json
-│   └── data-pipeline.json
+│   └── database-statistics.json
 │
-├── 🎬 demo-videos/         # Demo recordings and documentation
-│   ├── epic-system-demo.webm
-│   └── demo.html
-│
-└── 📚 docs/                # Additional documentation
-    ├── API.md
-    ├── DEPLOYMENT.md
-    └── CONTRIBUTING.md
+└── 🎬 demo-videos/         # Demo recordings and HTML interfaces
+    ├── honest-global-analysis-demo.html
+    └── comprehensive-global-analysis-demo.html
 ```
 
 ---
 
-## 📊 **Performance Metrics**
+## 📊 **Performance**
 
-### **System Performance**
-- **⚡ API Response Time**: < 100ms average
-- **📊 Chart Rendering**: < 500ms for 1000+ data points  
-- **🔍 Search Speed**: < 200ms for complex queries
-- **💾 Memory Usage**: Efficient resource management
-- **🔄 Concurrent Users**: Tested up to 1000 simultaneous connections
+### **Current Performance**
+- **⚡ API Response**: ~100ms for typical queries
+- **📊 Chart Rendering**: ~500ms for 1000 data points  
+- **🔍 Search Speed**: ~200ms for text queries
+- **💾 Memory Usage**: Efficient Rust backend with minimal overhead
 
-### **Data Processing**
-- **📈 Data Points**: Handles millions of time series points
-- **🕷️ Crawling Speed**: 1000+ series per hour
-- **🔄 Update Frequency**: Real-time updates with WebSocket support
-- **📊 Transformation Speed**: < 50ms for YoY/QoQ calculations
-- **💿 Database Performance**: Optimized queries with indexing
+### **Data Handling**
+- **📈 Time Series**: Handles thousands of data points per series
+- **🔄 Transformations**: Fast YoY/QoQ/MoM calculations
+- **📊 Database**: PostgreSQL with proper indexing
+- **🗃️ Storage**: Efficient data models for economic time series
 
 ---
 
 ## 🤝 **Contributing**
 
-We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details.
+We welcome contributions! This is a working prototype with room for improvement.
 
 ### **Development Workflow**
 1. Fork the repository
@@ -312,23 +249,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🏆 **Acknowledgments**
 
-- **Federal Reserve Economic Data (FRED)** for inspiration and data sources
-- **Bureau of Labor Statistics** for economic indicators
-- **Rust Community** for amazing async ecosystem
-- **React Community** for modern frontend patterns
+- **Federal Reserve Economic Data (FRED)** for economic data APIs
+- **Bureau of Labor Statistics** for additional data sources
+- **Rust Community** for excellent async ecosystem
+- **React Community** for modern frontend development patterns
 
 ---
 
 <div align="center">
 
-### 🎯 **Ready to explore global economic networks like never before?**
+### 🎯 **Ready to explore this economic data visualization prototype?**
 
-**[🌍 Watch Real Interface Demo v3.4.0](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/real-econ-graph-interface.mp4)** • **[🚀 Try the Live Demo](#getting-started)** • **[📚 Read the Docs](docs/)**
+**[🌍 Watch Real Interface Demo](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/real-econ-graph-interface.mp4)** • **[🚀 Try the Live Demo](#getting-started)** • **[📚 Read the Code](https://github.com/jmalicki/econ-graph)**
 
-> **📺 NEW: Real Interface Demo v3.4.0 - ACTUAL screen recording of the live React application with genuine Material-UI components**
+> **📺 Real Interface Demo - ACTUAL screen recording of the working React prototype**
 
 ---
 
-**Built with ❤️ for economists, analysts, and data enthusiasts worldwide**
+**Built as a learning project for full-stack development with Rust and React**
 
 </div>
