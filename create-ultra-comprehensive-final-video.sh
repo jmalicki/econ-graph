@@ -6,7 +6,7 @@
 echo "🎬 Creating Ultra-Comprehensive Global Analysis Demo with Professional Narration..."
 
 # Video and audio file paths
-VIDEO_FILE="demo-videos/a789cfad2902688a67f648f9e1da6f49.webm"
+VIDEO_FILE="demo-videos/comprehensive-global-analysis-demo-with-narration.mp4"
 AUDIO_FILE="demo-videos/ultra_comprehensive_complete_narration.mp3"
 OUTPUT_FILE="demo-videos/ultra-comprehensive-global-analysis-demo-with-narration.mp4"
 
@@ -40,8 +40,8 @@ AUDIO_INT=$(printf "%.0f" "$AUDIO_DURATION")
 echo "🔄 Processing ultra-comprehensive video combination..."
 
 if [ "$AUDIO_INT" -gt "$VIDEO_INT" ]; then
-    echo "🎵 Audio is longer than video - extending video with fade to black"
-    # Audio is longer, so extend video with black frames and fade
+    echo "🎵 Audio is longer than video - extending video with fade to black and replacing audio"
+    # Audio is longer, so extend video with black frames and fade, replace audio
     ffmpeg -i "$VIDEO_FILE" -i "$AUDIO_FILE" \
         -filter_complex "
         [0:v]scale=1920:1080[scaled];
@@ -55,8 +55,8 @@ if [ "$AUDIO_INT" -gt "$VIDEO_INT" ]; then
         -movflags +faststart \
         "$OUTPUT_FILE" -y
 else
-    echo "📹 Video is longer or equal - standard combination with fade"
-    # Video is longer or equal, standard combination
+    echo "📹 Video is longer or equal - standard combination with audio replacement"
+    # Video is longer or equal, standard combination with audio replacement
     ffmpeg -i "$VIDEO_FILE" -i "$AUDIO_FILE" \
         -filter_complex "
         [0:v]scale=1920:1080,fade=t=in:d=1,fade=t=out:st=$((VIDEO_INT-2)):d=2[final_video]
