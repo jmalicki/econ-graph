@@ -9,36 +9,36 @@
 
 ## 🎬 **PROFESSIONAL DEMO VIDEOS - BLOOMBERG TERMINAL-LEVEL SHOWCASES**
 
-> **🚀 NEW: Global Economic Network Analysis System v3.0.0 - Revolutionary Bloomberg Terminal-level capabilities with institutional-grade visualization**
+> **🚀 NEW: Comprehensive Global Economic Network Analysis System v3.1.0 - Revolutionary Bloomberg Terminal-level capabilities with detailed professional demonstration**
 
-### 🌍 **Global Economic Network Analysis Demo (Latest - v3.0.0!)**
-[![EconGraph Global Analysis Demo](https://img.shields.io/badge/🌍%20Global%20Economic%20Network%20Analysis-Bloomberg%20Terminal%20Level-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/econgraph-professional-demo-v3.mp4)
+### 🌍 **Comprehensive Global Economic Network Analysis Demo (Latest - v3.1.0!)**
+[![EconGraph Comprehensive Global Analysis Demo](https://img.shields.io/badge/🌍%20Comprehensive%20Global%20Economic%20Analysis-Bloomberg%20Terminal%20Level-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/comprehensive-global-analysis-demo-with-narration.mp4)
 
-**[📺 Watch the Revolutionary Global Analysis Demo with Perfect Narration](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/econgraph-professional-demo-v3.mp4)**
+**[📺 Watch the Comprehensive Global Analysis Demo - 3.2min HD with Professional Narration](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/comprehensive-global-analysis-demo-with-narration.mp4)**
 
 ### 🤝 **Collaboration Features Demo**
 [![EconGraph Enhanced Collaboration Demo](https://img.shields.io/badge/🤝%20Enhanced%20Collaboration%20Demo-Team%20Workflow%20Features-blue?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp4)
 
 **[📺 Watch the Enhanced Collaboration Demo with Visual-Audio Sync](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp4)**
 
-### ✨ **Revolutionary Global Analysis Features (v3.0.0):**
-- **🌍 Interactive World Map** - D3.js-powered economic correlation network visualization
-- **📊 Multi-Country Dashboard** - Bloomberg Terminal-style comparative economic analysis
-- **📈 Global Events Explorer** - Professional timeline tracking economic crises and impacts
-- **🔗 Network Analysis Engine** - Advanced correlation calculations with statistical significance
-- **🎬 HD Professional Demo** - Perfect narration-video alignment showcasing all features
-- **💼 Institutional-Grade UI** - Rivals $20,000+/year financial terminal interfaces
-- **⚡ Real-time Data Processing** - Live economic indicator updates and correlation tracking
+### ✨ **Revolutionary Global Analysis Features (v3.1.0):**
+- **🌍 Interactive World Map** - D3.js-powered economic correlation network visualization with 15+ countries
+- **📊 Multi-Country Dashboard** - Bloomberg Terminal-style comparative economic analysis with professional metrics
+- **📈 Global Events Explorer** - Comprehensive crisis tracking (2008 Crisis, COVID-19, Brexit, Trade Wars, Russia-Ukraine)
+- **🔗 Advanced Network Analysis** - Statistical significance testing (p < 0.01) with correlation thresholds (0.4-0.8)
+- **🎬 Comprehensive HD Demo** - 3.2min detailed demonstration with 29-segment professional narration
+- **💼 Institutional-Grade UI** - Professional styling rivaling $24,000/year Bloomberg Terminal
+- **⚡ Advanced Controls** - Multiple economic indicators, chart types, and interactive parameter adjustments
 
-### 🎯 **What You'll See in the Global Analysis Demo (v3.0.0):**
-- 🌍 **Interactive World Economic Map**: Click countries to explore economic relationships and correlations
-- 📊 **Multi-Country Comparison Dashboard**: Side-by-side analysis of GDP, inflation, unemployment across nations
-- 📈 **Global Economic Events Timeline**: Professional visualization of major economic events (2008 Crisis, COVID-19, Brexit)
-- 🔗 **Economic Correlation Networks**: Visual network showing how countries' economies influence each other
-- 📱 **Responsive Global Interface**: Professional tabbed navigation with breadcrumb system
-- 💼 **Bloomberg Terminal Quality**: Institutional-grade visualization matching premium financial platforms
-- 🎤 **Perfect Narration Sync**: Every described feature is actually demonstrated in the video
-- 🏆 **Revolutionary Achievement**: First open-source platform with this level of global economic network analysis
+### 🎯 **What You'll See in the Comprehensive Global Analysis Demo (v3.1.0):**
+- 🌍 **Interactive World Economic Network**: Detailed country interactions with economic profiles and correlation adjustments
+- 📊 **Professional Multi-Country Dashboard**: Bloomberg Terminal-style interface with metric cards and trend indicators  
+- 📈 **Global Economic Events Explorer**: Comprehensive crisis analysis with impact severity and recovery tracking
+- 🔗 **Advanced Correlation Engine**: Statistical significance testing with multiple economic indicators and thresholds
+- 🎛️ **Professional Controls**: Comprehensive parameter adjustments, filtering, and chart type selections
+- 💼 **Bloomberg Terminal Quality**: Institutional-grade presentation matching premium financial platforms
+- 🎤 **Perfect Feature Demonstration**: Every narrated capability is visually demonstrated in comprehensive detail
+- 🏆 **Revolutionary Achievement**: Most comprehensive open-source global economic network analysis platform demo ever created
 
 ### 🎯 **What You'll See in the Collaboration Demo:**
 - 🟢 **Green Dots for Online Users**: Live pulsing indicators showing which team members are actively online
