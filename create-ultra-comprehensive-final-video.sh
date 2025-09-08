@@ -6,7 +6,7 @@
 echo "🎬 Creating Ultra-Comprehensive Global Analysis Demo with Professional Narration..."
 
 # Video and audio file paths
-VIDEO_FILE="demo-videos/eedf88814542e92149d86ba19aa61f35.webm"
+VIDEO_FILE="demo-videos/a789cfad2902688a67f648f9e1da6f49.webm"
 AUDIO_FILE="demo-videos/ultra_comprehensive_complete_narration.mp3"
 OUTPUT_FILE="demo-videos/ultra-comprehensive-global-analysis-demo-with-narration.mp4"
 
