@@ -9,23 +9,23 @@
 
 ## 🎬 **COMPREHENSIVE INVESTOR DEMO**
 
-> **Professional 6.7-minute investor pitch with British narration**
+> **Professional 20-minute investor video demo with British narration**
 
-### 🏆 **NEW: Comprehensive Investor Demo - Complete Business Case (6:44)**
-[![EconGraph Comprehensive Investor Demo](https://img.shields.io/badge/🏆%20Comprehensive%20Investor%20Demo-Complete%20Business%20Case%20(6:44)-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/comprehensive-20-minute-demo-british.mp3)
+### 🏆 **NEW: Full 20-Minute Investor Video Demo - Complete Presentation**
+[![EconGraph 20-Minute Investor Demo](https://img.shields.io/badge/🏆%20Full%2020--Minute%20Investor%20Demo-Complete%20Presentation-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/full-20-minute-demo-british.mp3)
 
-**[🎯 Create Your Own Comprehensive Demo](./demo-tools/create-20-minute-comprehensive-demo.sh)**
+**[🎯 Create Your Own 20-Minute Video Demo](./demo-tools/create-full-20-minute-video-demo.sh)**
 
-> **💼 INVESTOR-READY PRESENTATION: Professional British-accented narration covering complete business case, technology deep-dive, market opportunity, competitive advantages, and $2M Series A investment ask.**
+> **💼 PROFESSIONAL INVESTOR PRESENTATION: Complete 20-minute video demo structure with British-accented narration covering comprehensive business case, working prototype demonstration, market analysis, and investment thesis.**
 
-**🎯 Complete 6:44 Coverage:**
-- **[0-1:17]** Market Opportunity & Problem Statement ($8.2B market, Bloomberg disruption)
-- **[1:17-2:40]** Technology Foundation Deep Dive (Rust/React/GraphQL stack, performance)
-- **[2:40-4:12]** Core Features Demo (search, charts, transformations, data quality)
-- **[4:12-5:05]** Data Sources & API Access (FRED, BLS, international coverage)
-- **[5:05-5:46]** Business Model & Pricing (freemium, 90% cost savings vs Bloomberg)
-- **[5:46-6:18]** Competitive Advantages (open source, modern UX, customization)
-- **[6:18-6:44]** Investment Opportunity ($2M Series A, growth strategy, profitability)
+**🎯 Full 20-Minute Structure:**
+- **[0-4min]** Opening & Market Analysis (landing page, $8.2B market opportunity, disruption)
+- **[4-8min]** Technology Foundation Deep Dive (Rust/React/GraphQL, performance, architecture)
+- **[8-13min]** Core Features Demo (search, charts, bug fixes, transformations, comparisons)
+- **[13-16min]** Data Sources & Quality (FRED, BLS, API access, metadata)
+- **[16-18min]** Business Model & Strategy (pricing, 90% cost savings, enterprise features)
+- **[18-19.5min]** Competitive Advantages (open source, modern UX, customization)
+- **[19.5-20min]** Investment Opportunity ($2M Series A, growth strategy, ROI)
 
 **📊 Perfect for:**
 - **Investor Presentations** - Complete business case with professional narration
