@@ -7,12 +7,38 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-blue)](https://github.com/jmalicki/econ-graph/tree/main/frontend)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## 🎬 **COMPREHENSIVE INVESTOR DEMO**
+
+> **Professional 6.7-minute investor pitch with British narration**
+
+### 🏆 **NEW: Comprehensive Investor Demo - Complete Business Case (6:44)**
+[![EconGraph Comprehensive Investor Demo](https://img.shields.io/badge/🏆%20Comprehensive%20Investor%20Demo-Complete%20Business%20Case%20(6:44)-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/comprehensive-20-minute-demo-british.mp3)
+
+**[🎯 Create Your Own Comprehensive Demo](./demo-tools/create-20-minute-comprehensive-demo.sh)**
+
+> **💼 INVESTOR-READY PRESENTATION: Professional British-accented narration covering complete business case, technology deep-dive, market opportunity, competitive advantages, and $2M Series A investment ask.**
+
+**🎯 Complete 6:44 Coverage:**
+- **[0-1:17]** Market Opportunity & Problem Statement ($8.2B market, Bloomberg disruption)
+- **[1:17-2:40]** Technology Foundation Deep Dive (Rust/React/GraphQL stack, performance)
+- **[2:40-4:12]** Core Features Demo (search, charts, transformations, data quality)
+- **[4:12-5:05]** Data Sources & API Access (FRED, BLS, international coverage)
+- **[5:05-5:46]** Business Model & Pricing (freemium, 90% cost savings vs Bloomberg)
+- **[5:46-6:18]** Competitive Advantages (open source, modern UX, customization)
+- **[6:18-6:44]** Investment Opportunity ($2M Series A, growth strategy, profitability)
+
+**📊 Perfect for:**
+- **Investor Presentations** - Complete business case with professional narration
+- **Board Meetings** - Technical depth with business strategy
+- **Demo Days** - Comprehensive feature showcase with market positioning
+- **Fundraising** - Clear investment opportunity and growth potential
+
 ## 🎬 **PROTOTYPE DEMONSTRATIONS**
 
 > **Honest demos showing actual implemented features**
 
-### 💼 **Real UI Business Demo - Working App + Business Case (NEW!)**
-[![EconGraph Real UI Business Demo](https://img.shields.io/badge/💼%20Real%20UI%20Business%20Demo-Working%20App%20%2B%20Business%20Case-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/real-ui-business-demo.mp4)
+### 💼 **Real UI Business Demo - Working App + Business Case**
+[![EconGraph Real UI Business Demo](https://img.shields.io/badge/💼%20Real%20UI%20Business%20Demo-Working%20App%20%2B%20Business%20Case-brightgreen?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/real-ui-business-demo.mp4)
 
 **[🚀 Create Your Own Real UI Business Demo](./demo-tools/create-real-ui-business-demo.sh)**
 
