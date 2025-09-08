@@ -11,6 +11,7 @@ import SeriesDetail from './pages/SeriesDetail';
 import DataSources from './pages/DataSources';
 import About from './pages/About';
 import ProfessionalAnalysis from './pages/ProfessionalAnalysis';
+import GlobalAnalysis from './pages/GlobalAnalysis';
 
 /**
  * REQUIREMENT: Modern application that is easier to use than FRED
@@ -54,6 +55,7 @@ function App() {
               <Route path="/sources" element={<DataSources />} />
               <Route path="/about" element={<About />} />
               <Route path="/analysis/:id?" element={<ProfessionalAnalysis />} />
+              <Route path="/global" element={<GlobalAnalysis />} />
             </Routes>
           </Container>
         </Box>

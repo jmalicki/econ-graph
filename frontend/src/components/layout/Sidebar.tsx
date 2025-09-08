@@ -20,6 +20,7 @@ import {
   Info as InfoIcon,
   TrendingUp as TrendingUpIcon,
   Assessment as AssessmentIcon,
+  Public as GlobalIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -60,6 +61,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       path: '/explore',
       icon: <ExploreIcon />,
       description: 'Browse and search economic data',
+    },
+    {
+      text: 'Global Analysis',
+      path: '/global',
+      icon: <GlobalIcon />,
+      description: 'Cross-country correlations & network analysis',
     },
     {
       text: 'Data Sources',
