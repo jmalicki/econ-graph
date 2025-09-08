@@ -12,9 +12,11 @@
 > **🚀 NEW: Honest Prototype Demo v3.3.0 - Truthful demonstration of implemented features with no false claims**
 
 ### 🌍 **Honest Global Economic Network Prototype Demo (Latest - v3.3.0!)**
-[![EconGraph Honest Prototype Demo](https://img.shields.io/badge/🌍%20Honest%20Prototype%20Demo-Sample%20Data%20%26%20UI%20Concepts-green?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/honest-econ-graph-demo-with-narration.mp4)
+[![EconGraph Honest Prototype Demo](https://img.shields.io/badge/🌍%20Honest%20Prototype%20Demo-Ready%20for%20Recording-orange?style=for-the-badge&logo=record)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/honest-global-analysis-demo.html)
 
-**[📺 Watch the Honest Prototype Demo - 1min 20sec with Truthful Narration](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/honest-econ-graph-demo-with-narration.mp4)**
+**[🎬 Interactive HTML Demo - Ready for Manual Recording](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/honest-global-analysis-demo.html)**
+
+> **📹 Demo Video Status**: Ready for manual recording! The HTML demo and honest narration (1min 20sec) are complete. Follow the recording instructions in the repository to create the final video.
 
 ### 🤝 **Collaboration Features Demo**
 [![EconGraph Enhanced Collaboration Demo](https://img.shields.io/badge/🤝%20Enhanced%20Collaboration%20Demo-Team%20Workflow%20Features-blue?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/collaboration-demo-with-narration.mp4)
@@ -26,9 +28,16 @@
 - **📊 Multi-Country Dashboard** - React component prototype with sample economic data for demonstration
 - **📈 Global Events Explorer** - UI prototype showing 6 sample economic events with basic filtering
 - **🎯 Sample Data Only** - All data is static/sample for UI demonstration purposes
-- **🎬 Honest Demo Video** - 1 minute 20 seconds with truthful feature descriptions
+- **🎬 Honest Narration Ready** - 1 minute 20 seconds with truthful feature descriptions (audio complete)
 - **💻 Prototype UI Components** - Professional styling concepts with clear sample data labeling
 - **🔧 Development Status** - Working prototype components, not production-ready system
+
+### 📹 **To Create the Demo Video:**
+1. **Run**: `./create-honest-demo-video.sh` (opens HTML demo in browser)
+2. **Record**: Use Cmd+Shift+5 to record the browser window for ~1 minute 20 seconds
+3. **Save**: As `honest-demo-recording.mov` in the project directory
+4. **Combine**: Run `./combine-honest-demo.sh` to merge video with narration
+5. **Result**: Professional demo video with honest feature descriptions
 
 ### 🎯 **What You'll See in the Honest Prototype Demo (v3.3.0):**
 - 🌍 **Sample World Map**: D3.js visualization showing 5 countries (US, China, Japan, Germany, UK) with sample data
