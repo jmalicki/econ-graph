@@ -13,6 +13,10 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
+  Chip,
+  Autocomplete,
+  TextField,
+  ListSubheader,
 } from '@mui/material';
 import { Info, ZoomIn, ZoomOut, RestartAlt } from '@mui/icons-material';
 import * as d3 from 'd3';
@@ -27,6 +31,8 @@ interface CountryData {
   longitude: number;
   gdpUsd?: number;
   population?: number;
+  region?: string;
+  subregion?: string;
 }
 
 interface CorrelationData {
@@ -38,13 +44,20 @@ interface CorrelationData {
   countryB: { name: string; isoAlpha2: string };
 }
 
-// Sample data for demo purposes
+// Extended country data with regional grouping
 const sampleCountries: CountryData[] = [
-  { id: '1', name: 'United States', isoAlpha2: 'US', isoAlpha3: 'USA', latitude: 39.8283, longitude: -98.5795, gdpUsd: 23000000000000, population: 331000000 },
-  { id: '2', name: 'China', isoAlpha2: 'CN', isoAlpha3: 'CHN', latitude: 35.8617, longitude: 104.1954, gdpUsd: 17700000000000, population: 1441000000 },
-  { id: '3', name: 'Japan', isoAlpha2: 'JP', isoAlpha3: 'JPN', latitude: 36.2048, longitude: 138.2529, gdpUsd: 5000000000000, population: 126000000 },
-  { id: '4', name: 'Germany', isoAlpha2: 'DE', isoAlpha3: 'DEU', latitude: 51.1657, longitude: 10.4515, gdpUsd: 4200000000000, population: 83000000 },
-  { id: '5', name: 'United Kingdom', isoAlpha2: 'GB', isoAlpha3: 'GBR', latitude: 55.3781, longitude: -3.4360, gdpUsd: 3100000000000, population: 67000000 },
+  { id: '1', name: 'United States', isoAlpha2: 'US', isoAlpha3: 'USA', latitude: 39.8283, longitude: -98.5795, gdpUsd: 23000000000000, population: 331000000, region: 'Americas', subregion: 'North America' },
+  { id: '2', name: 'China', isoAlpha2: 'CN', isoAlpha3: 'CHN', latitude: 35.8617, longitude: 104.1954, gdpUsd: 17700000000000, population: 1441000000, region: 'Asia', subregion: 'East Asia' },
+  { id: '3', name: 'Japan', isoAlpha2: 'JP', isoAlpha3: 'JPN', latitude: 36.2048, longitude: 138.2529, gdpUsd: 5000000000000, population: 126000000, region: 'Asia', subregion: 'East Asia' },
+  { id: '4', name: 'Germany', isoAlpha2: 'DE', isoAlpha3: 'DEU', latitude: 51.1657, longitude: 10.4515, gdpUsd: 4200000000000, population: 83000000, region: 'Europe', subregion: 'Western Europe' },
+  { id: '5', name: 'United Kingdom', isoAlpha2: 'GB', isoAlpha3: 'GBR', latitude: 55.3781, longitude: -3.4360, gdpUsd: 3100000000000, population: 67000000, region: 'Europe', subregion: 'Northern Europe' },
+  { id: '6', name: 'France', isoAlpha2: 'FR', isoAlpha3: 'FRA', latitude: 46.2276, longitude: 2.2137, gdpUsd: 2900000000000, population: 67000000, region: 'Europe', subregion: 'Western Europe' },
+  { id: '7', name: 'India', isoAlpha2: 'IN', isoAlpha3: 'IND', latitude: 20.5937, longitude: 78.9629, gdpUsd: 3700000000000, population: 1380000000, region: 'Asia', subregion: 'South Asia' },
+  { id: '8', name: 'Brazil', isoAlpha2: 'BR', isoAlpha3: 'BRA', latitude: -14.2350, longitude: -51.9253, gdpUsd: 2100000000000, population: 215000000, region: 'Americas', subregion: 'South America' },
+  { id: '9', name: 'Canada', isoAlpha2: 'CA', isoAlpha3: 'CAN', latitude: 56.1304, longitude: -106.3468, gdpUsd: 1900000000000, population: 38000000, region: 'Americas', subregion: 'North America' },
+  { id: '10', name: 'Italy', isoAlpha2: 'IT', isoAlpha3: 'ITA', latitude: 41.8719, longitude: 12.5674, gdpUsd: 2100000000000, population: 60000000, region: 'Europe', subregion: 'Southern Europe' },
+  { id: '11', name: 'South Korea', isoAlpha2: 'KR', isoAlpha3: 'KOR', latitude: 35.9078, longitude: 127.7669, gdpUsd: 1800000000000, population: 52000000, region: 'Asia', subregion: 'East Asia' },
+  { id: '12', name: 'Australia', isoAlpha2: 'AU', isoAlpha3: 'AUS', latitude: -25.2744, longitude: 133.7751, gdpUsd: 1500000000000, population: 26000000, region: 'Oceania', subregion: 'Australia and New Zealand' },
 ];
 
 const sampleCorrelations: CorrelationData[] = [
@@ -72,6 +85,46 @@ const sampleCorrelations: CorrelationData[] = [
     countryA: { name: 'China', isoAlpha2: 'CN' },
     countryB: { name: 'Germany', isoAlpha2: 'DE' }
   },
+  {
+    countryAId: '1',
+    countryBId: '9',
+    correlationCoefficient: 0.82,
+    pValue: 0.001,
+    countryA: { name: 'United States', isoAlpha2: 'US' },
+    countryB: { name: 'Canada', isoAlpha2: 'CA' }
+  },
+  {
+    countryAId: '4',
+    countryBId: '6',
+    correlationCoefficient: 0.79,
+    pValue: 0.001,
+    countryA: { name: 'Germany', isoAlpha2: 'DE' },
+    countryB: { name: 'France', isoAlpha2: 'FR' }
+  },
+  {
+    countryAId: '3',
+    countryBId: '11',
+    correlationCoefficient: 0.71,
+    pValue: 0.002,
+    countryA: { name: 'Japan', isoAlpha2: 'JP' },
+    countryB: { name: 'South Korea', isoAlpha2: 'KR' }
+  },
+  {
+    countryAId: '2',
+    countryBId: '7',
+    correlationCoefficient: 0.58,
+    pValue: 0.01,
+    countryA: { name: 'China', isoAlpha2: 'CN' },
+    countryB: { name: 'India', isoAlpha2: 'IN' }
+  },
+  {
+    countryAId: '5',
+    countryBId: '4',
+    correlationCoefficient: 0.66,
+    pValue: 0.003,
+    countryA: { name: 'United Kingdom', isoAlpha2: 'GB' },
+    countryB: { name: 'Germany', isoAlpha2: 'DE' }
+  },
 ];
 
 const GlobalEconomicNetworkMap: React.FC = () => {
@@ -79,7 +132,25 @@ const GlobalEconomicNetworkMap: React.FC = () => {
   const [selectedIndicator, setSelectedIndicator] = useState<string>('gdp');
   const [minCorrelation, setMinCorrelation] = useState<number>(0.5);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
+  const [selectedCountries, setSelectedCountries] = useState<CountryData[]>(sampleCountries.slice(0, 5)); // Start with first 5
+  const [selectedRegion, setSelectedRegion] = useState<string>('all');
   const [loading, setLoading] = useState<boolean>(false);
+
+  // Get unique regions for filtering
+  const regions = Array.from(new Set(sampleCountries.map(c => c.region))).sort();
+  
+  // Filter countries based on selected region
+  const filteredCountries = selectedRegion === 'all' 
+    ? sampleCountries 
+    : sampleCountries.filter(c => c.region === selectedRegion);
+
+  // Group countries by region for the dropdown
+  const countriesByRegion = sampleCountries.reduce((acc, country) => {
+    const region = country.region || 'Other';
+    if (!acc[region]) acc[region] = [];
+    acc[region].push(country);
+    return acc;
+  }, {} as Record<string, CountryData[]>);
 
   // Initialize the map
   useEffect(() => {
@@ -109,7 +180,7 @@ const GlobalEconomicNetworkMap: React.FC = () => {
 
     // Add countries as circles (simplified for demo)
     const countries = g.selectAll('.country')
-      .data(sampleCountries)
+      .data(selectedCountries)
       .enter()
       .append('circle')
       .attr('class', 'country')
@@ -140,7 +211,7 @@ const GlobalEconomicNetworkMap: React.FC = () => {
 
     // Add country labels
     g.selectAll('.country-label')
-      .data(sampleCountries)
+      .data(selectedCountries)
       .enter()
       .append('text')
       .attr('class', 'country-label')
@@ -151,9 +222,12 @@ const GlobalEconomicNetworkMap: React.FC = () => {
       .attr('fill', '#333')
       .style('pointer-events', 'none');
 
-    // Add correlation lines
+    // Add correlation lines - only show correlations between selected countries
+    const selectedCountryIds = selectedCountries.map(c => c.id);
     const filteredCorrelations = sampleCorrelations.filter(
-      corr => Math.abs(corr.correlationCoefficient) >= minCorrelation
+      corr => Math.abs(corr.correlationCoefficient) >= minCorrelation &&
+               selectedCountryIds.includes(corr.countryAId) &&
+               selectedCountryIds.includes(corr.countryBId)
     );
 
     g.selectAll('.correlation-line')
@@ -162,26 +236,26 @@ const GlobalEconomicNetworkMap: React.FC = () => {
       .append('line')
       .attr('class', 'correlation-line')
       .attr('x1', d => {
-        const country = sampleCountries.find(c => c.id === d.countryAId);
+        const country = selectedCountries.find(c => c.id === d.countryAId);
         return projection([country?.longitude || 0, country?.latitude || 0])?.[0] || 0;
       })
       .attr('y1', d => {
-        const country = sampleCountries.find(c => c.id === d.countryAId);
+        const country = selectedCountries.find(c => c.id === d.countryAId);
         return projection([country?.longitude || 0, country?.latitude || 0])?.[1] || 0;
       })
       .attr('x2', d => {
-        const country = sampleCountries.find(c => c.id === d.countryBId);
+        const country = selectedCountries.find(c => c.id === d.countryBId);
         return projection([country?.longitude || 0, country?.latitude || 0])?.[0] || 0;
       })
       .attr('y2', d => {
-        const country = sampleCountries.find(c => c.id === d.countryBId);
+        const country = selectedCountries.find(c => c.id === d.countryBId);
         return projection([country?.longitude || 0, country?.latitude || 0])?.[1] || 0;
       })
       .attr('stroke', d => d.correlationCoefficient > 0 ? '#2196F3' : '#F44336')
       .attr('stroke-width', d => Math.abs(d.correlationCoefficient) * 4)
       .attr('opacity', 0.7);
 
-  }, [minCorrelation, selectedIndicator]);
+  }, [minCorrelation, selectedIndicator, selectedCountries]);
 
   const handleIndicatorChange = (event: any) => {
     setSelectedIndicator(event.target.value);
@@ -205,7 +279,7 @@ const GlobalEconomicNetworkMap: React.FC = () => {
       {/* Controls */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <FormControl fullWidth>
               <InputLabel>Economic Indicator</InputLabel>
               <Select
@@ -221,7 +295,62 @@ const GlobalEconomicNetworkMap: React.FC = () => {
             </FormControl>
           </Grid>
 
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Region Filter</InputLabel>
+              <Select
+                value={selectedRegion}
+                label="Region Filter"
+                onChange={(e) => setSelectedRegion(e.target.value)}
+              >
+                <MenuItem value="all">All Regions</MenuItem>
+                {regions.map(region => (
+                  <MenuItem key={region} value={region}>{region}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
           <Grid item xs={12} md={6}>
+            <Autocomplete
+              multiple
+              options={filteredCountries}
+              value={selectedCountries}
+              onChange={(_, newValue) => setSelectedCountries(newValue)}
+              groupBy={(option) => option.region || 'Other'}
+              getOptionLabel={(option) => `${option.name} (${option.isoAlpha2})`}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    variant="outlined"
+                    label={option.isoAlpha2}
+                    {...getTagProps({ index })}
+                    key={option.id}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Select Countries"
+                  placeholder="Choose countries to analyze..."
+                />
+              )}
+              renderGroup={(params) => (
+                <li key={params.key}>
+                  <ListSubheader component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                    🌍 {params.group}
+                  </ListSubheader>
+                  {params.children}
+                </li>
+              )}
+            />
+          </Grid>
+
+        </Grid>
+        
+        <Grid container spacing={3} alignItems="center" sx={{ mt: 1 }}>
+          <Grid item xs={12} md={8}>
             <Typography gutterBottom>
               Minimum Correlation Threshold: {minCorrelation.toFixed(2)}
             </Typography>
@@ -236,7 +365,7 @@ const GlobalEconomicNetworkMap: React.FC = () => {
             />
           </Grid>
 
-          <Grid item xs={12} md={2}>
+          <Grid item xs={12} md={4}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Tooltip title="Zoom In">
                 <IconButton>
