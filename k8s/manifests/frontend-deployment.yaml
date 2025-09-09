@@ -65,22 +65,3 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
       restartPolicy: Always
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: econ-graph-frontend-service
-  namespace: econ-graph
-  labels:
-    app: econ-graph-frontend
-spec:
-  type: NodePort
-  ports:
-  - port: 3000
-    targetPort: 3000
-    nodePort: 30000
-    protocol: TCP
-    name: http
-  selector:
-    app: econ-graph-frontend

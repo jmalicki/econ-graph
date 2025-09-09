@@ -30,7 +30,9 @@ kubectl apply -f k8s/manifests/configmap.yaml
 kubectl apply -f k8s/manifests/secret.yaml
 kubectl apply -f k8s/manifests/postgres.yaml
 kubectl apply -f k8s/manifests/backend-deployment.yaml
+kubectl apply -f k8s/manifests/backend-service.yaml
 kubectl apply -f k8s/manifests/frontend-deployment.yaml
+kubectl apply -f k8s/manifests/frontend-service.yaml
 kubectl apply -f k8s/manifests/ingress.yaml
 
 echo "⏳ Waiting for deployments to be ready..."
