@@ -8,6 +8,7 @@ use tokio::signal;
 use tracing::{info, warn};
 use warp::Filter;
 
+mod auth;
 mod config;
 mod database;
 mod error;
@@ -22,6 +23,8 @@ mod test_utils;
 #[cfg(test)]
 mod integration_tests;
 
+use auth::services::AuthService;
+use auth::routes::auth_routes;
 use config::Config;
 use database::{create_pool, DatabasePool};
 use error::{AppError, AppResult};
@@ -159,6 +162,10 @@ async fn main() -> AppResult<()> {
     let schema = create_schema_with_data(pool.clone());
     info!("🎯 GraphQL schema created");
 
+    // Create authentication service
+    let auth_service = AuthService::new(pool.clone());
+    info!("🔐 Authentication service created");
+
     // Start background crawler (if enabled in config)
     // For now, crawler is always enabled - in production this could be configurable
     info!("🕷️  Starting background crawler...");
@@ -172,18 +179,20 @@ async fn main() -> AppResult<()> {
         .allow_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"]);
 
     // GraphQL endpoint
-    let graphql_filter = async_graphql_warp::graphql(schema.clone()).and_then(
-        |(schema, request): (
-            async_graphql::Schema<
-                graphql::query::Query,
-                graphql::mutation::Mutation,
-                async_graphql::EmptySubscription,
-            >,
-            async_graphql::Request,
-        )| async move {
-            Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
-        },
-    );
+    let graphql_filter = warp::path("graphql")
+        .and(async_graphql_warp::graphql(schema.clone()))
+        .and_then(
+            |(schema, request): (
+                async_graphql::Schema<
+                    graphql::query::Query,
+                    graphql::mutation::Mutation,
+                    async_graphql::EmptySubscription,
+                >,
+                async_graphql::Request,
+            )| async move {
+                Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
+            },
+        );
 
     // GraphQL Playground
     let playground_filter = warp::path("playground")
@@ -196,11 +205,15 @@ async fn main() -> AppResult<()> {
     // Root endpoint
     let root_filter = warp::path::end().and(warp::get()).and_then(root_handler);
 
+    // Authentication routes
+    let auth_filter = auth_routes(auth_service);
+
     // Combine all routes
     let routes = root_filter
         .or(graphql_filter)
         .or(playground_filter)
         .or(health_filter)
+        .or(auth_filter)
         .with(cors)
         .with(warp::trace::request());
 

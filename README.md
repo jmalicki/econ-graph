@@ -11,10 +11,15 @@
 
 > **🚀 COMPLETELY AUTOMATED: Professional investor demo with live preview - just sit back and watch!**
 
-### 🏆 **PROFESSIONAL BROWSER-ONLY DEMO VIDEO**
-[![EconGraph Browser Demo](https://img.shields.io/badge/▶️%20WATCH%20BROWSER%20DEMO-Privacy%20Secure%20%7C%20Application%20Only-green?style=for-the-badge&logo=video&logoColor=white)](./demo-videos/econ-graph-browser-demo.mp4)
+### 🏆 **COMPREHENSIVE 20-MINUTE DEMO VIDEO WITH LIVE AUDIO**
+[![EconGraph Comprehensive Demo](https://img.shields.io/badge/▶️%20WATCH%20COMPREHENSIVE%20DEMO-20%20Minutes%20%7C%20Every%20Feature-red?style=for-the-badge&logo=video&logoColor=white)](./demo-videos/econ-graph-comprehensive-20min-browser-demo.mp4)
 
-**[▶️ WATCH PROFESSIONAL DEMO - BROWSER WINDOW ONLY](./demo-videos/econ-graph-browser-demo.mp4)**
+**[▶️ WATCH 20-MINUTE COMPREHENSIVE DEMO - EVERY FEATURE SHOWCASED](./demo-videos/econ-graph-comprehensive-20min-browser-demo.mp4)**
+
+### 🎬 **Quick Browser Demo (45 seconds)**
+[![EconGraph Browser Demo](https://img.shields.io/badge/▶️%20QUICK%20DEMO-45%20Seconds%20%7C%20Browser%20Only-green?style=for-the-badge&logo=video&logoColor=white)](./demo-videos/econ-graph-browser-demo.mp4)
+
+**[▶️ Watch Quick Demo - Browser Window Only](./demo-videos/econ-graph-browser-demo.mp4)**
 
 ### 🎬 **Automated Video Creation System**
 [![EconGraph Automated System](https://img.shields.io/badge/🤖%20CREATE%20MORE%20VIDEOS-Automated%20System-blue?style=for-the-badge&logo=video&logoColor=white)](./demo-tools/create-automated-20min-investor-video.sh)
@@ -23,14 +28,15 @@
 
 > **🤖 FULLY AUTOMATED SYSTEM: Complete 20-minute investor demo that runs itself! Features professional British narration, automated UI interactions, live preview in QuickTime, and comprehensive business presentation. Just run the script and watch - perfect for investors, board meetings, and customer demos.**
 
-### ✅ **Professional Demo Video Content:**
-- **🎯 Browser Window Only**: Shows only Chrome window with EconGraph (1400x800)
-- **🔒 Privacy Secure**: No desktop, taskbar, or personal information visible
-- **📹 45-Second Demo**: Compact, focused demonstration with professional narration
-- **💻 Live Application**: Actual React frontend with Material-UI components running
-- **⚡ Working Stack**: Rust + GraphQL + PostgreSQL backend demonstrated
-- **📊 Real Features**: Interactive charts, search functionality, and navigation
-- **🎵 British Narration**: Professional investor pitch with business insights
+### ✅ **Comprehensive 20-Minute Demo Features:**
+- **🎯 Every Feature Showcased**: Complete walkthrough of all EconGraph capabilities
+- **🎵 Live Audio Experience**: British narration plays during recording for synchronized demo
+- **🔒 Privacy Secure**: Browser window only (1500x920) - no desktop visible
+- **⏱️ Professional Length**: 8+ minutes of comprehensive feature demonstration
+- **💻 Real Application**: Live React frontend with all components functioning
+- **⚡ Full Stack Demo**: Rust + GraphQL + PostgreSQL backend in action
+- **📊 Complete Features**: Search, charts, transformations, collaboration, global analysis
+- **🎬 9 Demo Phases**: Landing → Navigation → Search → Charts → Transformations → Collaboration → Global → Data Sources → Summary
 
 ### 🎬 **Automated Creation System Features:**
 - **📹 Live Preview**: Watch recording happen in real-time in QuickTime

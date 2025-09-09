@@ -110,6 +110,14 @@ const SeriesDetail: React.FC = () => {
                 frequency: 'Monthly',
                 units: 'Percent',
               };
+            case 'inflation':
+              return {
+                title: 'Consumer Price Index for All Urban Consumers: All Items',
+                description: 'Measure of average change in prices paid by urban consumers for goods and services. The CPI is the most widely used measure of inflation.',
+                source: 'Bureau of Labor Statistics',
+                frequency: 'Monthly',
+                units: 'Index 1982-84=100',
+              };
             case 'cpi-all':
               return {
                 title: 'Consumer Price Index for All Urban Consumers: All Items',
