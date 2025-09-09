@@ -36,18 +36,13 @@ pub enum AuthProvider {
 }
 
 /// User role for authorization
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum UserRole {
     Admin,
     Analyst,
+    #[default]
     Viewer,
-}
-
-impl Default for UserRole {
-    fn default() -> Self {
-        UserRole::Viewer
-    }
 }
 
 /// User preferences

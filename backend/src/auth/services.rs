@@ -275,7 +275,7 @@ impl AuthService {
     ) -> AppResult<User> {
         // In a real implementation, this would update the database
         // For now, create a mock updated user
-        let mut user = User {
+        let user = User {
             id: user_id,
             email: "updated@econgraph.com".to_string(),
             name: updates.name.unwrap_or_else(|| "Updated User".to_string()),
