@@ -70,7 +70,7 @@ describe('SeriesDetail', () => {
       renderSeriesDetail();
 
       // Should show skeleton loading states (Material-UI Skeleton components)
-      const skeletons = document.querySelectorAll('.MuiSkeleton-root');
+      const skeletons = screen.getAllByTestId('skeleton-loader');
       expect(skeletons.length).toBeGreaterThan(0);
     });
 
