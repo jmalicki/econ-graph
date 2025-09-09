@@ -11,10 +11,10 @@
 
 > **🚀 COMPLETELY AUTOMATED: Professional investor demo with live preview - just sit back and watch!**
 
-### 🏆 **ACTUAL VIDEO: Live EconGraph Software Demonstration**
-[![EconGraph Live Demo Video](https://img.shields.io/badge/▶️%20WATCH%20LIVE%20DEMO-Actual%20Software%20Running-red?style=for-the-badge&logo=video&logoColor=white)](./demo-videos/econ-graph-live-demo.mp4)
+### 🏆 **PROFESSIONAL BROWSER-ONLY DEMO VIDEO**
+[![EconGraph Browser Demo](https://img.shields.io/badge/▶️%20WATCH%20BROWSER%20DEMO-Privacy%20Secure%20%7C%20Application%20Only-green?style=for-the-badge&logo=video&logoColor=white)](./demo-videos/econ-graph-browser-demo.mp4)
 
-**[▶️ WATCH THE ACTUAL VIDEO - REAL SOFTWARE DEMO](./demo-videos/econ-graph-live-demo.mp4)**
+**[▶️ WATCH PROFESSIONAL DEMO - BROWSER WINDOW ONLY](./demo-videos/econ-graph-browser-demo.mp4)**
 
 ### 🎬 **Automated Video Creation System**
 [![EconGraph Automated System](https://img.shields.io/badge/🤖%20CREATE%20MORE%20VIDEOS-Automated%20System-blue?style=for-the-badge&logo=video&logoColor=white)](./demo-tools/create-automated-20min-investor-video.sh)
@@ -23,13 +23,14 @@
 
 > **🤖 FULLY AUTOMATED SYSTEM: Complete 20-minute investor demo that runs itself! Features professional British narration, automated UI interactions, live preview in QuickTime, and comprehensive business presentation. Just run the script and watch - perfect for investors, board meetings, and customer demos.**
 
-### ✨ **Actual Video Content:**
-- **📹 Real Software**: 60-second screen recording of actual EconGraph application running
-- **🎵 Professional Narration**: British-accented investor pitch with business insights
-- **💻 Live UI**: Actual React frontend with Material-UI components in action
-- **⚡ Working Backend**: Rust + GraphQL + PostgreSQL stack demonstrated
-- **📊 Interactive Features**: Real charts, search functionality, and navigation
-- **🏢 Business Value**: Market opportunity, ROI analysis, and investment case
+### ✅ **Professional Demo Video Content:**
+- **🎯 Browser Window Only**: Shows only Chrome window with EconGraph (1400x800)
+- **🔒 Privacy Secure**: No desktop, taskbar, or personal information visible
+- **📹 45-Second Demo**: Compact, focused demonstration with professional narration
+- **💻 Live Application**: Actual React frontend with Material-UI components running
+- **⚡ Working Stack**: Rust + GraphQL + PostgreSQL backend demonstrated
+- **📊 Real Features**: Interactive charts, search functionality, and navigation
+- **🎵 British Narration**: Professional investor pitch with business insights
 
 ### 🎬 **Automated Creation System Features:**
 - **📹 Live Preview**: Watch recording happen in real-time in QuickTime
