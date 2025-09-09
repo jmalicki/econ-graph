@@ -53,7 +53,7 @@ use crate::{
 /// use econ_graph_backend::models::SeriesSearchParams;
 /// use econ_graph_backend::database::DatabasePool;
 /// use uuid::Uuid;
-/// 
+///
 /// # async fn example(pool: &DatabasePool) -> Result<(), Box<dyn std::error::Error>> {
 /// // Find all active employment-related series from BLS
 /// let bls_source_id = Uuid::new_v4();
@@ -149,7 +149,7 @@ pub async fn list_series(
 /// use econ_graph_backend::database::DatabasePool;
 /// use econ_graph_backend::error::AppError;
 /// use uuid::Uuid;
-/// 
+///
 /// # async fn example(pool: &DatabasePool) -> Result<(), AppError> {
 /// // Retrieve GDP series information
 /// let gdp_series_id = Uuid::new_v4();
@@ -223,7 +223,7 @@ pub async fn get_series_by_id(
 /// use econ_graph_backend::database::DatabasePool;
 /// use uuid::Uuid;
 /// use chrono::NaiveDate;
-/// 
+///
 /// # async fn example(pool: &DatabasePool) -> Result<(), Box<dyn std::error::Error>> {
 /// // Get last 12 months of employment data, original releases only
 /// let employment_series_id = Uuid::new_v4();

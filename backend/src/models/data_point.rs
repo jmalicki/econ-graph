@@ -33,7 +33,7 @@ use crate::schema::data_points;
 /// use uuid::Uuid;
 /// use chrono::{NaiveDate, Utc};
 /// use bigdecimal::BigDecimal;
-/// 
+///
 /// // A GDP data point showing a quarterly observation
 /// let gdp_series_uuid = Uuid::new_v4();
 /// let gdp_point = DataPoint {
@@ -113,7 +113,7 @@ pub struct DataPoint {
 /// use chrono::NaiveDate;
 /// use bigdecimal::BigDecimal;
 /// use std::str::FromStr;
-/// 
+///
 /// // Creating a new unemployment rate observation
 /// let unemployment_series_id = Uuid::new_v4();
 /// let new_point = NewDataPoint {
@@ -169,7 +169,7 @@ pub struct NewDataPoint {
 /// use chrono::{NaiveDate, Utc};
 /// use bigdecimal::BigDecimal;
 /// use std::str::FromStr;
-/// 
+///
 /// // Revising a GDP estimate from preliminary to final
 /// let revision = UpdateDataPoint {
 ///     value: Some(BigDecimal::from_str("27365000000000").unwrap()), // Revised up
@@ -275,7 +275,7 @@ pub struct DataPointWithSeries {
 /// use econ_graph_backend::models::DataQueryParams;
 /// use uuid::Uuid;
 /// use chrono::NaiveDate;
-/// 
+///
 /// // Query last 12 months of employment data, original releases only
 /// let employment_series_id = Uuid::new_v4();
 /// let params = DataQueryParams {
@@ -507,12 +507,12 @@ impl DataPoint {
     /// use bigdecimal::BigDecimal;
     /// use uuid::Uuid;
     /// use chrono::{NaiveDate, Utc};
-    /// 
-    /// let current_gdp = DataPoint { 
-    ///     id: Uuid::new_v4(), 
-    ///     series_id: Uuid::new_v4(), 
+    ///
+    /// let current_gdp = DataPoint {
+    ///     id: Uuid::new_v4(),
+    ///     series_id: Uuid::new_v4(),
     ///     date: NaiveDate::from_ymd_opt(2024, 3, 31).unwrap(),
-    ///     value: Some(BigDecimal::from(27360)), 
+    ///     value: Some(BigDecimal::from(27360)),
     ///     revision_date: NaiveDate::from_ymd_opt(2024, 4, 25).unwrap(),
     ///     is_original_release: true,
     ///     created_at: Utc::now(),
@@ -562,12 +562,12 @@ impl DataPoint {
     /// use bigdecimal::BigDecimal;
     /// use uuid::Uuid;
     /// use chrono::{NaiveDate, Utc};
-    /// 
-    /// let q2_gdp = DataPoint { 
-    ///     id: Uuid::new_v4(), 
-    ///     series_id: Uuid::new_v4(), 
+    ///
+    /// let q2_gdp = DataPoint {
+    ///     id: Uuid::new_v4(),
+    ///     series_id: Uuid::new_v4(),
     ///     date: NaiveDate::from_ymd_opt(2024, 6, 30).unwrap(),
-    ///     value: Some(BigDecimal::from(27360)), 
+    ///     value: Some(BigDecimal::from(27360)),
     ///     revision_date: NaiveDate::from_ymd_opt(2024, 7, 25).unwrap(),
     ///     is_original_release: true,
     ///     created_at: Utc::now(),
@@ -622,12 +622,12 @@ impl DataPoint {
     /// use bigdecimal::BigDecimal;
     /// use uuid::Uuid;
     /// use chrono::{NaiveDate, Utc};
-    /// 
-    /// let nov_employment = DataPoint { 
-    ///     id: Uuid::new_v4(), 
-    ///     series_id: Uuid::new_v4(), 
+    ///
+    /// let nov_employment = DataPoint {
+    ///     id: Uuid::new_v4(),
+    ///     series_id: Uuid::new_v4(),
     ///     date: NaiveDate::from_ymd_opt(2024, 11, 30).unwrap(),
-    ///     value: Some(BigDecimal::from(157500)), 
+    ///     value: Some(BigDecimal::from(157500)),
     ///     revision_date: NaiveDate::from_ymd_opt(2024, 12, 6).unwrap(),
     ///     is_original_release: true,
     ///     created_at: Utc::now(),
