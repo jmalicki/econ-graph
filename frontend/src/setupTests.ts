@@ -6,10 +6,10 @@
 import '@testing-library/jest-dom';
 import 'whatwg-fetch'; // Polyfill for fetch in test environment
 import { configure } from '@testing-library/react';
-import { mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions } from './test-utils/mocks/data';
+// Removed unused imports: mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions
 
 // Configure React Testing Library for CI environment
-configure({ 
+configure({
   asyncUtilTimeout: 10000, // Increase timeout for CI environment
   testIdAttribute: 'data-testid',
 });
@@ -38,7 +38,7 @@ jest.mock('./hooks/useSeriesData', () => ({
           startDate: '2020-01-01',
           endDate: '2024-12-01',
           isActive: true,
-          source: { name: 'Test Source', description: 'Test data source' }
+          source: { name: 'Test Source', description: 'Test data source' },
         },
         isLoading: false,
         isError: false,
@@ -76,7 +76,7 @@ jest.mock('./hooks/useSeriesData', () => ({
       refetch: jest.fn(),
     };
   }),
-  
+
   useSeriesData: jest.fn((seriesId, options = {}) => {
     if (seriesId && options.enabled !== false) {
       const dataPoints = Array.from({ length: 12 }, (_, index) => ({
@@ -103,13 +103,31 @@ jest.mock('./hooks/useSeriesData', () => ({
       refetch: jest.fn(),
     };
   }),
-  
-  useSeriesSearch: jest.fn((options) => {
+
+  useSeriesSearch: jest.fn(options => {
     if (options.query && options.query.length >= 2 && options.enabled !== false) {
       const mockResults = [
-        { id: '1', title: 'GDP Growth Rate', description: 'Economic growth indicator', rank: 1, similarityScore: 0.95 },
-        { id: '2', title: 'Unemployment Rate', description: 'Labor market indicator', rank: 2, similarityScore: 0.87 },
-        { id: '3', title: 'Inflation Rate', description: 'Price level indicator', rank: 3, similarityScore: 0.79 }
+        {
+          id: '1',
+          title: 'GDP Growth Rate',
+          description: 'Economic growth indicator',
+          rank: 1,
+          similarityScore: 0.95,
+        },
+        {
+          id: '2',
+          title: 'Unemployment Rate',
+          description: 'Labor market indicator',
+          rank: 2,
+          similarityScore: 0.87,
+        },
+        {
+          id: '3',
+          title: 'Inflation Rate',
+          description: 'Price level indicator',
+          rank: 3,
+          similarityScore: 0.79,
+        },
       ];
       return {
         data: mockResults,
@@ -129,12 +147,17 @@ jest.mock('./hooks/useSeriesData', () => ({
       refetch: jest.fn(),
     };
   }),
-  
-  useSearchSuggestions: jest.fn((options) => {
+
+  useSearchSuggestions: jest.fn(options => {
     if (options.partialQuery && options.partialQuery.length >= 2 && options.enabled !== false) {
       const mockSuggestions = [
-        { suggestion: 'unemployment', matchCount: 15, suggestionType: 'COMPLETION', confidence: 0.9 },
-        { suggestion: 'inflation', matchCount: 12, suggestionType: 'COMPLETION', confidence: 0.8 }
+        {
+          suggestion: 'unemployment',
+          matchCount: 15,
+          suggestionType: 'COMPLETION',
+          confidence: 0.9,
+        },
+        { suggestion: 'inflation', matchCount: 12, suggestionType: 'COMPLETION', confidence: 0.8 },
       ];
       return {
         data: mockSuggestions,
@@ -154,11 +177,11 @@ jest.mock('./hooks/useSeriesData', () => ({
       refetch: jest.fn(),
     };
   }),
-  
+
   useDataSources: jest.fn(() => {
     const mockSources = [
       { id: '1', name: 'Federal Reserve', description: 'US Federal Reserve Economic Data' },
-      { id: '2', name: 'Bureau of Labor Statistics', description: 'US Labor Statistics' }
+      { id: '2', name: 'Bureau of Labor Statistics', description: 'US Labor Statistics' },
     ];
     return {
       data: mockSources,
@@ -169,7 +192,7 @@ jest.mock('./hooks/useSeriesData', () => ({
       refetch: jest.fn(),
     };
   }),
-  
+
   useCrawlerStatus: jest.fn((options = {}) => {
     if (options.enabled !== false) {
       return {
@@ -183,7 +206,7 @@ jest.mock('./hooks/useSeriesData', () => ({
             totalItems: 1000,
             pendingItems: 25,
             completedItems: 950,
-          }
+          },
         },
         isLoading: false,
         isError: false,
@@ -201,7 +224,7 @@ jest.mock('./hooks/useSeriesData', () => ({
       refetch: jest.fn(),
     };
   }),
-  
+
   useDataTransformation: jest.fn((data, transformation = 'NONE') => {
     return data || [];
   }),
@@ -218,29 +241,41 @@ jest.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
 jest.mock('@mui/x-date-pickers/DatePicker', () => ({
   DatePicker: ({ children, ...props }: any) => {
     const React = require('react');
-    return React.createElement('div', {
-      'data-testid': 'date-picker',
-      ...props
-    }, children);
+    return React.createElement(
+      'div',
+      {
+        'data-testid': 'date-picker',
+        ...props,
+      },
+      children
+    );
   },
 }));
 
 jest.mock('react-chartjs-2', () => ({
   Line: ({ data, options, ...props }: any) => {
     const React = require('react');
-    return React.createElement('div', {
-      'data-testid': 'line-chart',
-      'data-chart-data': JSON.stringify(data),
-      ...props
-    }, 'Mock Line Chart');
+    return React.createElement(
+      'div',
+      {
+        'data-testid': 'line-chart',
+        'data-chart-data': JSON.stringify(data),
+        ...props,
+      },
+      'Mock Line Chart'
+    );
   },
   Bar: ({ data, options, ...props }: any) => {
     const React = require('react');
-    return React.createElement('div', {
-      'data-testid': 'bar-chart', 
-      'data-chart-data': JSON.stringify(data),
-      ...props
-    }, 'Mock Bar Chart');
+    return React.createElement(
+      'div',
+      {
+        'data-testid': 'bar-chart',
+        'data-chart-data': JSON.stringify(data),
+        ...props,
+      },
+      'Mock Bar Chart'
+    );
   },
 }));
 

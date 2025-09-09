@@ -65,7 +65,7 @@ type TransformationType = 'none' | 'yoy' | 'qoq' | 'mom';
  */
 const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency }) => {
   const theme = useTheme();
-  
+
   // State for chart controls
   const [startDate, setStartDate] = React.useState<Date | null>(null);
   const [endDate, setEndDate] = React.useState<Date | null>(null);
@@ -90,11 +90,9 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
       return { original: [], revised: [] };
     }
 
-    const originalData = showOriginalReleases 
-      ? filteredData.filter(d => d.isOriginalRelease)
-      : [];
-    
-    const revisedData = showRevisedData 
+    const originalData = showOriginalReleases ? filteredData.filter(d => d.isOriginalRelease) : [];
+
+    const revisedData = showRevisedData
       ? filteredData.filter(d => !d.isOriginalRelease || showOriginalReleases)
       : [];
 
@@ -102,46 +100,54 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
     const transformData = (points: DataPoint[]) => {
       if (transformation === 'none') return points;
 
-      return points.map((point, index) => {
-        if (point.value === null) return point;
+      return points
+        .map((point, index) => {
+          if (point.value === null) return point;
 
-        let transformedValue: number | null = null;
-        const currentDate = new Date(point.date);
+          let transformedValue: number | null = null;
+          const currentDate = new Date(point.date);
 
-        if (transformation === 'yoy') {
-          // Find data point from same period previous year
-          const previousYear = new Date(currentDate);
-          previousYear.setFullYear(currentDate.getFullYear() - 1);
-          const previousPoint = points.find(p => 
-            Math.abs(new Date(p.date).getTime() - previousYear.getTime()) < 32 * 24 * 60 * 60 * 1000 // Within ~1 month
-          );
-          if (previousPoint?.value && previousPoint.value !== 0) {
-            transformedValue = ((point.value - previousPoint.value) / previousPoint.value) * 100;
+          if (transformation === 'yoy') {
+            // Find data point from same period previous year
+            const previousYear = new Date(currentDate);
+            previousYear.setFullYear(currentDate.getFullYear() - 1);
+            const previousPoint = points.find(
+              p =>
+                Math.abs(new Date(p.date).getTime() - previousYear.getTime()) <
+                32 * 24 * 60 * 60 * 1000 // Within ~1 month
+            );
+            if (previousPoint?.value && previousPoint.value !== 0) {
+              transformedValue = ((point.value - previousPoint.value) / previousPoint.value) * 100;
+            }
+          } else if (transformation === 'qoq') {
+            // Find previous quarter (3 months ago)
+            const previousQuarter = new Date(currentDate);
+            previousQuarter.setMonth(currentDate.getMonth() - 3);
+            const previousPoint = points.find(
+              p =>
+                Math.abs(new Date(p.date).getTime() - previousQuarter.getTime()) <
+                45 * 24 * 60 * 60 * 1000 // Within ~1.5 months
+            );
+            if (previousPoint?.value && previousPoint.value !== 0) {
+              transformedValue = ((point.value - previousPoint.value) / previousPoint.value) * 100;
+            }
+          } else if (transformation === 'mom') {
+            // Find previous month
+            const previousMonth = new Date(currentDate);
+            previousMonth.setMonth(currentDate.getMonth() - 1);
+            const previousPoint = points.find(
+              p =>
+                Math.abs(new Date(p.date).getTime() - previousMonth.getTime()) <
+                16 * 24 * 60 * 60 * 1000 // Within ~2 weeks
+            );
+            if (previousPoint?.value && previousPoint.value !== 0) {
+              transformedValue = ((point.value - previousPoint.value) / previousPoint.value) * 100;
+            }
           }
-        } else if (transformation === 'qoq') {
-          // Find previous quarter (3 months ago)
-          const previousQuarter = new Date(currentDate);
-          previousQuarter.setMonth(currentDate.getMonth() - 3);
-          const previousPoint = points.find(p => 
-            Math.abs(new Date(p.date).getTime() - previousQuarter.getTime()) < 45 * 24 * 60 * 60 * 1000 // Within ~1.5 months
-          );
-          if (previousPoint?.value && previousPoint.value !== 0) {
-            transformedValue = ((point.value - previousPoint.value) / previousPoint.value) * 100;
-          }
-        } else if (transformation === 'mom') {
-          // Find previous month
-          const previousMonth = new Date(currentDate);
-          previousMonth.setMonth(currentDate.getMonth() - 1);
-          const previousPoint = points.find(p => 
-            Math.abs(new Date(p.date).getTime() - previousMonth.getTime()) < 16 * 24 * 60 * 60 * 1000 // Within ~2 weeks
-          );
-          if (previousPoint?.value && previousPoint.value !== 0) {
-            transformedValue = ((point.value - previousPoint.value) / previousPoint.value) * 100;
-          }
-        }
 
-        return { ...point, value: transformedValue };
-      }).filter(p => p.value !== null);
+          return { ...point, value: transformedValue };
+        })
+        .filter(p => p.value !== null);
     };
 
     return {
@@ -153,46 +159,58 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
   // Chart.js configuration
   const chartData = {
     datasets: [
-      ...(showRevisedData ? [{
-        label: showOriginalReleases ? 'Revised Data' : title,
-        data: processedData.revised.map(d => ({
-          x: d.date,
-          y: d.value,
-          originalRelease: d.isOriginalRelease,
-          revisionDate: d.revisionDate,
-        })),
-        borderColor: theme.palette.primary.main,
-        backgroundColor: theme.palette.primary.main + '20',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-        tension: 0.1,
-      }] : []),
-      ...(showOriginalReleases ? [{
-        label: 'Original Releases',
-        data: processedData.original.map(d => ({
-          x: d.date,
-          y: d.value,
-          originalRelease: d.isOriginalRelease,
-          revisionDate: d.revisionDate,
-        })),
-        borderColor: theme.palette.secondary.main,
-        backgroundColor: theme.palette.secondary.main + '20',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-        tension: 0.1,
-        borderDash: [5, 5],
-      }] : []),
+      ...(showRevisedData
+        ? [
+            {
+              label: showOriginalReleases ? 'Revised Data' : title,
+              data: processedData.revised.map(d => ({
+                x: d.date,
+                y: d.value,
+                originalRelease: d.isOriginalRelease,
+                revisionDate: d.revisionDate,
+              })),
+              borderColor: theme.palette.primary.main,
+              backgroundColor: theme.palette.primary.main + '20',
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              tension: 0.1,
+            },
+          ]
+        : []),
+      ...(showOriginalReleases
+        ? [
+            {
+              label: 'Original Releases',
+              data: processedData.original.map(d => ({
+                x: d.date,
+                y: d.value,
+                originalRelease: d.isOriginalRelease,
+                revisionDate: d.revisionDate,
+              })),
+              borderColor: theme.palette.secondary.main,
+              backgroundColor: theme.palette.secondary.main + '20',
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              tension: 0.1,
+              borderDash: [5, 5],
+            },
+          ]
+        : []),
     ],
   };
 
   const getTransformationLabel = (type: TransformationType): string => {
     switch (type) {
-      case 'yoy': return 'Year-over-Year % Change';
-      case 'qoq': return 'Quarter-over-Quarter % Change';
-      case 'mom': return 'Month-over-Month % Change';
-      default: return '';
+      case 'yoy':
+        return 'Year-over-Year % Change';
+      case 'qoq':
+        return 'Quarter-over-Quarter % Change';
+      case 'mom':
+        return 'Month-over-Month % Change';
+      default:
+        return '';
     }
   };
 
@@ -231,18 +249,18 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
             const value = context.parsed.y;
             const dataPoint = context.raw as any;
             const transformationUnit = transformation !== 'none' ? '%' : units;
-            
+
             let label = `${context.dataset.label}: ${value?.toFixed(2)} ${transformationUnit}`;
-            
+
             if (dataPoint.revisionDate && dataPoint.revisionDate !== context.parsed.x) {
               const revisionDate = new Date(dataPoint.revisionDate).toLocaleDateString();
               label += `\nRevised: ${revisionDate}`;
             }
-            
+
             if (dataPoint.originalRelease) {
               label += '\n(Original Release)';
             }
-            
+
             return label;
           },
         },
@@ -286,33 +304,33 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
     <Paper sx={{ p: 3 }}>
       {/* Chart controls */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant='h6' gutterBottom>
           Chart Controls
         </Typography>
-        
-        <Grid container spacing={2} alignItems="center">
+
+        <Grid container spacing={2} alignItems='center'>
           {/* Date range controls */}
           <Grid item xs={12} sm={6} md={3}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                label="Start Date"
+                label='Start Date'
                 value={startDate}
                 onChange={setStartDate}
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true }
+                  textField: { size: 'small', fullWidth: true },
                 }}
               />
             </LocalizationProvider>
           </Grid>
-          
+
           <Grid item xs={12} sm={6} md={3}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                label="End Date"
+                label='End Date'
                 value={endDate}
                 onChange={setEndDate}
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true }
+                  textField: { size: 'small', fullWidth: true },
                 }}
               />
             </LocalizationProvider>
@@ -320,17 +338,17 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
 
           {/* Transformation control */}
           <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small">
+            <FormControl fullWidth size='small'>
               <InputLabel>Transformation</InputLabel>
               <Select
                 value={transformation}
-                onChange={(e) => setTransformation(e.target.value as TransformationType)}
-                label="Transformation"
+                onChange={e => setTransformation(e.target.value as TransformationType)}
+                label='Transformation'
               >
-                <MenuItem value="none">None</MenuItem>
-                <MenuItem value="yoy">Year-over-Year</MenuItem>
-                <MenuItem value="qoq">Quarter-over-Quarter</MenuItem>
-                <MenuItem value="mom">Month-over-Month</MenuItem>
+                <MenuItem value='none'>None</MenuItem>
+                <MenuItem value='yoy'>Year-over-Year</MenuItem>
+                <MenuItem value='qoq'>Quarter-over-Quarter</MenuItem>
+                <MenuItem value='mom'>Month-over-Month</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -342,21 +360,21 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
                 control={
                   <Switch
                     checked={showRevisedData}
-                    onChange={(e) => setShowRevisedData(e.target.checked)}
-                    size="small"
+                    onChange={e => setShowRevisedData(e.target.checked)}
+                    size='small'
                   />
                 }
-                label="Revised Data"
+                label='Revised Data'
               />
               <FormControlLabel
                 control={
                   <Switch
                     checked={showOriginalReleases}
-                    onChange={(e) => setShowOriginalReleases(e.target.checked)}
-                    size="small"
+                    onChange={e => setShowOriginalReleases(e.target.checked)}
+                    size='small'
                   />
                 }
-                label="Original Releases"
+                label='Original Releases'
               />
             </Box>
           </Grid>
@@ -367,24 +385,24 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
           {transformation !== 'none' && (
             <Chip
               label={getTransformationLabel(transformation)}
-              size="small"
-              color="primary"
+              size='small'
+              color='primary'
               onDelete={() => setTransformation('none')}
             />
           )}
           {startDate && (
             <Chip
               label={`From: ${startDate.toLocaleDateString()}`}
-              size="small"
-              variant="outlined"
+              size='small'
+              variant='outlined'
               onDelete={() => setStartDate(null)}
             />
           )}
           {endDate && (
             <Chip
               label={`To: ${endDate.toLocaleDateString()}`}
-              size="small"
-              variant="outlined"
+              size='small'
+              variant='outlined'
               onDelete={() => setEndDate(null)}
             />
           )}
@@ -398,9 +416,9 @@ const InteractiveChart: React.FC<ChartProps> = ({ data, title, units, frequency 
 
       {/* Chart info */}
       <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Typography variant="caption" color="text.secondary">
-          Frequency: {frequency} • 
-          Data Points: {processedData.revised.length + processedData.original.length} • 
+        <Typography variant='caption' color='text.secondary'>
+          Frequency: {frequency} • Data Points:{' '}
+          {processedData.revised.length + processedData.original.length} •
           {showOriginalReleases && showRevisedData && ' Both original and revised data shown'}
         </Typography>
       </Box>

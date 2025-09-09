@@ -31,7 +31,7 @@ export async function executeGraphQL<T = any>(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
     },
     body: JSON.stringify(request),
   });
@@ -160,7 +160,7 @@ export const QUERIES = {
       }
     }
   `,
-  
+
   // Get search suggestions for query completion and spelling correction
   GET_SEARCH_SUGGESTIONS: `
     query GetSearchSuggestions($partialQuery: String!, $limit: Int) {

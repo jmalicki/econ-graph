@@ -156,7 +156,7 @@ export const mockSuggestions: SearchSuggestion[] = [
     suggestion: 'GDP',
     matchCount: 25,
     suggestionType: 'COMPLETION',
-    confidence: 0.90,
+    confidence: 0.9,
   },
   {
     suggestion: 'Employment',
@@ -174,7 +174,7 @@ export const mockSuggestions: SearchSuggestion[] = [
     suggestion: 'Consumer Price Index',
     matchCount: 12,
     suggestionType: 'RELATED',
-    confidence: 0.80,
+    confidence: 0.8,
   },
 ];
 
@@ -292,7 +292,7 @@ export const mockErrors = {
  * Helper function to create mock data with variations
  * REQUIREMENT: Utility for generating test data with different scenarios
  */
-export function createMockSeries(overrides: Partial<typeof mockSeriesData[0]> = {}) {
+export function createMockSeries(overrides: Partial<(typeof mockSeriesData)[0]> = {}) {
   return {
     ...mockSeriesData[0],
     ...overrides,
@@ -314,7 +314,7 @@ export function createMockSearchResults(query: string, count: number = 5) {
     ...mockSearchResults[0],
     id: `search-${query}-${index}`,
     title: `${query} Series ${index + 1}`,
-    rank: 1 - (index * 0.1), // Decreasing relevance
+    rank: 1 - index * 0.1, // Decreasing relevance
     similarityScore: index > 2 ? 0.3 : 0.0, // Some fuzzy matches
   }));
 }

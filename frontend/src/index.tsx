@@ -79,9 +79,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
 root.render(
   <React.StrictMode>
@@ -91,9 +89,7 @@ root.render(
         <BrowserRouter>
           <App />
         </BrowserRouter>
-        {process.env.NODE_ENV === 'development' && (
-          <ReactQueryDevtools initialIsOpen={false} />
-        )}
+        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
       </ThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>

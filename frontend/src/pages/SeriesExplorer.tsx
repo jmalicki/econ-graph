@@ -19,7 +19,7 @@ import {
   ListItem,
   ListItemText,
   IconButton,
-  Autocomplete,
+  // Autocomplete, // Unused import
   Skeleton,
   Collapse,
   Divider,
@@ -38,8 +38,8 @@ import {
   Bookmark as BookmarkIcon,
   TrendingUp as TrendingUpIcon,
   AccessTime as AccessTimeIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
+  // ExpandMore as ExpandMoreIcon, // Unused imports
+  // ExpandLess as ExpandLessIcon,
   FileDownload as ExportIcon,
   Tune as AdvancedIcon,
   Clear as ClearIcon,
@@ -68,23 +68,27 @@ interface EconomicSeries {
 const SeriesExplorer: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // State management
   const [searchQuery, setSearchQuery] = React.useState(searchParams.get('q') || '');
   const [selectedSource, setSelectedSource] = React.useState(searchParams.get('source') || '');
-  const [selectedFrequency, setSelectedFrequency] = React.useState(searchParams.get('frequency') || '');
-  const [selectedCategory, setSelectedCategory] = React.useState(searchParams.get('category') || '');
+  const [selectedFrequency, setSelectedFrequency] = React.useState(
+    searchParams.get('frequency') || ''
+  );
+  const [selectedCategory, setSelectedCategory] = React.useState(
+    searchParams.get('category') || ''
+  );
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isLoading, setIsLoading] = React.useState(false);
-  
+
   // Advanced search state
   const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
   const [similarityThreshold, setSimilarityThreshold] = React.useState(0.7);
   const [includeInactiveSeries, setIncludeInactiveSeries] = React.useState(false);
-  const [dateRange, setDateRange] = React.useState<[string, string]>(['', '']);
+  const [, setDateRange] = React.useState<[string, string]>(['', '']); // Getter intentionally unused
   const [sortBy, setSortBy] = React.useState('relevance');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
-  
+
   // Search suggestions and statistics
   const [searchSuggestions, setSearchSuggestions] = React.useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
@@ -93,165 +97,180 @@ const SeriesExplorer: React.FC = () => {
     searchTime: number;
     hasSpellingSuggestion?: string;
   } | null>(null);
-  
+
   // Export and UI state
   const [exportMenuAnchor, setExportMenuAnchor] = React.useState<null | HTMLElement>(null);
   const [showEmptyState, setShowEmptyState] = React.useState(false);
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState('');
-  
+
   // Search input ref for keyboard shortcuts
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // Mock data - in real app this would come from GraphQL queries
-  const allMockSeries: EconomicSeries[] = [
-    {
-      id: 'test-series-1',
-      title: 'Real Gross Domestic Product',
-      description: 'Real GDP measures the inflation-adjusted value of all goods and services produced',
-      source: 'Federal Reserve Economic Data',
-      frequency: 'Quarterly',
-      units: 'Billions of Chained 2017 Dollars',
-      lastUpdated: '2024-12-15',
-      startDate: '1947-01-01',
-      endDate: '2024-09-30',
-    },
-    {
-      id: 'gdp-nominal',
-      title: 'Nominal GDP',
-      description: 'Current dollar value of all goods and services produced',
-      source: 'Bureau of Economic Analysis',
-      frequency: 'Quarterly',
-      units: 'Billions of Dollars',
-      lastUpdated: '2024-12-15',
-      startDate: '1947-01-01',
-      endDate: '2024-09-30',
-    },
-    {
-      id: 'gdp-per-capita',
-      title: 'Real GDP Per Capita',
-      description: 'Real GDP divided by population',
-      source: 'Federal Reserve Economic Data',
-      frequency: 'Annual',
-      units: 'Chained 2017 Dollars',
-      lastUpdated: '2024-12-01',
-      startDate: '1947-01-01',
-      endDate: '2024-01-01',
-    },
-    {
-      id: 'unemployment-rate',
-      title: 'Unemployment Rate',
-      description: 'Percent of labor force that is unemployed',
-      source: 'Bureau of Labor Statistics',
-      frequency: 'Monthly',
-      units: 'Percent',
-      lastUpdated: '2024-12-06',
-      startDate: '1948-01-01',
-      endDate: '2024-11-30',
-    },
-    {
-      id: 'cpi-all',
-      title: 'Consumer Price Index for All Urban Consumers: All Items',
-      description: 'Measure of average change in prices paid by urban consumers',
-      source: 'Bureau of Labor Statistics',
-      frequency: 'Monthly',
-      units: 'Index 1982-84=100',
-      lastUpdated: '2024-12-10',
-      startDate: '1947-01-01',
-      endDate: '2024-11-30',
-    },
-    {
-      id: 'fed-funds-rate',
-      title: 'Federal Funds Effective Rate',
-      description: 'Interest rate at which banks lend to each other overnight',
-      source: 'Federal Reserve Economic Data',
-      frequency: 'Daily',
-      units: 'Percent',
-      lastUpdated: '2024-12-15',
-      startDate: '1954-07-01',
-      endDate: '2024-12-15',
-    },
-    {
-      id: 'industrial-production',
-      title: 'Industrial Production Index',
-      description: 'Measure of real output of manufacturing, mining, and utilities',
-      source: 'Federal Reserve Economic Data',
-      frequency: 'Monthly',
-      units: 'Index 2017=100',
-      lastUpdated: '2024-12-14',
-      startDate: '1919-01-01',
-      endDate: '2024-11-30',
-    },
-  ];
+  const allMockSeries: EconomicSeries[] = React.useMemo(() => {
+    const baseSeries = [
+      {
+        id: 'test-series-1',
+        title: 'Real Gross Domestic Product',
+        description:
+          'Real GDP measures the inflation-adjusted value of all goods and services produced',
+        source: 'Federal Reserve Economic Data',
+        frequency: 'Quarterly',
+        units: 'Billions of Chained 2017 Dollars',
+        lastUpdated: '2024-12-15',
+        startDate: '1947-01-01',
+        endDate: '2024-09-30',
+      },
+      {
+        id: 'gdp-nominal',
+        title: 'Nominal GDP',
+        description: 'Current dollar value of all goods and services produced',
+        source: 'Bureau of Economic Analysis',
+        frequency: 'Quarterly',
+        units: 'Billions of Dollars',
+        lastUpdated: '2024-12-15',
+        startDate: '1947-01-01',
+        endDate: '2024-09-30',
+      },
+      {
+        id: 'gdp-per-capita',
+        title: 'Real GDP Per Capita',
+        description: 'Real GDP divided by population',
+        source: 'Federal Reserve Economic Data',
+        frequency: 'Annual',
+        units: 'Chained 2017 Dollars',
+        lastUpdated: '2024-12-01',
+        startDate: '1947-01-01',
+        endDate: '2024-01-01',
+      },
+      {
+        id: 'unemployment-rate',
+        title: 'Unemployment Rate',
+        description: 'Percent of labor force that is unemployed',
+        source: 'Bureau of Labor Statistics',
+        frequency: 'Monthly',
+        units: 'Percent',
+        lastUpdated: '2024-12-06',
+        startDate: '1948-01-01',
+        endDate: '2024-11-30',
+      },
+      {
+        id: 'cpi-all',
+        title: 'Consumer Price Index for All Urban Consumers: All Items',
+        description: 'Measure of average change in prices paid by urban consumers',
+        source: 'Bureau of Labor Statistics',
+        frequency: 'Monthly',
+        units: 'Index 1982-84=100',
+        lastUpdated: '2024-12-10',
+        startDate: '1947-01-01',
+        endDate: '2024-11-30',
+      },
+      {
+        id: 'fed-funds-rate',
+        title: 'Federal Funds Effective Rate',
+        description: 'Interest rate at which banks lend to each other overnight',
+        source: 'Federal Reserve Economic Data',
+        frequency: 'Daily',
+        units: 'Percent',
+        lastUpdated: '2024-12-15',
+        startDate: '1954-07-01',
+        endDate: '2024-12-15',
+      },
+      {
+        id: 'industrial-production',
+        title: 'Industrial Production Index',
+        description: 'Measure of real output of manufacturing, mining, and utilities',
+        source: 'Federal Reserve Economic Data',
+        frequency: 'Monthly',
+        units: 'Index 2017=100',
+        lastUpdated: '2024-12-14',
+        startDate: '1919-01-01',
+        endDate: '2024-11-30',
+      },
+    ];
 
-  // Add more mock data to support pagination testing
-  for (let i = 8; i <= 120; i++) {
-    allMockSeries.push({
-      id: `economic-series-${i}`,
-      title: `Economic Indicator ${i}`,
-      description: `Economic time series data ${i} for testing purposes`,
-      source: i % 3 === 0 ? 'Federal Reserve Economic Data' : i % 3 === 1 ? 'Bureau of Labor Statistics' : 'Bureau of Economic Analysis',
-      frequency: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annual'][i % 5],
-      units: 'Index',
-      lastUpdated: '2024-12-15',
-      startDate: '2000-01-01',
-      endDate: '2024-12-01',
-    });
-  }
+    // Add more mock data to support pagination testing
+    for (let i = 8; i <= 120; i++) {
+      baseSeries.push({
+        id: `economic-series-${i}`,
+        title: `Economic Indicator ${i}`,
+        description: `Economic time series data ${i} for testing purposes`,
+        source:
+          i % 3 === 0
+            ? 'Federal Reserve Economic Data'
+            : i % 3 === 1
+              ? 'Bureau of Labor Statistics'
+              : 'Bureau of Economic Analysis',
+        frequency: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annual'][i % 5],
+        units: 'Index',
+        lastUpdated: '2024-12-15',
+        startDate: '2000-01-01',
+        endDate: '2024-12-01',
+      });
+    }
+
+    return baseSeries;
+  }, []); // Empty dependency array since this is static mock data
 
   // Filter series based on search criteria
   const filteredSeries = React.useMemo(() => {
     let filtered = allMockSeries;
-    
+
     // Apply search query filter and calculate relevance scores
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(series => 
-        series.title.toLowerCase().includes(query) ||
-        series.description.toLowerCase().includes(query) ||
-        series.source.toLowerCase().includes(query)
-      ).map(series => {
-        // Calculate relevance score based on how well the query matches
-        let score = 0;
-        const title = series.title.toLowerCase();
-        const description = series.description.toLowerCase();
-        
-        if (title.includes(query)) {
-          score += title === query ? 100 : 95; // Perfect match vs partial match
-        } else if (description.includes(query)) {
-          score += 88; // Description match
-        } else if (series.source.toLowerCase().includes(query)) {
-          score += 75; // Source match
-        }
-        
-        // Add some randomness for different queries
-        if (query === 'gdp') {
-          if (series.id === 'test-series-1') score = 95;
-          else if (series.id === 'gdp-nominal') score = 88;
-          else score = 75;
-        }
-        
-        return { ...series, relevanceScore: score };
-      });
+      filtered = filtered
+        .filter(
+          series =>
+            series.title.toLowerCase().includes(query) ||
+            series.description.toLowerCase().includes(query) ||
+            series.source.toLowerCase().includes(query)
+        )
+        .map(series => {
+          // Calculate relevance score based on how well the query matches
+          let score = 0;
+          const title = series.title.toLowerCase();
+          const description = series.description.toLowerCase();
+
+          if (title.includes(query)) {
+            score += title === query ? 100 : 95; // Perfect match vs partial match
+          } else if (description.includes(query)) {
+            score += 88; // Description match
+          } else if (series.source.toLowerCase().includes(query)) {
+            score += 75; // Source match
+          }
+
+          // Add some randomness for different queries
+          if (query === 'gdp') {
+            if (series.id === 'test-series-1') score = 95;
+            else if (series.id === 'gdp-nominal') score = 88;
+            else score = 75;
+          }
+
+          return { ...series, relevanceScore: score };
+        });
     }
-    
+
     // Apply source filter
     if (selectedSource && selectedSource !== 'All Sources') {
       filtered = filtered.filter(series => series.source === selectedSource);
     }
-    
+
     // Apply frequency filter
     if (selectedFrequency && selectedFrequency !== 'All Frequencies') {
       filtered = filtered.filter(series => series.frequency === selectedFrequency);
     }
-    
+
     // Sort results
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'title':
-          return sortOrder === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+          return sortOrder === 'asc'
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
         case 'lastUpdated':
-          return sortOrder === 'asc' 
+          return sortOrder === 'asc'
             ? new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime()
             : new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
         case 'relevance':
@@ -259,13 +278,25 @@ const SeriesExplorer: React.FC = () => {
           return 0; // Keep original order for relevance
       }
     });
-    
-    return filtered;
-  }, [searchQuery, selectedSource, selectedFrequency, sortBy, sortOrder]);
 
-  const dataSources = ['All Sources', 'Bureau of Labor Statistics', 'Bureau of Economic Analysis', 'Federal Reserve Economic Data'];
+    return filtered;
+  }, [searchQuery, selectedSource, selectedFrequency, sortBy, sortOrder, allMockSeries]);
+
+  const dataSources = [
+    'All Sources',
+    'Bureau of Labor Statistics',
+    'Bureau of Economic Analysis',
+    'Federal Reserve Economic Data',
+  ];
   const frequencies = ['All Frequencies', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annual'];
-  const categories = ['All Categories', 'Employment', 'Inflation', 'GDP & Growth', 'Interest Rates', 'Trade'];
+  const categories = [
+    'All Categories',
+    'Employment',
+    'Inflation',
+    'GDP & Growth',
+    'Interest Rates',
+    'Trade',
+  ];
 
   // Keyboard shortcuts effect
   React.useEffect(() => {
@@ -275,7 +306,7 @@ const SeriesExplorer: React.FC = () => {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
-      
+
       // Escape to clear search
       if (event.key === 'Escape' && document.activeElement === searchInputRef.current) {
         setSearchQuery('');
@@ -298,12 +329,15 @@ const SeriesExplorer: React.FC = () => {
         'industrial production',
         'consumer price index',
         'employment',
-        'interest rates'
-      ].filter(suggestion => 
-        suggestion.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        suggestion.toLowerCase() !== searchQuery.toLowerCase()
-      ).slice(0, 5);
-      
+        'interest rates',
+      ]
+        .filter(
+          suggestion =>
+            suggestion.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            suggestion.toLowerCase() !== searchQuery.toLowerCase()
+        )
+        .slice(0, 5);
+
       setSearchSuggestions(suggestions);
       setShowSuggestions(suggestions.length > 0);
     } else {
@@ -315,7 +349,7 @@ const SeriesExplorer: React.FC = () => {
   React.useEffect(() => {
     if (searchQuery.trim()) {
       const searchTime = Math.floor(Math.random() * 100) + 20; // Random time 20-120ms
-      
+
       // Spell checking suggestions
       let spellingSuggestion: string | undefined;
       if (searchQuery.toLowerCase() === 'unemploymnt') {
@@ -323,11 +357,11 @@ const SeriesExplorer: React.FC = () => {
       } else if (searchQuery.toLowerCase() === 'gdp groth') {
         spellingSuggestion = 'GDP growth';
       }
-      
+
       setSearchStats({
         resultCount: filteredSeries.length,
         searchTime,
-        hasSpellingSuggestion: spellingSuggestion
+        hasSpellingSuggestion: spellingSuggestion,
       });
       setShowEmptyState(filteredSeries.length === 0);
     } else {
@@ -340,7 +374,7 @@ const SeriesExplorer: React.FC = () => {
     const startTime = Date.now();
     setIsLoading(true);
     setShowSuggestions(false);
-    
+
     // Save search preferences to localStorage
     const preferences = {
       source: selectedSource,
@@ -350,44 +384,51 @@ const SeriesExplorer: React.FC = () => {
       sortOrder,
     };
     localStorage.setItem('searchPreferences', JSON.stringify(preferences));
-    
+
     // Update URL parameters
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (selectedSource && selectedSource !== 'All Sources') params.set('source', selectedSource);
-    if (selectedFrequency && selectedFrequency !== 'All Frequencies') params.set('frequency', selectedFrequency);
-    if (selectedCategory && selectedCategory !== 'All Categories') params.set('category', selectedCategory);
-    
+    if (selectedFrequency && selectedFrequency !== 'All Frequencies')
+      params.set('frequency', selectedFrequency);
+    if (selectedCategory && selectedCategory !== 'All Categories')
+      params.set('category', selectedCategory);
+
     setSearchParams(params);
-    
+
     // Simulate API call with realistic timing
-    setTimeout(() => {
-      const endTime = Date.now();
-      const searchTime = endTime - startTime;
-      
-      // Check for empty results
-      const hasResults = filteredSeries.length > 0;
-      setShowEmptyState(!hasResults && searchQuery.length > 0);
-      
-      // Set search statistics
-      setSearchStats({
-        resultCount: filteredSeries.length,
-        searchTime,
-        hasSpellingSuggestion: searchQuery === 'GDP groth' ? 'GDP growth' : undefined
-      });
-      
-      setIsLoading(false);
-    }, Math.random() * 800 + 200); // Random delay between 200-1000ms for realism
+    setTimeout(
+      () => {
+        const endTime = Date.now();
+        const searchTime = endTime - startTime;
+
+        // Check for empty results
+        const hasResults = filteredSeries.length > 0;
+        setShowEmptyState(!hasResults && searchQuery.length > 0);
+
+        // Set search statistics
+        setSearchStats({
+          resultCount: filteredSeries.length,
+          searchTime,
+          hasSpellingSuggestion: searchQuery === 'GDP groth' ? 'GDP growth' : undefined,
+        });
+
+        setIsLoading(false);
+      },
+      Math.random() * 800 + 200
+    ); // Random delay between 200-1000ms for realism
   };
 
   const handleExportResults = (format: 'csv' | 'json' | 'excel') => {
     setExportMenuAnchor(null);
     setSnackbarMessage(`Exporting ${filteredSeries.length} results as ${format.toUpperCase()}...`);
     setSnackbarOpen(true);
-    
+
     // In a real app, this would trigger actual export
     setTimeout(() => {
-      setSnackbarMessage(`Export completed! ${filteredSeries.length} results exported as ${format.toUpperCase()}`);
+      setSnackbarMessage(
+        `Export completed! ${filteredSeries.length} results exported as ${format.toUpperCase()}`
+      );
     }, 2000);
   };
 
@@ -425,51 +466,51 @@ const SeriesExplorer: React.FC = () => {
     >
       <CardContent sx={{ flexGrow: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
-          <TrendingUpIcon color="primary" sx={{ mr: 1, mt: 0.5, flexShrink: 0 }} />
+          <TrendingUpIcon color='primary' sx={{ mr: 1, mt: 0.5, flexShrink: 0 }} />
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-            <Typography 
-              variant="h6" 
-              component="a"
+            <Typography
+              variant='h6'
+              component='a'
               href={`/series/${series.id}`}
-              sx={{ 
-                mb: 1, 
+              sx={{
+                mb: 1,
                 wordBreak: 'break-word',
                 textDecoration: 'none',
                 color: 'inherit',
-                '&:hover': { textDecoration: 'underline' }
+                '&:hover': { textDecoration: 'underline' },
               }}
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault();
                 handleSeriesClick(series.id);
               }}
             >
               {series.title}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
               {series.description}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant='caption' color='text.secondary' sx={{ mb: 2 }}>
               ID: {series.id}
             </Typography>
           </Box>
         </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-          <Chip 
-            label={series.source} 
-            size="small" 
-            color="primary" 
-            variant="outlined"
+          <Chip
+            label={series.source}
+            size='small'
+            color='primary'
+            variant='outlined'
             title={`Data Source: ${series.source}`}
           />
-          <Chip label={series.frequency} size="small" variant="outlined" />
-          <Chip label={series.units} size="small" variant="outlined" />
+          <Chip label={series.frequency} size='small' variant='outlined' />
+          <Chip label={series.units} size='small' variant='outlined' />
           {series.relevanceScore && (
-            <Chip 
-              label={`${series.relevanceScore}%`} 
-              size="small" 
-              color="secondary"
-              variant="outlined"
+            <Chip
+              label={`${series.relevanceScore}%`}
+              size='small'
+              color='secondary'
+              variant='outlined'
               title={`Relevance Score: ${series.relevanceScore}%`}
             />
           )}
@@ -478,17 +519,24 @@ const SeriesExplorer: React.FC = () => {
         {/* Show Federal Reserve Economic Data info when applicable */}
         {series.source === 'Federal Reserve Economic Data' && (
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <InfoIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-            <Typography variant="caption" color="text.secondary">
+            <InfoIcon fontSize='small' color='action' sx={{ mr: 0.5 }} />
+            <Typography variant='caption' color='text.secondary'>
               FRED
             </Typography>
           </Box>
         )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 'auto' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mt: 'auto',
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <AccessTimeIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-            <Typography variant="caption" color="text.secondary">
+            <AccessTimeIcon fontSize='small' color='action' sx={{ mr: 0.5 }} />
+            <Typography variant='caption' color='text.secondary'>
               {series.startDate} - {series.endDate}
             </Typography>
           </Box>
@@ -496,19 +544,19 @@ const SeriesExplorer: React.FC = () => {
       </CardContent>
 
       <CardActions sx={{ pt: 0 }}>
-        <Button 
-          size="small" 
+        <Button
+          size='small'
           startIcon={<TrendingUpIcon />}
-          component="a"
+          component='a'
           href={`/series/${series.id}`}
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             handleSeriesClick(series.id);
           }}
         >
           View Chart
         </Button>
-        <IconButton size="small" aria-label="bookmark series">
+        <IconButton size='small' aria-label='bookmark series'>
           <BookmarkIcon />
         </IconButton>
       </CardActions>
@@ -519,18 +567,18 @@ const SeriesExplorer: React.FC = () => {
     <Card sx={{ height: '100%' }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
-          <Skeleton variant="circular" width={24} height={24} sx={{ mr: 1, mt: 0.5 }} />
+          <Skeleton variant='circular' width={24} height={24} sx={{ mr: 1, mt: 0.5 }} />
           <Box sx={{ flexGrow: 1 }}>
-            <Skeleton variant="text" width="80%" height={32} />
-            <Skeleton variant="text" width="100%" height={48} />
+            <Skeleton variant='text' width='80%' height={32} />
+            <Skeleton variant='text' width='100%' height={48} />
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-          <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 12 }} />
-          <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 12 }} />
-          <Skeleton variant="rectangular" width={100} height={24} sx={{ borderRadius: 12 }} />
+          <Skeleton variant='rectangular' width={80} height={24} sx={{ borderRadius: 12 }} />
+          <Skeleton variant='rectangular' width={60} height={24} sx={{ borderRadius: 12 }} />
+          <Skeleton variant='rectangular' width={100} height={24} sx={{ borderRadius: 12 }} />
         </Box>
-        <Skeleton variant="text" width="60%" />
+        <Skeleton variant='text' width='60%' />
       </CardContent>
     </Card>
   );
@@ -539,43 +587,39 @@ const SeriesExplorer: React.FC = () => {
     <Box>
       {/* Page header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant='h4' component='h1' gutterBottom>
           Explore Economic Series
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant='body1' color='text.secondary'>
           Search and discover economic time series data from multiple sources
         </Typography>
       </Box>
 
       {/* Search and filters */}
       <Paper sx={{ p: 3, mb: 4 }}>
-        <Grid container spacing={3} alignItems="flex-end">
+        <Grid container spacing={3} alignItems='flex-end'>
           {/* Search input with autocomplete */}
           <Grid item xs={12} md={4} sx={{ position: 'relative' }}>
             <TextField
               fullWidth
               inputRef={searchInputRef}
-              label="Search series"
-              placeholder="e.g., unemployment, GDP, inflation..."
+              label='Search series'
+              placeholder='e.g., unemployment, GDP, inflation...'
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && handleSearch()}
               onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               InputProps={{
-                startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+                startAdornment: <SearchIcon color='action' sx={{ mr: 1 }} />,
                 endAdornment: searchQuery && (
-                  <IconButton
-                    size="small"
-                    onClick={() => setSearchQuery('')}
-                    sx={{ mr: 1 }}
-                  >
-                    <ClearIcon fontSize="small" />
+                  <IconButton size='small' onClick={() => setSearchQuery('')} sx={{ mr: 1 }}>
+                    <ClearIcon fontSize='small' />
                   </IconButton>
                 ),
               }}
             />
-            
+
             {/* Search suggestions dropdown */}
             {showSuggestions && searchSuggestions.length > 0 && (
               <Paper
@@ -601,10 +645,7 @@ const SeriesExplorer: React.FC = () => {
                         setTimeout(handleSearch, 100);
                       }}
                     >
-                      <ListItemText 
-                        primary={suggestion} 
-                        secondary="completion"
-                      />
+                      <ListItemText primary={suggestion} secondary='completion' />
                     </ListItem>
                   ))}
                 </List>
@@ -615,10 +656,10 @@ const SeriesExplorer: React.FC = () => {
           {/* Source filter */}
           <Grid item xs={12} sm={6} md={2}>
             <FormControl fullWidth>
-              <InputLabel id="data-source-label">Data Source</InputLabel>
+              <InputLabel id='data-source-label'>Data Source</InputLabel>
               <Select
                 value={selectedSource}
-                onChange={(e) => {
+                onChange={e => {
                   setSelectedSource(e.target.value);
                   // Save preference immediately
                   const preferences = {
@@ -630,10 +671,10 @@ const SeriesExplorer: React.FC = () => {
                   };
                   localStorage.setItem('searchPreferences', JSON.stringify(preferences));
                 }}
-                label="Data Source"
-                labelId="data-source-label"
+                label='Data Source'
+                labelId='data-source-label'
               >
-                {dataSources.map((source) => (
+                {dataSources.map(source => (
                   <MenuItem key={source} value={source}>
                     {source}
                   </MenuItem>
@@ -645,14 +686,14 @@ const SeriesExplorer: React.FC = () => {
           {/* Frequency filter */}
           <Grid item xs={12} sm={6} md={2}>
             <FormControl fullWidth>
-              <InputLabel id="frequency-label">Frequency</InputLabel>
+              <InputLabel id='frequency-label'>Frequency</InputLabel>
               <Select
                 value={selectedFrequency}
-                onChange={(e) => setSelectedFrequency(e.target.value)}
-                label="Frequency"
-                labelId="frequency-label"
+                onChange={e => setSelectedFrequency(e.target.value)}
+                label='Frequency'
+                labelId='frequency-label'
               >
-                {frequencies.map((freq) => (
+                {frequencies.map(freq => (
                   <MenuItem key={freq} value={freq}>
                     {freq}
                   </MenuItem>
@@ -667,10 +708,10 @@ const SeriesExplorer: React.FC = () => {
               <InputLabel>Category</InputLabel>
               <Select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                label="Category"
+                onChange={e => setSelectedCategory(e.target.value)}
+                label='Category'
               >
-                {categories.map((category) => (
+                {categories.map(category => (
                   <MenuItem key={category} value={category}>
                     {category}
                   </MenuItem>
@@ -683,8 +724,8 @@ const SeriesExplorer: React.FC = () => {
           <Grid item xs={12} sm={6} md={2}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
-                variant="contained"
-                size="large"
+                variant='contained'
+                size='large'
                 onClick={handleSearch}
                 disabled={isLoading}
                 startIcon={isLoading ? <CircularProgress size={16} /> : <SearchIcon />}
@@ -693,20 +734,20 @@ const SeriesExplorer: React.FC = () => {
                 Search
               </Button>
               <Button
-                variant="outlined"
-                size="small"
+                variant='outlined'
+                size='small'
                 onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                 startIcon={<FilterIcon />}
                 sx={{ mr: 1 }}
-                data-testid="filters-button"
+                data-testid='filters-button'
               >
                 Filters
               </Button>
-              <Tooltip title="Advanced Search">
+              <Tooltip title='Advanced Search'>
                 <IconButton
                   onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                   color={showAdvancedSearch ? 'primary' : 'default'}
-                  aria-label="Advanced Search"
+                  aria-label='Advanced Search'
                 >
                   <AdvancedIcon />
                 </IconButton>
@@ -714,26 +755,26 @@ const SeriesExplorer: React.FC = () => {
             </Box>
           </Grid>
         </Grid>
-        
+
         {/* Advanced Search Options */}
         <Collapse in={showAdvancedSearch}>
           <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             Advanced Search
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth>
-                <InputLabel id="sort-by-label">Sort By</InputLabel>
+                <InputLabel id='sort-by-label'>Sort By</InputLabel>
                 <Select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  label="Sort By"
-                  labelId="sort-by-label"
+                  onChange={e => setSortBy(e.target.value)}
+                  label='Sort By'
+                  labelId='sort-by-label'
                 >
-                  <MenuItem value="relevance">Relevance</MenuItem>
-                  <MenuItem value="title">Title</MenuItem>
-                  <MenuItem value="lastUpdated">Last Updated</MenuItem>
+                  <MenuItem value='relevance'>Relevance</MenuItem>
+                  <MenuItem value='title'>Title</MenuItem>
+                  <MenuItem value='lastUpdated'>Last Updated</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -742,16 +783,16 @@ const SeriesExplorer: React.FC = () => {
                 <InputLabel>Sort Order</InputLabel>
                 <Select
                   value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                  label="Sort Order"
+                  onChange={e => setSortOrder(e.target.value as 'asc' | 'desc')}
+                  label='Sort Order'
                 >
-                  <MenuItem value="desc">Descending</MenuItem>
-                  <MenuItem value="asc">Ascending</MenuItem>
+                  <MenuItem value='desc'>Descending</MenuItem>
+                  <MenuItem value='asc'>Ascending</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Typography gutterBottom id="similarity-threshold-label">
+              <Typography gutterBottom id='similarity-threshold-label'>
                 Similarity Threshold
               </Typography>
               <Slider
@@ -761,9 +802,9 @@ const SeriesExplorer: React.FC = () => {
                 max={1.0}
                 step={0.1}
                 marks
-                valueLabelDisplay="auto"
-                valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-                aria-labelledby="similarity-threshold-label"
+                valueLabelDisplay='auto'
+                valueLabelFormat={value => `${Math.round(value * 100)}%`}
+                aria-labelledby='similarity-threshold-label'
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -771,19 +812,19 @@ const SeriesExplorer: React.FC = () => {
                 control={
                   <Switch
                     checked={includeInactiveSeries}
-                    onChange={(e) => setIncludeInactiveSeries(e.target.checked)}
+                    onChange={e => setIncludeInactiveSeries(e.target.checked)}
                   />
                 }
-                label="Include Inactive Series"
+                label='Include Inactive Series'
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Button
-                  variant="outlined"
+                  variant='outlined'
                   startIcon={<ClearIcon />}
                   onClick={clearAllFilters}
-                  size="small"
+                  size='small'
                 >
                   Clear Filters
                 </Button>
@@ -796,19 +837,19 @@ const SeriesExplorer: React.FC = () => {
       {/* Search Statistics and Actions */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant='h6' gutterBottom>
             {isLoading ? 'Searching...' : `Found ${filteredSeries.length} series`}
           </Typography>
           {searchStats && !isLoading && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Found {searchStats.resultCount} results in {searchStats.searchTime}ms
               {searchQuery.trim() && ' • includes fuzzy matches'}
               {searchStats.hasSpellingSuggestion && (
                 <span>
                   {' • '}Did you mean{' '}
                   <Button
-                    size="small"
-                    variant="text"
+                    size='small'
+                    variant='text'
                     onClick={() => setSearchQuery(searchStats.hasSpellingSuggestion!)}
                     sx={{ minWidth: 'auto', p: 0, textDecoration: 'underline' }}
                   >
@@ -820,14 +861,14 @@ const SeriesExplorer: React.FC = () => {
             </Typography>
           )}
         </Box>
-        
+
         {!isLoading && filteredSeries.length > 0 && (
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               startIcon={<ExportIcon />}
-              onClick={(e) => setExportMenuAnchor(e.currentTarget)}
-              variant="outlined"
-              size="small"
+              onClick={e => setExportMenuAnchor(e.currentTarget)}
+              variant='outlined'
+              size='small'
             >
               Export Results
             </Button>
@@ -836,15 +877,9 @@ const SeriesExplorer: React.FC = () => {
               open={Boolean(exportMenuAnchor)}
               onClose={() => setExportMenuAnchor(null)}
             >
-              <MenuItem onClick={() => handleExportResults('csv')}>
-                Export as CSV
-              </MenuItem>
-              <MenuItem onClick={() => handleExportResults('json')}>
-                Export as JSON
-              </MenuItem>
-              <MenuItem onClick={() => handleExportResults('excel')}>
-                Export as Excel
-              </MenuItem>
+              <MenuItem onClick={() => handleExportResults('csv')}>Export as CSV</MenuItem>
+              <MenuItem onClick={() => handleExportResults('json')}>Export as JSON</MenuItem>
+              <MenuItem onClick={() => handleExportResults('excel')}>Export as Excel</MenuItem>
             </Menu>
           </Box>
         )}
@@ -853,30 +888,25 @@ const SeriesExplorer: React.FC = () => {
       {/* Empty State */}
       {showEmptyState && !isLoading && (
         <Alert
-          severity="info"
+          severity='info'
           sx={{ mb: 3 }}
           action={
-            <Button
-              color="inherit"
-              size="small"
-              onClick={clearAllFilters}
-            >
+            <Button color='inherit' size='small' onClick={clearAllFilters}>
               Clear Filters
             </Button>
           }
         >
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant='subtitle1' gutterBottom>
             No results found
           </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
+          <Typography variant='body2' sx={{ mb: 1 }}>
             Try adjusting your search terms or clearing some filters to see more results.
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             Suggestions: Try different keywords, check spelling, or use broader search terms.
           </Typography>
         </Alert>
       )}
-
 
       {/* Series grid */}
       {!showEmptyState && (
@@ -887,7 +917,7 @@ const SeriesExplorer: React.FC = () => {
                   {renderSkeletonCard()}
                 </Grid>
               ))
-            : filteredSeries.map((series) => (
+            : filteredSeries.map(series => (
                 <Grid item xs={12} sm={6} lg={4} key={series.id}>
                   {renderSeriesCard(series)}
                 </Grid>
@@ -898,21 +928,22 @@ const SeriesExplorer: React.FC = () => {
       {/* Pagination */}
       {!isLoading && filteredSeries.length > 0 && !showEmptyState && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
-          <Typography variant="body2" color="text.secondary">
-            showing {((currentPage - 1) * 50) + 1}-{Math.min(currentPage * 50, filteredSeries.length)} of {filteredSeries.length} results
+          <Typography variant='body2' color='text.secondary'>
+            showing {(currentPage - 1) * 50 + 1}-{Math.min(currentPage * 50, filteredSeries.length)}{' '}
+            of {filteredSeries.length} results
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Pagination
               count={Math.ceil(filteredSeries.length / 50)}
               page={currentPage}
               onChange={(_, page) => setCurrentPage(page)}
-              color="primary"
-              size="large"
+              color='primary'
+              size='large'
             />
             {currentPage < Math.ceil(filteredSeries.length / 50) && (
               <Button
-                variant="outlined"
-                size="small"
+                variant='outlined'
+                size='small'
                 onClick={() => setCurrentPage(currentPage + 1)}
               >
                 Next

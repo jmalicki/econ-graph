@@ -163,17 +163,17 @@ const GlobalEventsExplorer: React.FC = () => {
   const filteredEvents = useMemo(() => {
     return sampleGlobalEvents.filter(eventData => {
       const { event } = eventData;
-      
+
       // Filter by event type
       if (selectedEventTypes.length > 0 && !selectedEventTypes.includes(event.eventType)) {
         return false;
       }
-      
+
       // Filter by minimum impact score
       if (event.severity < minImpactScore) {
         return false;
       }
-      
+
       return true;
     });
   }, [selectedEventTypes, minImpactScore]);
@@ -223,27 +223,35 @@ const GlobalEventsExplorer: React.FC = () => {
 
   const getRecoveryStatusColor = (status: string): 'success' | 'warning' | 'error' | 'info' => {
     switch (status.toLowerCase()) {
-      case 'recovered': return 'success';
-      case 'recovering': return 'warning';
-      case 'ongoing': return 'error';
-      default: return 'info';
+      case 'recovered':
+        return 'success';
+      case 'recovering':
+        return 'warning';
+      case 'ongoing':
+        return 'error';
+      default:
+        return 'info';
     }
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography variant='h4' gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         🌍 Global Economic Events Explorer
         <TimelineIcon />
       </Typography>
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography
+          variant='h6'
+          gutterBottom
+          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+        >
           <FilterList />
           Event Filters
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <FormControl fullWidth>
@@ -252,16 +260,16 @@ const GlobalEventsExplorer: React.FC = () => {
                 multiple
                 value={selectedEventTypes}
                 onChange={handleEventTypeChange}
-                label="Event Types"
-                renderValue={(selected) => (
+                label='Event Types'
+                renderValue={selected => (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((value) => (
-                      <Chip key={value} label={value} size="small" />
+                    {selected.map(value => (
+                      <Chip key={value} label={value} size='small' />
                     ))}
                   </Box>
                 )}
               >
-                {eventTypes.map((type) => (
+                {eventTypes.map(type => (
                   <MenuItem key={type} value={type}>
                     {type}
                   </MenuItem>
@@ -271,9 +279,7 @@ const GlobalEventsExplorer: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Typography gutterBottom>
-              Minimum Impact Score: {minImpactScore}
-            </Typography>
+            <Typography gutterBottom>Minimum Impact Score: {minImpactScore}</Typography>
             <Slider
               value={minImpactScore}
               onChange={handleMinImpactChange}
@@ -281,7 +287,7 @@ const GlobalEventsExplorer: React.FC = () => {
               max={5}
               step={1}
               marks
-              valueLabelDisplay="auto"
+              valueLabelDisplay='auto'
             />
           </Grid>
 
@@ -290,10 +296,10 @@ const GlobalEventsExplorer: React.FC = () => {
               control={
                 <Switch
                   checked={showRecoveredCountries}
-                  onChange={(e) => setShowRecoveredCountries(e.target.checked)}
+                  onChange={e => setShowRecoveredCountries(e.target.checked)}
                 />
               }
-              label="Show Recovered Countries"
+              label='Show Recovered Countries'
             />
           </Grid>
         </Grid>
@@ -301,17 +307,17 @@ const GlobalEventsExplorer: React.FC = () => {
 
       {/* Events Timeline */}
       {filteredEvents.length === 0 ? (
-        <Alert severity="info">
-          No global economic events match the current filters.
-        </Alert>
+        <Alert severity='info'>No global economic events match the current filters.</Alert>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {filteredEvents.map((eventData, index) => {
             const { event, countryImpacts, affectedCountryCount } = eventData;
             const isExpanded = expandedEvents.has(event.id);
-            const visibleImpacts = showRecoveredCountries 
-              ? countryImpacts 
-              : countryImpacts.filter(impact => impact.recoveryStatus.toLowerCase() !== 'recovered');
+            const visibleImpacts = showRecoveredCountries
+              ? countryImpacts
+              : countryImpacts.filter(
+                  impact => impact.recoveryStatus.toLowerCase() !== 'recovered'
+                );
 
             return (
               <Box key={event.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
@@ -337,40 +343,50 @@ const GlobalEventsExplorer: React.FC = () => {
                   <Card sx={{ mb: 2 }}>
                     <CardContent>
                       {/* Event Header */}
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          mb: 2,
+                        }}
+                      >
                         <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="h6" gutterBottom>
+                          <Typography variant='h6' gutterBottom>
                             {event.name}
                           </Typography>
-                          
+
                           <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
                             <Chip
                               label={event.eventType}
-                              size="small"
-                              color="primary"
-                              variant="outlined"
+                              size='small'
+                              color='primary'
+                              variant='outlined'
                             />
                             <Chip
                               label={`${event.severity} Severity`}
-                              size="small"
-                              sx={{ 
+                              size='small'
+                              sx={{
                                 bgcolor: getSeverityColor(event.severity) + '20',
                                 color: getSeverityColor(event.severity),
                               }}
                             />
                             <Chip
                               label={`${affectedCountryCount} Countries`}
-                              size="small"
-                              variant="outlined"
+                              size='small'
+                              variant='outlined'
                             />
                           </Box>
-                          
-                          <Typography variant="body2" color="textSecondary" paragraph>
+
+                          <Typography variant='body2' color='textSecondary' paragraph>
                             {event.description}
                           </Typography>
-                          
-                          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <DateRange fontSize="small" />
+
+                          <Typography
+                            variant='body2'
+                            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                          >
+                            <DateRange fontSize='small' />
                             <strong>Start:</strong> {new Date(event.startDate).toLocaleDateString()}
                             {event.endDate && (
                               <>
@@ -380,11 +396,8 @@ const GlobalEventsExplorer: React.FC = () => {
                             )}
                           </Typography>
                         </Box>
-                        
-                        <IconButton
-                          onClick={() => toggleEventExpansion(event.id)}
-                          sx={{ ml: 1 }}
-                        >
+
+                        <IconButton onClick={() => toggleEventExpansion(event.id)} sx={{ ml: 1 }}>
                           {isExpanded ? <ExpandLess /> : <ExpandMore />}
                         </IconButton>
                       </Box>
@@ -392,15 +405,18 @@ const GlobalEventsExplorer: React.FC = () => {
                       {/* Country Impact Summary */}
                       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Public fontSize="small" />
-                          <Typography variant="body2">
+                          <Public fontSize='small' />
+                          <Typography variant='body2'>
                             <strong>{affectedCountryCount}</strong> countries affected
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Assessment fontSize="small" />
-                          <Typography variant="body2">
-                            <strong>{countryImpacts.filter(i => i.recoveryStatus === 'recovered').length}</strong> recovered
+                          <Assessment fontSize='small' />
+                          <Typography variant='body2'>
+                            <strong>
+                              {countryImpacts.filter(i => i.recoveryStatus === 'recovered').length}
+                            </strong>{' '}
+                            recovered
                           </Typography>
                         </Box>
                       </Box>
@@ -408,10 +424,10 @@ const GlobalEventsExplorer: React.FC = () => {
                       {/* Expandable Country Impacts */}
                       <Collapse in={isExpanded}>
                         <Divider sx={{ mb: 2 }} />
-                        <Typography variant="h6" gutterBottom>
+                        <Typography variant='h6' gutterBottom>
                           Country-Specific Impacts
                         </Typography>
-                        
+
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           <List dense>
                             {visibleImpacts.map((impact, impactIndex) => (
@@ -419,21 +435,27 @@ const GlobalEventsExplorer: React.FC = () => {
                                 <ListItemIcon>
                                   <Chip
                                     label={impact.country.isoCode}
-                                    size="small"
+                                    size='small'
                                     color={getRecoveryStatusColor(impact.recoveryStatus)}
-                                    variant="outlined"
+                                    variant='outlined'
                                   />
                                 </ListItemIcon>
                                 <ListItemText
                                   primary={
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                      <Typography variant="body2" fontWeight="medium">
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                      }}
+                                    >
+                                      <Typography variant='body2' fontWeight='medium'>
                                         {impact.country.name}
                                       </Typography>
                                       <Box sx={{ display: 'flex', gap: 1 }}>
                                         <Chip
                                           label={`Impact: ${impact.impactSeverity}/5`}
-                                          size="small"
+                                          size='small'
                                           sx={{
                                             bgcolor: getSeverityColor(impact.impactSeverity) + '20',
                                             color: getSeverityColor(impact.impactSeverity),
@@ -441,7 +463,7 @@ const GlobalEventsExplorer: React.FC = () => {
                                         />
                                         <Chip
                                           label={impact.recoveryStatus}
-                                          size="small"
+                                          size='small'
                                           color={getRecoveryStatusColor(impact.recoveryStatus)}
                                         />
                                       </Box>
@@ -465,53 +487,63 @@ const GlobalEventsExplorer: React.FC = () => {
 
       {/* Global Impact Statistics */}
       <Paper sx={{ p: 2, mt: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography
+          variant='h6'
+          gutterBottom
+          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+        >
           <Assessment />
           Global Impact Statistics
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={3}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="primary">
+              <Typography variant='h4' color='primary'>
                 {filteredEvents.length}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant='body2' color='textSecondary'>
                 Major Economic Events
               </Typography>
             </Box>
           </Grid>
-          
+
           <Grid item xs={12} md={3}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="warning.main">
+              <Typography variant='h4' color='warning.main'>
                 {filteredEvents.reduce((sum, e) => sum + e.affectedCountryCount, 0)}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant='body2' color='textSecondary'>
                 Total Country Impacts
               </Typography>
             </Box>
           </Grid>
-          
+
           <Grid item xs={12} md={3}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="error.main">
-                {Math.round(filteredEvents.reduce((sum, e) => sum + e.event.severity, 0) / filteredEvents.length * 10) / 10 || 0}
+              <Typography variant='h4' color='error.main'>
+                {Math.round(
+                  (filteredEvents.reduce((sum, e) => sum + e.event.severity, 0) /
+                    filteredEvents.length) *
+                    10
+                ) / 10 || 0}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant='body2' color='textSecondary'>
                 Average Severity
               </Typography>
             </Box>
           </Grid>
-          
+
           <Grid item xs={12} md={3}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="success.main">
-                {filteredEvents.reduce((sum, e) => 
-                  sum + e.countryImpacts.filter(i => i.recoveryStatus === 'recovered').length, 0
+              <Typography variant='h4' color='success.main'>
+                {filteredEvents.reduce(
+                  (sum, e) =>
+                    sum + e.countryImpacts.filter(i => i.recoveryStatus === 'recovered').length,
+                  0
                 )}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant='body2' color='textSecondary'>
                 Countries Recovered
               </Typography>
             </Box>

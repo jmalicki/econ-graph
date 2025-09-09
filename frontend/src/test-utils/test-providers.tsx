@@ -20,18 +20,20 @@ interface TestProvidersProps {
  */
 export function TestProviders({ children, queryClient }: TestProvidersProps) {
   // Create a fresh QueryClient for each test to avoid cache interference
-  const testQueryClient = queryClient || new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false, // Disable retries in tests
-        cacheTime: 0, // Disable caching in tests
-        staleTime: 0,
+  const testQueryClient =
+    queryClient ||
+    new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false, // Disable retries in tests
+          cacheTime: 0, // Disable caching in tests
+          staleTime: 0,
+        },
+        mutations: {
+          retry: false,
+        },
       },
-      mutations: {
-        retry: false,
-      },
-    },
-  });
+    });
 
   // Create a simple test theme
   const testTheme = createTheme({
@@ -66,11 +68,7 @@ export function renderWithProviders(
   const { queryClient, ...renderOptions } = options;
 
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <TestProviders queryClient={queryClient}>
-        {children}
-      </TestProviders>
-    );
+    return <TestProviders queryClient={queryClient}>{children}</TestProviders>;
   }
 
   return {
@@ -109,7 +107,10 @@ export function createMockQueryClient(overrides: Partial<QueryClient> = {}) {
  */
 export async function waitForLoadingToFinish() {
   const { waitFor } = await import('@testing-library/react');
-  await waitFor(() => {
-    expect(document.querySelector('[data-testid="loading"]')).not.toBeInTheDocument();
-  }, { timeout: 3000 });
+  await waitFor(
+    () => {
+      expect(document.querySelector('[data-testid="loading"]')).not.toBeInTheDocument();
+    },
+    { timeout: 3000 }
+  );
 }

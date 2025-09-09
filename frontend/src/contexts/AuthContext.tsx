@@ -46,7 +46,7 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // OAuth Configuration
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
+// Removed unused GOOGLE_CLIENT_ID constant
 const FACEBOOK_APP_ID = process.env.REACT_APP_FACEBOOK_APP_ID || '';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -59,13 +59,13 @@ declare global {
 }
 
 const initFacebookSDK = () => {
-  return new Promise<void>((resolve) => {
+  return new Promise<void>(resolve => {
     window.fbAsyncInit = () => {
       window.FB.init({
         appId: FACEBOOK_APP_ID,
         cookie: true,
         xfbml: true,
-        version: 'v18.0'
+        version: 'v18.0',
       });
       resolve();
     };
@@ -88,13 +88,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     error: null,
   });
 
+  // Define refreshUser function before useEffect that uses it
+  const refreshUser = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setAuthState(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem('auth_token');
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
+
+      const userData = await response.json();
+
+      setAuthState({
+        user: userData.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: any) {
+      localStorage.removeItem('auth_token');
+      setAuthState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: error.message || 'Failed to refresh user data',
+      });
+    }
+  }, []);
+
   // Initialize authentication
   useEffect(() => {
     const initAuth = async () => {
       try {
         // Initialize Facebook SDK
         await initFacebookSDK();
-        
+
         // Check for existing session
         const token = localStorage.getItem('auth_token');
         if (token) {
@@ -104,16 +149,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        setAuthState(prev => ({ 
-          ...prev, 
-          isLoading: false, 
-          error: 'Failed to initialize authentication' 
+        setAuthState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Failed to initialize authentication',
         }));
       }
     };
 
     initAuth();
-  }, []); // refreshUser is not needed in dependency array for initialization
+  }, [refreshUser]); // Include refreshUser in dependency array
 
   const signInWithGoogle = useCallback(async () => {
     try {
@@ -131,7 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           accessToken: 'demo-access-token',
         },
       };
-      
+
       if (result) {
         // Send Google token to backend for verification and user creation/login
         const response = await fetch(`${API_BASE_URL}/auth/google`, {
@@ -155,10 +200,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const authData = await response.json();
-        
+
         // Store auth token
         localStorage.setItem('auth_token', authData.token);
-        
+
         setAuthState({
           user: authData.user,
           isAuthenticated: true,
@@ -180,13 +225,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
       await new Promise<void>((resolve, reject) => {
-        window.FB.login((response: any) => {
-          if (response.authResponse) {
-            resolve();
-          } else {
-            reject(new Error('Facebook login cancelled'));
-          }
-        }, { scope: 'email,public_profile' });
+        window.FB.login(
+          (response: any) => {
+            if (response.authResponse) {
+              resolve();
+            } else {
+              reject(new Error('Facebook login cancelled'));
+            }
+          },
+          { scope: 'email,public_profile' }
+        );
       });
 
       // Get user info from Facebook
@@ -222,10 +270,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const authData = await response.json();
-      
+
       // Store auth token
       localStorage.setItem('auth_token', authData.token);
-      
+
       setAuthState({
         user: authData.user,
         isAuthenticated: true,
@@ -259,10 +307,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const authData = await response.json();
-      
+
       // Store auth token
       localStorage.setItem('auth_token', authData.token);
-      
+
       setAuthState({
         user: authData.user,
         isAuthenticated: true,
@@ -296,10 +344,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const authData = await response.json();
-      
+
       // Store auth token
       localStorage.setItem('auth_token', authData.token);
-      
+
       setAuthState({
         user: authData.user,
         isAuthenticated: true,
@@ -325,7 +373,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await fetch(`${API_BASE_URL}/auth/logout`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
       }
@@ -342,7 +390,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Clear local storage
       localStorage.removeItem('auth_token');
-      
+
       setAuthState({
         user: null,
         isAuthenticated: false,
@@ -371,7 +419,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updates),
       });
@@ -381,7 +429,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const updatedUser = await response.json();
-      
+
       setAuthState(prev => ({
         ...prev,
         user: updatedUser.user,
@@ -394,49 +442,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const refreshUser = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setAuthState(prev => ({ ...prev, isLoading: false }));
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        localStorage.removeItem('auth_token');
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-        });
-        return;
-      }
-
-      const userData = await response.json();
-      
-      setAuthState({
-        user: userData.user,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error: any) {
-      localStorage.removeItem('auth_token');
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: error.message || 'Failed to refresh user data',
-      });
-    }
-  }, []);
+  // refreshUser function moved above to resolve dependency issue
 
   const clearError = useCallback(() => {
     setAuthState(prev => ({ ...prev, error: null }));
@@ -454,11 +460,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     clearError,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

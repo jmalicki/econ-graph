@@ -139,7 +139,9 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
 
   // Calculate technical indicators
   const technicalIndicators = useMemo(() => {
-    const indicators: { [key: string]: TechnicalIndicator[] | BollingerBands[] | RSIPoint[] | CyclePoint[] } = {};
+    const indicators: {
+      [key: string]: TechnicalIndicator[] | BollingerBands[] | RSIPoint[] | CyclePoint[];
+    } = {};
 
     if (taSettings.sma.enabled) {
       taSettings.sma.periods.forEach(period => {
@@ -183,17 +185,17 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
   // Get economic events for the date range
   const economicEvents = useMemo(() => {
     if (!showEvents || primarySeries.data.length === 0) return [];
-    
+
     const startDate = primarySeries.data[0].date;
     const endDate = primarySeries.data[primarySeries.data.length - 1].date;
-    
+
     return getEconomicEventsInRange(startDate, endDate);
   }, [primarySeries.data, showEvents]);
 
   // Calculate correlations with secondary series
   const correlations = useMemo(() => {
     if (!showCorrelation || secondarySeries.length === 0) return [];
-    
+
     return secondarySeries.map(series => ({
       seriesId: series.id,
       title: series.title,
@@ -257,7 +259,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
         });
       } else if (key === 'bollinger') {
         const bands = data as BollingerBands[];
-        
+
         // Upper band
         datasets.push({
           label: 'Bollinger Upper',
@@ -319,14 +321,16 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
         type: 'line',
         xMin: event.date,
         xMax: event.date,
-        borderColor: event.impact === 'high' ? '#f44336' : event.impact === 'medium' ? '#ff9800' : '#4caf50',
+        borderColor:
+          event.impact === 'high' ? '#f44336' : event.impact === 'medium' ? '#ff9800' : '#4caf50',
         borderWidth: 2,
         borderDash: [5, 5],
         label: {
           display: true,
           content: event.title,
           position: 'top',
-          backgroundColor: event.impact === 'high' ? '#f44336' : event.impact === 'medium' ? '#ff9800' : '#4caf50',
+          backgroundColor:
+            event.impact === 'high' ? '#f44336' : event.impact === 'medium' ? '#ff9800' : '#4caf50',
           color: 'white',
           font: {
             size: 10,
@@ -395,14 +399,15 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
         },
         tooltip: {
           callbacks: {
-            title: (context) => {
+            title: context => {
               return new Date(context[0].label).toLocaleDateString();
             },
-            label: (context) => {
-              const value = typeof context.parsed.y === 'number' ? context.parsed.y.toFixed(2) : 'N/A';
+            label: context => {
+              const value =
+                typeof context.parsed.y === 'number' ? context.parsed.y.toFixed(2) : 'N/A';
               return `${context.dataset.label}: ${value}`;
             },
-            afterBody: (context) => {
+            afterBody: context => {
               const date = context[0].label;
               const event = economicEvents.find(e => e.date === date);
               return event ? [`📅 ${event.title}`, event.description] : [];
@@ -439,35 +444,37 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
             text: primarySeries.unit,
           },
         },
-        y1: secondarySeries.length > 0 ? {
-          type: 'linear' as const,
-          display: true,
-          position: 'right' as const,
-          title: {
-            display: true,
-            text: secondarySeries[0]?.unit || '',
-          },
-          grid: {
-            drawOnChartArea: false,
-          },
-        } : undefined,
+        y1:
+          secondarySeries.length > 0
+            ? {
+                type: 'linear' as const,
+                display: true,
+                position: 'right' as const,
+                title: {
+                  display: true,
+                  text: secondarySeries[0]?.unit || '',
+                },
+                grid: {
+                  drawOnChartArea: false,
+                },
+              }
+            : undefined,
       },
     };
   }, [primarySeries, secondarySeries, economicEvents, technicalIndicators, taSettings]);
 
-  const handleTASettingChange = useCallback((
-    indicator: keyof TechnicalAnalysisSettings,
-    setting: string,
-    value: any
-  ) => {
-    setTASettings(prev => ({
-      ...prev,
-      [indicator]: {
-        ...prev[indicator],
-        [setting]: value,
-      },
-    }));
-  }, []);
+  const handleTASettingChange = useCallback(
+    (indicator: keyof TechnicalAnalysisSettings, setting: string, value: any) => {
+      setTASettings(prev => ({
+        ...prev,
+        [indicator]: {
+          ...prev[indicator],
+          [setting]: value,
+        },
+      }));
+    },
+    []
+  );
 
   const exportChart = useCallback(() => {
     // Implementation for chart export (PNG, PDF, SVG)
@@ -479,25 +486,25 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
       <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Chart Controls */}
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          <Typography variant='h6' sx={{ flexGrow: 1 }}>
             Professional Chart Analytics
           </Typography>
-          
+
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title="Add Series">
-              <IconButton onClick={onSeriesAdd} size="small">
+            <Tooltip title='Add Series'>
+              <IconButton onClick={onSeriesAdd} size='small'>
                 <AddIcon />
               </IconButton>
             </Tooltip>
-            
-            <Tooltip title="Export Chart">
-              <IconButton onClick={exportChart} size="small">
+
+            <Tooltip title='Export Chart'>
+              <IconButton onClick={exportChart} size='small'>
                 <ExportIcon />
               </IconButton>
             </Tooltip>
-            
-            <Tooltip title="Fullscreen">
-              <IconButton onClick={() => setIsFullscreen(!isFullscreen)} size="small">
+
+            <Tooltip title='Fullscreen'>
+              <IconButton onClick={() => setIsFullscreen(!isFullscreen)} size='small'>
                 <FullscreenIcon />
               </IconButton>
             </Tooltip>
@@ -508,7 +515,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
         {showTechnicalAnalysis && (
           <Accordion sx={{ mb: 2 }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">
+              <Typography variant='subtitle1'>
                 <TrendingUpIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Technical Analysis
               </Typography>
@@ -521,14 +528,14 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
                     control={
                       <Checkbox
                         checked={taSettings.sma.enabled}
-                        onChange={(e) => handleTASettingChange('sma', 'enabled', e.target.checked)}
+                        onChange={e => handleTASettingChange('sma', 'enabled', e.target.checked)}
                       />
                     }
-                    label="Simple Moving Average (SMA)"
+                    label='Simple Moving Average (SMA)'
                   />
                   {taSettings.sma.enabled && (
                     <Box sx={{ ml: 3 }}>
-                      <Typography variant="caption">Periods: 20, 50</Typography>
+                      <Typography variant='caption'>Periods: 20, 50</Typography>
                     </Box>
                   )}
                 </Grid>
@@ -538,14 +545,14 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
                     control={
                       <Checkbox
                         checked={taSettings.ema.enabled}
-                        onChange={(e) => handleTASettingChange('ema', 'enabled', e.target.checked)}
+                        onChange={e => handleTASettingChange('ema', 'enabled', e.target.checked)}
                       />
                     }
-                    label="Exponential Moving Average (EMA)"
+                    label='Exponential Moving Average (EMA)'
                   />
                   {taSettings.ema.enabled && (
                     <Box sx={{ ml: 3 }}>
-                      <Typography variant="caption">Periods: 12, 26</Typography>
+                      <Typography variant='caption'>Periods: 12, 26</Typography>
                     </Box>
                   )}
                 </Grid>
@@ -556,15 +563,18 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
                     control={
                       <Checkbox
                         checked={taSettings.bollinger.enabled}
-                        onChange={(e) => handleTASettingChange('bollinger', 'enabled', e.target.checked)}
+                        onChange={e =>
+                          handleTASettingChange('bollinger', 'enabled', e.target.checked)
+                        }
                       />
                     }
-                    label="Bollinger Bands"
+                    label='Bollinger Bands'
                   />
                   {taSettings.bollinger.enabled && (
                     <Box sx={{ ml: 3 }}>
-                      <Typography variant="caption">
-                        Period: {taSettings.bollinger.period}, Std Dev: {taSettings.bollinger.stdDev}
+                      <Typography variant='caption'>
+                        Period: {taSettings.bollinger.period}, Std Dev:{' '}
+                        {taSettings.bollinger.stdDev}
                       </Typography>
                     </Box>
                   )}
@@ -576,10 +586,10 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
                     control={
                       <Checkbox
                         checked={taSettings.cycles.enabled}
-                        onChange={(e) => handleTASettingChange('cycles', 'enabled', e.target.checked)}
+                        onChange={e => handleTASettingChange('cycles', 'enabled', e.target.checked)}
                       />
                     }
-                    label="Economic Cycle Detection"
+                    label='Economic Cycle Detection'
                   />
                 </Grid>
 
@@ -589,10 +599,10 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
                     control={
                       <Checkbox
                         checked={showEvents}
-                        onChange={(e) => setShowEvents(e.target.checked)}
+                        onChange={e => setShowEvents(e.target.checked)}
                       />
                     }
-                    label="Economic Events"
+                    label='Economic Events'
                   />
                 </Grid>
 
@@ -602,10 +612,10 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
                     control={
                       <Checkbox
                         checked={showCorrelation}
-                        onChange={(e) => setShowCorrelation(e.target.checked)}
+                        onChange={e => setShowCorrelation(e.target.checked)}
                       />
                     }
-                    label="Correlation Analysis"
+                    label='Correlation Analysis'
                   />
                 </Grid>
               </Grid>
@@ -616,16 +626,16 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
         {/* Correlation Display */}
         {showCorrelation && correlations.length > 0 && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant='subtitle2' sx={{ mb: 1 }}>
               Correlation Analysis:
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {correlations.map((corr) => (
+              {correlations.map(corr => (
                 <Chip
                   key={corr.seriesId}
                   label={`${corr.title}: ${corr.correlation.toFixed(3)}`}
                   color={Math.abs(corr.correlation) > 0.7 ? 'primary' : 'default'}
-                  size="small"
+                  size='small'
                 />
               ))}
             </Box>
@@ -640,7 +650,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
         {/* Economic Events Summary */}
         {showEvents && economicEvents.length > 0 && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant='subtitle2' sx={{ mb: 1 }}>
               Economic Events in Range:
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -648,15 +658,22 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
                 <Chip
                   key={index}
                   label={event.title}
-                  size="small"
+                  size='small'
                   color={
-                    event.impact === 'high' ? 'error' :
-                    event.impact === 'medium' ? 'warning' : 'success'
+                    event.impact === 'high'
+                      ? 'error'
+                      : event.impact === 'medium'
+                        ? 'warning'
+                        : 'success'
                   }
                 />
               ))}
               {economicEvents.length > 5 && (
-                <Chip label={`+${economicEvents.length - 5} more`} size="small" variant="outlined" />
+                <Chip
+                  label={`+${economicEvents.length - 5} more`}
+                  size='small'
+                  variant='outlined'
+                />
               )}
             </Box>
           </Box>

@@ -34,20 +34,20 @@ export interface RSIPoint {
  */
 export function calculateSMA(data: DataPoint[], period: number): TechnicalIndicator[] {
   if (data.length < period) return [];
-  
+
   const sma: TechnicalIndicator[] = [];
-  
+
   for (let i = period - 1; i < data.length; i++) {
     const slice = data.slice(i - period + 1, i + 1);
     const average = slice.reduce((sum, point) => sum + point.value, 0) / period;
-    
+
     sma.push({
       date: data[i].date,
       value: average,
-      indicator: `SMA(${period})`
+      indicator: `SMA(${period})`,
     });
   }
-  
+
   return sma;
 }
 
@@ -57,25 +57,25 @@ export function calculateSMA(data: DataPoint[], period: number): TechnicalIndica
  */
 export function calculateEMA(data: DataPoint[], period: number): TechnicalIndicator[] {
   if (data.length === 0) return [];
-  
+
   const ema: TechnicalIndicator[] = [];
   const multiplier = 2 / (period + 1);
-  
+
   // Start with SMA for first value
   let previousEMA = data.slice(0, period).reduce((sum, point) => sum + point.value, 0) / period;
-  
+
   for (let i = period - 1; i < data.length; i++) {
-    const currentEMA = (data[i].value * multiplier) + (previousEMA * (1 - multiplier));
-    
+    const currentEMA = data[i].value * multiplier + previousEMA * (1 - multiplier);
+
     ema.push({
       date: data[i].date,
       value: currentEMA,
-      indicator: `EMA(${period})`
+      indicator: `EMA(${period})`,
     });
-    
+
     previousEMA = currentEMA;
   }
-  
+
   return ema;
 }
 
@@ -84,32 +84,33 @@ export function calculateEMA(data: DataPoint[], period: number): TechnicalIndica
  * Statistical measure of volatility and potential support/resistance levels
  */
 export function calculateBollingerBands(
-  data: DataPoint[], 
-  period: number = 20, 
+  data: DataPoint[],
+  period: number = 20,
   standardDeviations: number = 2
 ): BollingerBands[] {
   if (data.length < period) return [];
-  
+
   const bands: BollingerBands[] = [];
-  
+
   for (let i = period - 1; i < data.length; i++) {
     const slice = data.slice(i - period + 1, i + 1);
-    
+
     // Calculate middle band (SMA)
     const middle = slice.reduce((sum, point) => sum + point.value, 0) / period;
-    
+
     // Calculate standard deviation
-    const variance = slice.reduce((sum, point) => sum + Math.pow(point.value - middle, 2), 0) / period;
+    const variance =
+      slice.reduce((sum, point) => sum + Math.pow(point.value - middle, 2), 0) / period;
     const stdDev = Math.sqrt(variance);
-    
+
     bands.push({
       date: data[i].date,
-      upper: middle + (standardDeviations * stdDev),
+      upper: middle + standardDeviations * stdDev,
       middle: middle,
-      lower: middle - (standardDeviations * stdDev)
+      lower: middle - standardDeviations * stdDev,
     });
   }
-  
+
   return bands;
 }
 
@@ -119,39 +120,39 @@ export function calculateBollingerBands(
  */
 export function calculateRSI(data: DataPoint[], period: number = 14): RSIPoint[] {
   if (data.length < period + 1) return [];
-  
+
   const rsiPoints: RSIPoint[] = [];
   const gains: number[] = [];
   const losses: number[] = [];
-  
+
   // Calculate initial gains and losses
   for (let i = 1; i < data.length; i++) {
     const change = data[i].value - data[i - 1].value;
     gains.push(change > 0 ? change : 0);
     losses.push(change < 0 ? Math.abs(change) : 0);
   }
-  
+
   // Calculate initial average gain and loss
   let avgGain = gains.slice(0, period).reduce((sum, gain) => sum + gain, 0) / period;
   let avgLoss = losses.slice(0, period).reduce((sum, loss) => sum + loss, 0) / period;
-  
+
   // Calculate RSI for each point
   for (let i = period; i < data.length; i++) {
     const rs = avgGain / (avgLoss || 0.001); // Avoid division by zero
-    const rsi = 100 - (100 / (1 + rs));
-    
+    const rsi = 100 - 100 / (1 + rs);
+
     rsiPoints.push({
       date: data[i].date,
-      rsi: rsi
+      rsi: rsi,
     });
-    
+
     // Update averages using Wilder's smoothing
     if (i < gains.length) {
-      avgGain = ((avgGain * (period - 1)) + gains[i]) / period;
-      avgLoss = ((avgLoss * (period - 1)) + losses[i]) / period;
+      avgGain = (avgGain * (period - 1) + gains[i]) / period;
+      avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
     }
   }
-  
+
   return rsiPoints;
 }
 
@@ -161,21 +162,21 @@ export function calculateRSI(data: DataPoint[], period: number = 14): RSIPoint[]
  */
 export function calculateROC(data: DataPoint[], period: number): TechnicalIndicator[] {
   if (data.length < period + 1) return [];
-  
+
   const roc: TechnicalIndicator[] = [];
-  
+
   for (let i = period; i < data.length; i++) {
     const currentValue = data[i].value;
     const previousValue = data[i - period].value;
     const rocValue = ((currentValue - previousValue) / previousValue) * 100;
-    
+
     roc.push({
       date: data[i].date,
       value: rocValue,
-      indicator: `ROC(${period})`
+      indicator: `ROC(${period})`,
     });
   }
-  
+
   return roc;
 }
 
@@ -183,24 +184,28 @@ export function calculateROC(data: DataPoint[], period: number): TechnicalIndica
  * Calculate Standard Deviation
  * Measure of volatility and dispersion
  */
-export function calculateStandardDeviation(data: DataPoint[], period: number): TechnicalIndicator[] {
+export function calculateStandardDeviation(
+  data: DataPoint[],
+  period: number
+): TechnicalIndicator[] {
   if (data.length < period) return [];
-  
+
   const stdDevs: TechnicalIndicator[] = [];
-  
+
   for (let i = period - 1; i < data.length; i++) {
     const slice = data.slice(i - period + 1, i + 1);
     const mean = slice.reduce((sum, point) => sum + point.value, 0) / period;
-    const variance = slice.reduce((sum, point) => sum + Math.pow(point.value - mean, 2), 0) / period;
+    const variance =
+      slice.reduce((sum, point) => sum + Math.pow(point.value - mean, 2), 0) / period;
     const stdDev = Math.sqrt(variance);
-    
+
     stdDevs.push({
       date: data[i].date,
       value: stdDev,
-      indicator: `StdDev(${period})`
+      indicator: `StdDev(${period})`,
     });
   }
-  
+
   return stdDevs;
 }
 
@@ -217,50 +222,50 @@ export interface CyclePoint {
 
 export function detectEconomicCycles(data: DataPoint[], lookback: number = 6): CyclePoint[] {
   if (data.length < lookback * 2 + 1) return [];
-  
+
   const cycles: CyclePoint[] = [];
-  
+
   for (let i = lookback; i < data.length - lookback; i++) {
     const current = data[i];
     const before = data.slice(i - lookback, i);
     const after = data.slice(i + 1, i + lookback + 1);
-    
+
     const beforeMax = Math.max(...before.map(p => p.value));
     const beforeMin = Math.min(...before.map(p => p.value));
     const afterMax = Math.max(...after.map(p => p.value));
     const afterMin = Math.min(...after.map(p => p.value));
-    
+
     // Detect peaks
     if (current.value > beforeMax && current.value > afterMax) {
       const confidence = Math.min(
         (current.value - beforeMax) / beforeMax,
         (current.value - afterMax) / afterMax
       );
-      
+
       cycles.push({
         date: current.date,
         type: 'peak',
         value: current.value,
-        confidence: Math.max(0, Math.min(1, confidence))
+        confidence: Math.max(0, Math.min(1, confidence)),
       });
     }
-    
+
     // Detect troughs
     if (current.value < beforeMin && current.value < afterMin) {
       const confidence = Math.min(
         (beforeMin - current.value) / beforeMin,
         (afterMin - current.value) / afterMin
       );
-      
+
       cycles.push({
         date: current.date,
         type: 'trough',
         value: current.value,
-        confidence: Math.max(0, Math.min(1, confidence))
+        confidence: Math.max(0, Math.min(1, confidence)),
       });
     }
   }
-  
+
   return cycles;
 }
 
@@ -269,17 +274,17 @@ export function detectEconomicCycles(data: DataPoint[], lookback: number = 6): C
  */
 export function calculateCorrelation(series1: DataPoint[], series2: DataPoint[]): number {
   if (series1.length !== series2.length || series1.length === 0) return 0;
-  
+
   const n = series1.length;
   const sum1 = series1.reduce((sum, point) => sum + point.value, 0);
   const sum2 = series2.reduce((sum, point) => sum + point.value, 0);
   const sum1Sq = series1.reduce((sum, point) => sum + point.value * point.value, 0);
   const sum2Sq = series2.reduce((sum, point) => sum + point.value * point.value, 0);
   const sumProducts = series1.reduce((sum, point, i) => sum + point.value * series2[i].value, 0);
-  
+
   const numerator = n * sumProducts - sum1 * sum2;
   const denominator = Math.sqrt((n * sum1Sq - sum1 * sum1) * (n * sum2Sq - sum2 * sum2));
-  
+
   return denominator === 0 ? 0 : numerator / denominator;
 }
 
@@ -306,7 +311,7 @@ export const MAJOR_ECONOMIC_EVENTS: EconomicEvent[] = [
     description: 'WHO declares COVID-19 a pandemic, triggering global economic shutdown',
     type: 'crisis',
     impact: 'high',
-    source: 'WHO'
+    source: 'WHO',
   },
   {
     date: '2020-03-15',
@@ -314,15 +319,16 @@ export const MAJOR_ECONOMIC_EVENTS: EconomicEvent[] = [
     description: 'Federal Reserve cuts interest rates to near zero in emergency meeting',
     type: 'policy',
     impact: 'high',
-    source: 'Federal Reserve'
+    source: 'Federal Reserve',
   },
   {
     date: '2008-09-15',
     title: 'Lehman Brothers Collapse',
-    description: 'Investment bank Lehman Brothers files for bankruptcy, triggering financial crisis',
+    description:
+      'Investment bank Lehman Brothers files for bankruptcy, triggering financial crisis',
     type: 'crisis',
     impact: 'high',
-    source: 'Financial Markets'
+    source: 'Financial Markets',
   },
   {
     date: '2008-12-01',
@@ -330,7 +336,7 @@ export const MAJOR_ECONOMIC_EVENTS: EconomicEvent[] = [
     description: 'NBER officially dates the beginning of the Great Recession',
     type: 'recession',
     impact: 'high',
-    source: 'NBER'
+    source: 'NBER',
   },
   {
     date: '2009-06-01',
@@ -338,7 +344,7 @@ export const MAJOR_ECONOMIC_EVENTS: EconomicEvent[] = [
     description: 'NBER officially dates the end of the Great Recession',
     type: 'expansion',
     impact: 'high',
-    source: 'NBER'
+    source: 'NBER',
   },
   {
     date: '2001-03-01',
@@ -346,7 +352,7 @@ export const MAJOR_ECONOMIC_EVENTS: EconomicEvent[] = [
     description: 'Technology bubble bursts, leading to economic recession',
     type: 'recession',
     impact: 'medium',
-    source: 'NBER'
+    source: 'NBER',
   },
   {
     date: '2001-11-01',
@@ -354,8 +360,8 @@ export const MAJOR_ECONOMIC_EVENTS: EconomicEvent[] = [
     description: 'Economic recovery begins following dot-com crash',
     type: 'expansion',
     impact: 'medium',
-    source: 'NBER'
-  }
+    source: 'NBER',
+  },
 ];
 
 /**
@@ -364,7 +370,7 @@ export const MAJOR_ECONOMIC_EVENTS: EconomicEvent[] = [
 export function getEconomicEventsInRange(startDate: string, endDate: string): EconomicEvent[] {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   return MAJOR_ECONOMIC_EVENTS.filter(event => {
     const eventDate = new Date(event.date);
     return eventDate >= start && eventDate <= end;

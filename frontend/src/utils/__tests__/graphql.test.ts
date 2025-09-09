@@ -3,8 +3,7 @@
 // This ensures reliable communication with the backend API
 
 import { executeGraphQL, QUERIES } from '../graphql';
-import { server } from '../../test-utils/mocks/server';
-import { http } from 'msw';
+// Removed unused imports: server, http
 
 // Mock fetch for testing
 global.fetch = jest.fn();
@@ -18,7 +17,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test successful GraphQL query execution
     // PURPOSE: Verify that queries are sent correctly and responses parsed
     // This ensures basic API communication functionality
-    
+
     const mockResponse = {
       data: {
         series: {
@@ -58,7 +57,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test GraphQL error handling
     // PURPOSE: Verify that GraphQL errors are properly caught and processed
     // This ensures robust error handling in the frontend
-    
+
     const mockErrorResponse = {
       data: null,
       errors: [
@@ -87,7 +86,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test network error handling
     // PURPOSE: Verify that network failures are caught and reported
     // This ensures graceful degradation during connectivity issues
-    
+
     (fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
     await expect(
@@ -102,7 +101,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test HTTP error response handling
     // PURPOSE: Verify that HTTP errors (4xx, 5xx) are properly handled
     // This ensures robust error handling for various server conditions
-    
+
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 500,
@@ -121,9 +120,9 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test authentication header inclusion
     // PURPOSE: Verify that auth tokens are included in requests when available
     // This supports authenticated API access
-    
+
     const mockResponse = { data: { test: 'data' } };
-    
+
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
@@ -159,7 +158,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test malformed response handling
     // PURPOSE: Verify that invalid JSON responses are handled gracefully
     // This ensures robustness against server response issues
-    
+
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => {
@@ -179,7 +178,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test query validation
     // PURPOSE: Verify that GraphQL queries have proper structure
     // This ensures API compatibility and prevents runtime errors
-    
+
     // Test that all queries are properly formatted
     Object.entries(QUERIES).forEach(([queryName, query]) => {
       expect(query).toBeTruthy();
@@ -192,7 +191,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test search query parameter handling
     // PURPOSE: Verify that search parameters are correctly formatted and sent
     // This ensures search functionality works with various parameter combinations
-    
+
     const mockResponse = {
       data: {
         searchSeries: [
@@ -226,7 +225,7 @@ describe('GraphQL Utilities', () => {
     });
 
     expect(result).toEqual(mockResponse);
-    
+
     // Verify request body contains search parameters
     const requestBody = JSON.parse((fetch as jest.Mock).mock.calls[0][1].body);
     expect(requestBody.variables.params).toEqual(searchParams);
@@ -236,7 +235,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test request timeout handling
     // PURPOSE: Verify that long-running requests are properly timed out
     // This prevents hanging requests from degrading user experience
-    
+
     (fetch as jest.Mock).mockImplementationOnce(
       () => new Promise((resolve) => {
         // Never resolve to simulate timeout
@@ -253,7 +252,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test concurrent request handling
     // PURPOSE: Verify that multiple simultaneous requests work correctly
     // This ensures good performance under load
-    
+
     const mockResponse1 = { data: { series1: 'data1' } };
     const mockResponse2 = { data: { series2: 'data2' } };
 
@@ -287,7 +286,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test empty response handling
     // PURPOSE: Verify that empty or null responses are handled gracefully
     // This ensures robustness when APIs return no data
-    
+
     const mockResponse = { data: null };
 
     (fetch as jest.Mock).mockResolvedValueOnce({
@@ -307,7 +306,7 @@ describe('GraphQL Utilities', () => {
     // REQUIREMENT: Test query variable validation
     // PURPOSE: Verify that required variables are provided for queries
     // This prevents API errors due to missing parameters
-    
+
     // This test would require implementing validation logic
     // For now, we'll test that variables are passed through correctly
     const variables = { id: 'test-series', filter: { startDate: '2024-01-01' } };

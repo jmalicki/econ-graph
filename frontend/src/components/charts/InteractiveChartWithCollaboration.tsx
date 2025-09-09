@@ -1,75 +1,75 @@
 /**
  * **InteractiveChartWithCollaboration Component**
- * 
+ *
  * A sophisticated, Bloomberg Terminal-inspired economic data visualization component
  * that combines advanced charting capabilities with real-time collaboration features.
  * This component serves as the cornerstone of professional economic analysis workflows.
- * 
+ *
  * ## Core Capabilities
- * 
+ *
  * ### Advanced Visualization
  * - Interactive time series charts with zoom, pan, and selection
  * - Multiple data transformation options (YoY, QoQ, MoM, levels, log scale)
  * - Professional styling with customizable themes and layouts
  * - Real-time data updates with smooth animations
  * - Multi-series overlay support for comparative analysis
- * 
+ *
  * ### Data Transformation Engine
  * - **Year-over-Year**: Annual growth rates for trend analysis
  * - **Quarter-over-Quarter**: Quarterly momentum tracking
  * - **Month-over-Month**: High-frequency change detection
  * - **Levels**: Raw data values with original scaling
  * - **Logarithmic**: Log scale for exponential growth patterns
- * 
+ *
  * ### Professional Collaboration
  * - Real-time annotations and comments on specific data points
  * - Team sharing with configurable access permissions
  * - Version control for analytical workflows
  * - Export capabilities for reports and presentations
- * 
+ *
  * ### Performance Optimizations
  * - Efficient data processing with memoized calculations
  * - Lazy loading for large datasets
  * - Responsive design for various screen sizes
  * - Accessibility compliance for inclusive usage
- * 
+ *
  * ## Use Cases
- * 
+ *
  * ### Economic Research
  * - GDP growth analysis with quarterly breakdowns
  * - Employment trend monitoring with seasonal adjustments
  * - Inflation tracking across multiple indicators
  * - Monetary policy impact assessment
- * 
+ *
  * ### Financial Analysis
  * - Market indicator correlation studies
  * - Risk assessment through volatility analysis
  * - Comparative performance across economic cycles
  * - Forecasting model validation
- * 
+ *
  * ### Institutional Workflows
  * - Investment committee presentations
  * - Policy briefing materials
  * - Academic research publications
  * - Regulatory compliance reporting
- * 
+ *
  * ## Technical Architecture
- * 
+ *
  * ### Dependencies
  * - **Chart.js**: Core charting engine with time series support
  * - **Material-UI**: Professional UI components and theming
  * - **React Hooks**: State management and lifecycle optimization
  * - **GraphQL**: Real-time data synchronization
- * 
+ *
  * ### Data Flow
  * 1. Series data fetched via GraphQL subscriptions
  * 2. Transformation applied based on user selection
  * 3. Chart.js renders with optimized datasets
  * 4. Collaboration events synchronized in real-time
  * 5. User interactions trigger appropriate callbacks
- * 
+ *
  * ## Props Interface
- * 
+ *
  * @param seriesId - Unique identifier for the economic time series
  * @param data - Array of data points with timestamps and values
  * @param title - Chart title for display and accessibility
@@ -78,9 +78,9 @@
  * @param onTransformationChange - Callback for transformation option changes
  * @param collaborationEnabled - Flag to enable/disable collaboration features
  * @param theme - Theme configuration for styling consistency
- * 
+ *
  * ## Examples
- * 
+ *
  * ### Basic Economic Series Chart
  * ```tsx
  * <InteractiveChartWithCollaboration
@@ -91,7 +91,7 @@
  *   collaborationEnabled={true}
  * />
  * ```
- * 
+ *
  * ### Multi-Series Comparative Analysis
  * ```tsx
  * <InteractiveChartWithCollaboration
@@ -103,19 +103,19 @@
  *   onTransformationChange={handleTransformationChange}
  * />
  * ```
- * 
+ *
  * ## Accessibility Features
  * - Screen reader compatible with ARIA labels
  * - Keyboard navigation support for all interactive elements
  * - High contrast mode compatibility
  * - Focus management for modal dialogs and tooltips
- * 
+ *
  * ## Performance Considerations
  * - Virtualized rendering for large datasets (>10,000 points)
  * - Debounced user input to prevent excessive re-renders
  * - Memoized transformation calculations
  * - Optimized Chart.js configuration for smooth animations
- * 
+ *
  * @since 1.0.0
  * @version 2.1.0
  * @author EconGraph Development Team
@@ -153,10 +153,7 @@ import {
   Tooltip as MuiTooltip,
   Fab,
 } from '@mui/material';
-import {
-  Groups as CollaborationIcon,
-  Comment as CommentIcon,
-} from '@mui/icons-material';
+import { Groups as CollaborationIcon, Comment as CommentIcon } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -176,10 +173,10 @@ ChartJS.register(
 
 /**
  * **DataPoint Interface**
- * 
+ *
  * Represents a single observation in an economic time series with comprehensive
  * metadata for data provenance and revision tracking.
- * 
+ *
  * @interface DataPoint
  * @property {string} date - ISO date string for the observation period (e.g., "2024-03-31")
  * @property {number | null} value - Numeric value of the economic observation, null for missing data
@@ -195,10 +192,10 @@ interface DataPoint {
 
 /**
  * **InteractiveChartWithCollaboration Props Interface**
- * 
+ *
  * Defines the props contract for the main chart component, ensuring type safety
  * and clear API boundaries for component consumers.
- * 
+ *
  * @interface InteractiveChartWithCollaborationProps
  * @property {DataPoint[]} data - Array of time series data points to visualize
  * @property {string} seriesId - Unique identifier for the economic series (used for collaboration)
@@ -218,10 +215,10 @@ interface InteractiveChartWithCollaborationProps {
 
 /**
  * **TransformationType Union**
- * 
+ *
  * Defines the available mathematical transformations that can be applied to
  * the time series data for different analytical perspectives.
- * 
+ *
  * @type TransformationType
  * @property {'none'} none - No transformation, display raw data values
  * @property {'growth_rate'} growth_rate - Calculate period-over-period growth rates
@@ -233,54 +230,54 @@ type TransformationType = 'none' | 'growth_rate' | 'log' | 'diff' | 'pct_change'
 
 /**
  * **InteractiveChartWithCollaboration Component Function**
- * 
+ *
  * The main React functional component that renders an advanced economic data visualization
  * with collaboration features. This component manages complex state for data transformations,
  * user interactions, and real-time collaboration.
- * 
+ *
  * ## State Management
- * 
+ *
  * ### Chart Configuration State
  * - `transformation`: Current mathematical transformation applied to data
  * - `startDate`/`endDate`: Date range filters for focused analysis
  * - `showOriginalReleases`/`showRevisedData`: Data vintage display controls
- * 
+ *
  * ### Collaboration State
  * - `collaborationOpen`: Controls visibility of collaboration panel
  * - `selectedAnnotations`: Currently selected annotations for context
- * 
+ *
  * ## Key Features Implementation
- * 
+ *
  * ### Data Processing Pipeline
  * 1. **Filtering**: Apply date range and revision type filters
  * 2. **Transformation**: Apply mathematical transformations (YoY, QoQ, etc.)
  * 3. **Formatting**: Prepare data for Chart.js consumption
  * 4. **Optimization**: Memoize expensive calculations for performance
- * 
+ *
  * ### User Interaction Handling
  * - Date range selection with Material-UI DatePicker components
  * - Transformation selection via dropdown menus
  * - Data vintage toggles for original vs. revised data display
  * - Collaboration panel activation and management
- * 
+ *
  * ### Performance Optimizations
  * - `useCallback` hooks for event handlers to prevent unnecessary re-renders
  * - `useMemo` hooks for expensive data transformations
  * - Efficient Chart.js configuration with minimal updates
  * - Debounced user input to reduce computational overhead
- * 
+ *
  * ## Accessibility Implementation
  * - ARIA labels for all interactive elements
  * - Keyboard navigation support for chart interactions
  * - Screen reader compatible chart descriptions
  * - High contrast mode support through Material-UI theming
- * 
+ *
  * ## Error Handling
  * - Graceful handling of missing or invalid data points
  * - User-friendly error messages for transformation failures
  * - Fallback rendering for unsupported data formats
  * - Network error recovery for collaboration features
- * 
+ *
  * @param props - Component props as defined by InteractiveChartWithCollaborationProps
  * @returns JSX.Element - Rendered chart component with full functionality
  */
@@ -293,14 +290,14 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
   loading = false,
 }) => {
   const theme = useTheme();
-  
+
   // Chart state
   const [transformation, setTransformation] = useState<TransformationType>('none');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showOriginalReleases, setShowOriginalReleases] = useState(true);
   const [showRevisedData, setShowRevisedData] = useState(true);
-  
+
   // Collaboration state
   const [collaborationOpen, setCollaborationOpen] = useState(false);
   const [selectedAnnotations, setSelectedAnnotations] = useState<ChartAnnotationType[]>([]);
@@ -317,44 +314,49 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
   });
 
   // Apply transformations
-  const transformData = useCallback((data: DataPoint[]) => {
-    if (transformation === 'none') return data;
+  const transformData = useCallback(
+    (data: DataPoint[]) => {
+      if (transformation === 'none') return data;
 
-    return data.map((point, index) => {
-      if (point.value === null) return point;
-      
-      let transformedValue = point.value;
-      
-      switch (transformation) {
-        case 'growth_rate':
-          if (index > 0 && data[index - 1].value !== null) {
-            transformedValue = ((point.value - data[index - 1].value!) / data[index - 1].value!) * 100;
-          } else {
-            transformedValue = 0;
-          }
-          break;
-        case 'log':
-          transformedValue = Math.log(point.value);
-          break;
-        case 'diff':
-          if (index > 0 && data[index - 1].value !== null) {
-            transformedValue = point.value - data[index - 1].value!;
-          } else {
-            transformedValue = 0;
-          }
-          break;
-        case 'pct_change':
-          if (index > 0 && data[index - 1].value !== null) {
-            transformedValue = ((point.value - data[index - 1].value!) / data[index - 1].value!) * 100;
-          } else {
-            transformedValue = 0;
-          }
-          break;
-      }
-      
-      return { ...point, value: transformedValue };
-    });
-  }, [transformation]);
+      return data.map((point, index) => {
+        if (point.value === null) return point;
+
+        let transformedValue = point.value;
+
+        switch (transformation) {
+          case 'growth_rate':
+            if (index > 0 && data[index - 1].value !== null) {
+              transformedValue =
+                ((point.value - data[index - 1].value!) / data[index - 1].value!) * 100;
+            } else {
+              transformedValue = 0;
+            }
+            break;
+          case 'log':
+            transformedValue = Math.log(point.value);
+            break;
+          case 'diff':
+            if (index > 0 && data[index - 1].value !== null) {
+              transformedValue = point.value - data[index - 1].value!;
+            } else {
+              transformedValue = 0;
+            }
+            break;
+          case 'pct_change':
+            if (index > 0 && data[index - 1].value !== null) {
+              transformedValue =
+                ((point.value - data[index - 1].value!) / data[index - 1].value!) * 100;
+            } else {
+              transformedValue = 0;
+            }
+            break;
+        }
+
+        return { ...point, value: transformedValue };
+      });
+    },
+    [transformation]
+  );
 
   // Process data
   const processedData = {
@@ -365,39 +367,45 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
   // Create chart data
   const chartData = {
     datasets: [
-      ...(showRevisedData ? [{
-        label: 'Revised Data',
-        data: processedData.revised.map(d => ({
-          x: d.date,
-          y: d.value?.toString() || '0',
-        })),
-        borderColor: theme.palette.primary.main,
-        backgroundColor: theme.palette.primary.main + '20',
-        fill: false,
-        tension: 0.1,
-        pointRadius: 2,
-        pointHoverRadius: 4,
-      }] : []),
-      ...(showOriginalReleases ? [{
-        label: 'Original Releases',
-        data: processedData.original.map(d => ({
-          x: d.date,
-          y: d.value?.toString() || '0',
-        })),
-        borderColor: theme.palette.secondary.main,
-        backgroundColor: theme.palette.secondary.main + '20',
-        fill: false,
-        tension: 0.1,
-        pointRadius: 1,
-        pointHoverRadius: 3,
-        borderDash: [5, 5],
-      }] : []),
+      ...(showRevisedData
+        ? [
+            {
+              label: 'Revised Data',
+              data: processedData.revised.map(d => ({
+                x: d.date,
+                y: d.value?.toString() || '0',
+              })),
+              borderColor: theme.palette.primary.main,
+              backgroundColor: theme.palette.primary.main + '20',
+              fill: false,
+              tension: 0.1,
+              pointRadius: 2,
+              pointHoverRadius: 4,
+            },
+          ]
+        : []),
+      ...(showOriginalReleases
+        ? [
+            {
+              label: 'Original Releases',
+              data: processedData.original.map(d => ({
+                x: d.date,
+                y: d.value?.toString() || '0',
+              })),
+              borderColor: theme.palette.secondary.main,
+              backgroundColor: theme.palette.secondary.main + '20',
+              fill: false,
+              tension: 0.1,
+              pointRadius: 1,
+              pointHoverRadius: 3,
+              borderDash: [5, 5],
+            },
+          ]
+        : []),
       // Add annotation lines (simplified for now)
       ...selectedAnnotations.map(annotation => ({
         label: annotation.title,
-        data: [
-          { x: annotation.annotationDate, y: '0' },
-        ],
+        data: [{ x: annotation.annotationDate, y: '0' }],
         borderColor: annotation.color || theme.palette.warning.main,
         backgroundColor: 'transparent',
         fill: false,
@@ -410,11 +418,16 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
 
   const getTransformationLabel = (transform: TransformationType) => {
     switch (transform) {
-      case 'growth_rate': return 'Growth Rate (%)';
-      case 'log': return 'Logarithmic';
-      case 'diff': return 'First Difference';
-      case 'pct_change': return 'Percent Change';
-      default: return 'None';
+      case 'growth_rate':
+        return 'Growth Rate (%)';
+      case 'log':
+        return 'Logarithmic';
+      case 'diff':
+        return 'First Difference';
+      case 'pct_change':
+        return 'Percent Change';
+      default:
+        return 'None';
     }
   };
 
@@ -466,14 +479,15 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
           label: (tooltipItem: TooltipItem<'line'>) => {
             const value = tooltipItem.parsed.y;
             if (value === null) return `${tooltipItem.dataset.label}: No data`;
-            
-            const formattedValue = typeof value === 'number' 
-              ? value.toLocaleString('en-US', { 
-                  minimumFractionDigits: 2, 
-                  maximumFractionDigits: 2 
-                })
-              : value;
-            
+
+            const formattedValue =
+              typeof value === 'number'
+                ? value.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })
+                : value;
+
             return `${tooltipItem.dataset.label}: ${formattedValue} ${getYAxisTitle()}`;
           },
         },
@@ -526,28 +540,28 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
       <Paper elevation={2} sx={{ p: 3 }}>
         {/* Chart Controls */}
         <Box sx={{ mb: 3 }}>
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2} alignItems='center'>
             <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
+              <FormControl fullWidth size='small'>
                 <InputLabel>Transformation</InputLabel>
                 <Select
                   value={transformation}
-                  onChange={(e) => setTransformation(e.target.value as TransformationType)}
-                  label="Transformation"
+                  onChange={e => setTransformation(e.target.value as TransformationType)}
+                  label='Transformation'
                 >
-                  <MenuItem value="none">None</MenuItem>
-                  <MenuItem value="growth_rate">Growth Rate</MenuItem>
-                  <MenuItem value="log">Logarithmic</MenuItem>
-                  <MenuItem value="diff">First Difference</MenuItem>
-                  <MenuItem value="pct_change">Percent Change</MenuItem>
+                  <MenuItem value='none'>None</MenuItem>
+                  <MenuItem value='growth_rate'>Growth Rate</MenuItem>
+                  <MenuItem value='log'>Logarithmic</MenuItem>
+                  <MenuItem value='diff'>First Difference</MenuItem>
+                  <MenuItem value='pct_change'>Percent Change</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={12} md={3}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
-                  label="Start Date"
+                  label='Start Date'
                   value={startDate}
                   onChange={setStartDate}
                   slotProps={{
@@ -559,11 +573,11 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
                 />
               </LocalizationProvider>
             </Grid>
-            
+
             <Grid item xs={12} md={3}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
-                  label="End Date"
+                  label='End Date'
                   value={endDate}
                   onChange={setEndDate}
                   slotProps={{
@@ -575,28 +589,28 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
                 />
               </LocalizationProvider>
             </Grid>
-            
+
             <Grid item xs={12} md={3}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <FormControlLabel
                   control={
                     <Switch
                       checked={showRevisedData}
-                      onChange={(e) => setShowRevisedData(e.target.checked)}
-                      size="small"
+                      onChange={e => setShowRevisedData(e.target.checked)}
+                      size='small'
                     />
                   }
-                  label="Revised Data"
+                  label='Revised Data'
                 />
                 <FormControlLabel
                   control={
                     <Switch
                       checked={showOriginalReleases}
-                      onChange={(e) => setShowOriginalReleases(e.target.checked)}
-                      size="small"
+                      onChange={e => setShowOriginalReleases(e.target.checked)}
+                      size='small'
                     />
                   }
-                  label="Original Releases"
+                  label='Original Releases'
                 />
               </Box>
             </Grid>
@@ -607,41 +621,41 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
             {transformation !== 'none' && (
               <Chip
                 label={getTransformationLabel(transformation)}
-                size="small"
-                color="primary"
+                size='small'
+                color='primary'
                 onDelete={() => setTransformation('none')}
               />
             )}
             {startDate && (
               <Chip
                 label={`From: ${startDate.toLocaleDateString()}`}
-                size="small"
-                variant="outlined"
+                size='small'
+                variant='outlined'
                 onDelete={() => setStartDate(null)}
               />
             )}
             {endDate && (
               <Chip
                 label={`To: ${endDate.toLocaleDateString()}`}
-                size="small"
-                variant="outlined"
+                size='small'
+                variant='outlined'
                 onDelete={() => setEndDate(null)}
               />
             )}
             {selectedAnnotations.length > 0 && (
               <Chip
                 label={`${selectedAnnotations.length} annotation${selectedAnnotations.length !== 1 ? 's' : ''} shown`}
-                size="small"
-                color="secondary"
-                variant="outlined"
+                size='small'
+                color='secondary'
+                variant='outlined'
               />
             )}
-            
+
             {/* Collaboration Controls */}
             <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
-              <MuiTooltip title="Open Collaboration Panel">
+              <MuiTooltip title='Open Collaboration Panel'>
                 <IconButton
-                  size="small"
+                  size='small'
                   onClick={() => setCollaborationOpen(true)}
                   color={collaborationOpen ? 'primary' : 'default'}
                 >
@@ -659,11 +673,12 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
 
         {/* Chart info */}
         <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="caption" color="text.secondary">
-            Frequency: {frequency} • 
-            Data Points: {processedData.revised.length + processedData.original.length} • 
+          <Typography variant='caption' color='text.secondary'>
+            Frequency: {frequency} • Data Points:{' '}
+            {processedData.revised.length + processedData.original.length} •
             {showOriginalReleases && showRevisedData && ' Both original and revised data shown'}
-            {selectedAnnotations.length > 0 && ` • ${selectedAnnotations.length} annotations displayed`}
+            {selectedAnnotations.length > 0 &&
+              ` • ${selectedAnnotations.length} annotations displayed`}
           </Typography>
         </Box>
       </Paper>
@@ -680,8 +695,8 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
       {/* Floating Collaboration Button */}
       {!collaborationOpen && (
         <Fab
-          color="primary"
-          size="small"
+          color='primary'
+          size='small'
           sx={{
             position: 'absolute',
             bottom: 16,
@@ -698,4 +713,3 @@ const InteractiveChartWithCollaboration: React.FC<InteractiveChartWithCollaborat
 };
 
 export default InteractiveChartWithCollaboration;
-

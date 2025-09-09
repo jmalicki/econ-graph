@@ -66,40 +66,49 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
     }
   }, [user]);
 
-  const handleInputChange = useCallback((field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: event.target.value,
-    }));
-  }, []);
-
-  const handlePreferenceChange = useCallback((preference: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      preferences: {
-        ...prev.preferences,
-        [preference]: event.target.checked,
-      } as User['preferences'],
-    }));
-  }, []);
-
-  const handleSelectChange = useCallback((field: string) => (event: any) => {
-    if (field.startsWith('preferences.')) {
-      const prefField = field.replace('preferences.', '');
-      setFormData(prev => ({
-        ...prev,
-        preferences: {
-          ...prev.preferences,
-          [prefField]: event.target.value,
-        } as User['preferences'],
-      }));
-    } else {
+  const handleInputChange = useCallback(
+    (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
       setFormData(prev => ({
         ...prev,
         [field]: event.target.value,
       }));
-    }
-  }, []);
+    },
+    []
+  );
+
+  const handlePreferenceChange = useCallback(
+    (preference: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData(prev => ({
+        ...prev,
+        preferences: {
+          ...prev.preferences,
+          [preference]: event.target.checked,
+        } as User['preferences'],
+      }));
+    },
+    []
+  );
+
+  const handleSelectChange = useCallback(
+    (field: string) => (event: any) => {
+      if (field.startsWith('preferences.')) {
+        const prefField = field.replace('preferences.', '');
+        setFormData(prev => ({
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            [prefField]: event.target.value,
+          } as User['preferences'],
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [field]: event.target.value,
+        }));
+      }
+    },
+    []
+  );
 
   const handleSave = useCallback(async () => {
     try {
@@ -144,37 +153,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'error';
-      case 'analyst': return 'primary';
-      case 'viewer': return 'default';
-      default: return 'default';
+      case 'admin':
+        return 'error';
+      case 'analyst':
+        return 'primary';
+      case 'viewer':
+        return 'default';
+      default:
+        return 'default';
     }
   };
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth>
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar
-              src={user.avatar}
-              sx={{ width: 56, height: 56 }}
-            >
+            <Avatar src={user.avatar} sx={{ width: 56, height: 56 }}>
               {user.name[0]}
             </Avatar>
             <Box>
-              <Typography variant="h5">User Profile</Typography>
+              <Typography variant='h5'>User Profile</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                <Chip
-                  label={user.role}
-                  color={getRoleBadgeColor(user.role)}
-                  size="small"
-                />
-                <Chip
-                  label={user.provider}
-                  variant="outlined"
-                  size="small"
-                />
+                <Chip label={user.role} color={getRoleBadgeColor(user.role)} size='small' />
+                <Chip label={user.provider} variant='outlined' size='small' />
               </Box>
             </Box>
           </Box>
@@ -182,7 +184,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
 
         <DialogContent>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
+            <Alert severity='error' sx={{ mb: 2 }} onClose={clearError}>
               {error}
             </Alert>
           )}
@@ -190,8 +192,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
           {/* Basic Information */}
           <Card sx={{ mb: 2 }}>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Basic Information</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 2,
+                }}
+              >
+                <Typography variant='h6'>Basic Information</Typography>
                 {!isEditing && (
                   <IconButton onClick={() => setIsEditing(true)}>
                     <EditIcon />
@@ -201,35 +210,35 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <TextField
-                  label="Full Name"
+                  label='Full Name'
                   value={formData.name || ''}
                   onChange={handleInputChange('name')}
                   disabled={!isEditing}
                   fullWidth
                   InputProps={{
-                    startAdornment: <PersonIcon color="action" sx={{ mr: 1 }} />,
+                    startAdornment: <PersonIcon color='action' sx={{ mr: 1 }} />,
                   }}
                 />
 
                 <TextField
-                  label="Email"
+                  label='Email'
                   value={formData.email || ''}
                   onChange={handleInputChange('email')}
                   disabled={true} // Email usually can't be changed
                   fullWidth
                   InputProps={{
-                    startAdornment: <EmailIcon color="action" sx={{ mr: 1 }} />,
+                    startAdornment: <EmailIcon color='action' sx={{ mr: 1 }} />,
                   }}
                 />
 
                 <TextField
-                  label="Organization (Optional)"
+                  label='Organization (Optional)'
                   value={formData.organization || ''}
                   onChange={handleInputChange('organization')}
                   disabled={!isEditing}
                   fullWidth
                   InputProps={{
-                    startAdornment: <BusinessIcon color="action" sx={{ mr: 1 }} />,
+                    startAdornment: <BusinessIcon color='action' sx={{ mr: 1 }} />,
                   }}
                 />
               </Box>
@@ -239,7 +248,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
           {/* Preferences */}
           <Card sx={{ mb: 2 }}>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Typography variant='h6' sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
                 <PaletteIcon sx={{ mr: 1 }} />
                 Preferences
               </Typography>
@@ -251,10 +260,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                     value={formData.preferences?.theme || 'light'}
                     onChange={handleSelectChange('preferences.theme')}
                     disabled={!isEditing}
-                    label="Theme"
+                    label='Theme'
                   >
-                    <MenuItem value="light">Light</MenuItem>
-                    <MenuItem value="dark">Dark</MenuItem>
+                    <MenuItem value='light'>Light</MenuItem>
+                    <MenuItem value='dark'>Dark</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -264,12 +273,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                     value={formData.preferences?.defaultChartType || 'line'}
                     onChange={handleSelectChange('preferences.defaultChartType')}
                     disabled={!isEditing}
-                    label="Default Chart Type"
+                    label='Default Chart Type'
                   >
-                    <MenuItem value="line">Line Chart</MenuItem>
-                    <MenuItem value="area">Area Chart</MenuItem>
-                    <MenuItem value="bar">Bar Chart</MenuItem>
-                    <MenuItem value="candlestick">Candlestick</MenuItem>
+                    <MenuItem value='line'>Line Chart</MenuItem>
+                    <MenuItem value='area'>Area Chart</MenuItem>
+                    <MenuItem value='bar'>Bar Chart</MenuItem>
+                    <MenuItem value='candlestick'>Candlestick</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -281,7 +290,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                       disabled={!isEditing}
                     />
                   }
-                  label="Email Notifications"
+                  label='Email Notifications'
                 />
 
                 <FormControlLabel
@@ -292,7 +301,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                       disabled={!isEditing}
                     />
                   }
-                  label="Enable Chart Collaboration"
+                  label='Enable Chart Collaboration'
                 />
               </Box>
             </CardContent>
@@ -301,7 +310,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
           {/* Account Information */}
           <Card sx={{ mb: 2 }}>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <Typography variant='h6' sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
                 <SecurityIcon sx={{ mr: 1 }} />
                 Account Information
               </Typography>
@@ -309,25 +318,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
               <List dense>
                 <ListItem>
                   <ListItemText
-                    primary="Account Created"
+                    primary='Account Created'
                     secondary={new Date(user.createdAt).toLocaleDateString()}
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
-                    primary="Last Login"
+                    primary='Last Login'
                     secondary={new Date(user.lastLoginAt).toLocaleDateString()}
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
-                    primary="Authentication Provider"
+                    primary='Authentication Provider'
                     secondary={user.provider.charAt(0).toUpperCase() + user.provider.slice(1)}
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
-                    primary="Account Role"
+                    primary='Account Role'
                     secondary={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                   />
                 </ListItem>
@@ -338,24 +347,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
           {/* Danger Zone */}
           <Card sx={{ border: 1, borderColor: 'error.main' }}>
             <CardContent>
-              <Typography variant="h6" color="error" sx={{ mb: 2 }}>
+              <Typography variant='h6' color='error' sx={{ mb: 2 }}>
                 Danger Zone
               </Typography>
-              
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Button
-                  variant="outlined"
-                  color="warning"
+                  variant='outlined'
+                  color='warning'
                   startIcon={<SignOutIcon />}
                   onClick={handleSignOut}
                   fullWidth
                 >
                   Sign Out
                 </Button>
-                
+
                 <Button
-                  variant="outlined"
-                  color="error"
+                  variant='outlined'
+                  color='error'
                   startIcon={<DeleteIcon />}
                   onClick={() => setShowDeleteConfirm(true)}
                   fullWidth
@@ -373,7 +382,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
               <Button onClick={handleCancel} startIcon={<CancelIcon />}>
                 Cancel
               </Button>
-              <Button onClick={handleSave} variant="contained" startIcon={<SaveIcon />}>
+              <Button onClick={handleSave} variant='contained' startIcon={<SaveIcon />}>
                 Save Changes
               </Button>
             </>
@@ -385,15 +394,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
 
       {/* Delete Account Confirmation */}
       <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        <DialogTitle color="error">Delete Account</DialogTitle>
+        <DialogTitle color='error'>Delete Account</DialogTitle>
         <DialogContent>
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity='error' sx={{ mb: 2 }}>
             This action cannot be undone!
           </Alert>
           <Typography>
             Are you sure you want to delete your account? This will permanently remove:
           </Typography>
-          <Box component="ul" sx={{ mt: 1 }}>
+          <Box component='ul' sx={{ mt: 1 }}>
             <li>Your profile and preferences</li>
             <li>All chart annotations and comments</li>
             <li>Collaboration history</li>
@@ -402,15 +411,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
           <Typography sx={{ mt: 2 }}>
             Type <strong>DELETE</strong> to confirm:
           </Typography>
-          <TextField
-            fullWidth
-            sx={{ mt: 1 }}
-            placeholder="Type DELETE to confirm"
-          />
+          <TextField fullWidth sx={{ mt: 1 }} placeholder='Type DELETE to confirm' />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
-          <Button onClick={handleDeleteAccount} color="error" variant="contained">
+          <Button onClick={handleDeleteAccount} color='error' variant='contained'>
             Delete Account
           </Button>
         </DialogActions>

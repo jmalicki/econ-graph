@@ -98,10 +98,22 @@ interface ChartCollaborationProps {
 }
 
 const ANNOTATION_COLORS = [
-  '#f44336', '#e91e63', '#9c27b0', '#673ab7',
-  '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4',
-  '#009688', '#4caf50', '#8bc34a', '#cddc39',
-  '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'
+  '#f44336',
+  '#e91e63',
+  '#9c27b0',
+  '#673ab7',
+  '#3f51b5',
+  '#2196f3',
+  '#03a9f4',
+  '#00bcd4',
+  '#009688',
+  '#4caf50',
+  '#8bc34a',
+  '#cddc39',
+  '#ffeb3b',
+  '#ffc107',
+  '#ff9800',
+  '#ff5722',
 ];
 
 const ANNOTATION_TYPES = [
@@ -163,7 +175,10 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
       author: currentUser,
       isVisible: true,
       isPinned: false,
-      tags: annotationForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      tags: annotationForm.tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(Boolean),
       comments: [],
     };
 
@@ -172,9 +187,12 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
     resetAnnotationForm();
   }, [annotationForm, currentUser, onAnnotationAdd, resetAnnotationForm]);
 
-  const handleUpdateAnnotation = useCallback((id: string, updates: Partial<ChartAnnotation>) => {
-    onAnnotationUpdate(id, updates);
-  }, [onAnnotationUpdate]);
+  const handleUpdateAnnotation = useCallback(
+    (id: string, updates: Partial<ChartAnnotation>) => {
+      onAnnotationUpdate(id, updates);
+    },
+    [onAnnotationUpdate]
+  );
 
   const handleAddComment = useCallback(() => {
     if (!selectedAnnotation || !newComment.trim()) return;
@@ -207,10 +225,10 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
     <>
       {/* Collaboration Panel */}
       <Drawer
-        anchor="right"
+        anchor='right'
         open={isOpen}
         onClose={onToggle}
-        variant="persistent"
+        variant='persistent'
         sx={{
           width: 400,
           flexShrink: 0,
@@ -225,40 +243,38 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
         <Box sx={{ p: 2 }}>
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            <Typography variant='h6' sx={{ flexGrow: 1 }}>
               Chart Collaboration
             </Typography>
-            <Badge badgeContent={totalComments} color="primary">
+            <Badge badgeContent={totalComments} color='primary'>
               <CommentIcon />
             </Badge>
           </Box>
 
           {/* Collaborators */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant='subtitle2' sx={{ mb: 1 }}>
               Active Collaborators ({collaborators.filter(c => c.isOnline).length})
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              {collaborators.slice(0, 5).map((collaborator) => (
-                <Tooltip key={collaborator.id} title={`${collaborator.name} (${collaborator.role})`}>
+              {collaborators.slice(0, 5).map(collaborator => (
+                <Tooltip
+                  key={collaborator.id}
+                  title={`${collaborator.name} (${collaborator.role})`}
+                >
                   <Badge
                     color={collaborator.isOnline ? 'success' : 'default'}
-                    variant="dot"
+                    variant='dot'
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   >
-                    <Avatar 
-                      src={collaborator.avatar}
-                      sx={{ width: 32, height: 32 }}
-                    >
+                    <Avatar src={collaborator.avatar} sx={{ width: 32, height: 32 }}>
                       {collaborator.name[0]}
                     </Avatar>
                   </Badge>
                 </Tooltip>
               ))}
               {collaborators.length > 5 && (
-                <Avatar sx={{ width: 32, height: 32 }}>
-                  +{collaborators.length - 5}
-                </Avatar>
+                <Avatar sx={{ width: 32, height: 32 }}>+{collaborators.length - 5}</Avatar>
               )}
             </Box>
           </Box>
@@ -268,10 +284,10 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
           {/* Controls */}
           <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
             <Button
-              variant="contained"
+              variant='contained'
               startIcon={<AddIcon />}
               onClick={() => setNewAnnotationDialog(true)}
-              size="small"
+              size='small'
               fullWidth
             >
               Add Annotation
@@ -279,26 +295,30 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
           </Box>
 
           {/* Filter */}
-          <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+          <FormControl size='small' fullWidth sx={{ mb: 2 }}>
             <InputLabel>Filter Annotations</InputLabel>
             <Select
               value={filterBy}
-              onChange={(e) => setFilterBy(e.target.value as any)}
-              label="Filter Annotations"
+              onChange={e => setFilterBy(e.target.value as any)}
+              label='Filter Annotations'
             >
-              <MenuItem value="all">All Annotations ({annotations.length})</MenuItem>
-              <MenuItem value="mine">My Annotations ({annotations.filter(a => a.author.id === currentUser.id).length})</MenuItem>
-              <MenuItem value="pinned">Pinned ({annotations.filter(a => a.isPinned).length})</MenuItem>
+              <MenuItem value='all'>All Annotations ({annotations.length})</MenuItem>
+              <MenuItem value='mine'>
+                My Annotations ({annotations.filter(a => a.author.id === currentUser.id).length})
+              </MenuItem>
+              <MenuItem value='pinned'>
+                Pinned ({annotations.filter(a => a.isPinned).length})
+              </MenuItem>
             </Select>
           </FormControl>
 
           {/* Annotations List */}
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          <Typography variant='subtitle2' sx={{ mb: 1 }}>
             Annotations ({visibleAnnotations.length})
           </Typography>
-          
+
           <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-            {visibleAnnotations.map((annotation) => (
+            {visibleAnnotations.map(annotation => (
               <ListItem
                 key={annotation.id}
                 sx={{
@@ -312,7 +332,7 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
                 <ListItemAvatar>
                   <Avatar
                     src={annotation.author.avatar}
-                    sx={{ 
+                    sx={{
                       bgcolor: annotation.color,
                       width: 32,
                       height: 32,
@@ -321,11 +341,11 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
                     {ANNOTATION_TYPES.find(t => t.value === annotation.type)?.icon || '●'}
                   </Avatar>
                 </ListItemAvatar>
-                
+
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="subtitle2" noWrap>
+                      <Typography variant='subtitle2' noWrap>
                         {annotation.title}
                       </Typography>
                       {annotation.isPinned && <PinIcon sx={{ fontSize: 16 }} />}
@@ -333,58 +353,66 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
                   }
                   secondary={
                     <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {annotation.author.name} • {format(new Date(annotation.createdAt), 'MMM d, h:mm a')}
+                      <Typography variant='caption' color='text.secondary'>
+                        {annotation.author.name} •{' '}
+                        {format(new Date(annotation.createdAt), 'MMM d, h:mm a')}
                       </Typography>
                       <br />
-                      <Typography variant="body2" noWrap>
+                      <Typography variant='body2' noWrap>
                         {annotation.description}
                       </Typography>
                       {annotation.tags.length > 0 && (
                         <Box sx={{ mt: 0.5 }}>
-                          {annotation.tags.map((tag) => (
-                            <Chip key={tag} label={tag} size="small" sx={{ mr: 0.5, fontSize: '0.7rem' }} />
+                          {annotation.tags.map(tag => (
+                            <Chip
+                              key={tag}
+                              label={tag}
+                              size='small'
+                              sx={{ mr: 0.5, fontSize: '0.7rem' }}
+                            />
                           ))}
                         </Box>
                       )}
                       {annotation.comments.length > 0 && (
-                        <Typography variant="caption" color="primary">
-                          {annotation.comments.length} comment{annotation.comments.length !== 1 ? 's' : ''}
+                        <Typography variant='caption' color='primary'>
+                          {annotation.comments.length} comment
+                          {annotation.comments.length !== 1 ? 's' : ''}
                         </Typography>
                       )}
                     </Box>
                   }
                 />
-                
+
                 <ListItemSecondaryAction>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                     <IconButton
-                      size="small"
-                      onClick={() => handleUpdateAnnotation(annotation.id, { isVisible: !annotation.isVisible })}
+                      size='small'
+                      onClick={() =>
+                        handleUpdateAnnotation(annotation.id, { isVisible: !annotation.isVisible })
+                      }
                     >
                       {annotation.isVisible ? <VisibilityIcon /> : <VisibilityOffIcon />}
                     </IconButton>
-                    
+
                     <IconButton
-                      size="small"
-                      onClick={() => handleUpdateAnnotation(annotation.id, { isPinned: !annotation.isPinned })}
+                      size='small'
+                      onClick={() =>
+                        handleUpdateAnnotation(annotation.id, { isPinned: !annotation.isPinned })
+                      }
                       color={annotation.isPinned ? 'primary' : 'default'}
                     >
                       <PinIcon />
                     </IconButton>
-                    
-                    <IconButton
-                      size="small"
-                      onClick={() => setSelectedAnnotation(annotation)}
-                    >
+
+                    <IconButton size='small' onClick={() => setSelectedAnnotation(annotation)}>
                       <CommentIcon />
                     </IconButton>
-                    
+
                     {annotation.author.id === currentUser.id && (
                       <IconButton
-                        size="small"
+                        size='small'
                         onClick={() => onAnnotationDelete(annotation.id)}
-                        color="error"
+                        color='error'
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -396,7 +424,7 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
           </List>
 
           {visibleAnnotations.length === 0 && (
-            <Alert severity="info" sx={{ mt: 2 }}>
+            <Alert severity='info' sx={{ mt: 2 }}>
               No annotations found. Click "Add Annotation" to create your first annotation.
             </Alert>
           )}
@@ -407,66 +435,70 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
       <Dialog
         open={newAnnotationDialog}
         onClose={() => setNewAnnotationDialog(false)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle>Add Chart Annotation</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <TextField
-              label="Title"
+              label='Title'
               value={annotationForm.title}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, title: e.target.value }))}
+              onChange={e => setAnnotationForm(prev => ({ ...prev, title: e.target.value }))}
               required
               fullWidth
             />
-            
+
             <TextField
-              label="Description"
+              label='Description'
               value={annotationForm.description}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, description: e.target.value }))}
+              onChange={e => setAnnotationForm(prev => ({ ...prev, description: e.target.value }))}
               multiline
               rows={3}
               fullWidth
             />
-            
+
             <TextField
-              label="Date (YYYY-MM-DD)"
-              type="date"
+              label='Date (YYYY-MM-DD)'
+              type='date'
               value={annotationForm.date}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, date: e.target.value }))}
+              onChange={e => setAnnotationForm(prev => ({ ...prev, date: e.target.value }))}
               required
               InputLabelProps={{ shrink: true }}
               fullWidth
             />
-            
+
             <TextField
-              label="Value (optional)"
-              type="number"
+              label='Value (optional)'
+              type='number'
               value={annotationForm.value}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, value: e.target.value }))}
+              onChange={e => setAnnotationForm(prev => ({ ...prev, value: e.target.value }))}
               fullWidth
             />
-            
+
             <FormControl fullWidth>
               <InputLabel>Annotation Type</InputLabel>
               <Select
                 value={annotationForm.type}
-                onChange={(e) => setAnnotationForm(prev => ({ ...prev, type: e.target.value as any }))}
-                label="Annotation Type"
+                onChange={e =>
+                  setAnnotationForm(prev => ({ ...prev, type: e.target.value as any }))
+                }
+                label='Annotation Type'
               >
-                {ANNOTATION_TYPES.map((type) => (
+                {ANNOTATION_TYPES.map(type => (
                   <MenuItem key={type.value} value={type.value}>
                     {type.icon} {type.label}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            
+
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Color</Typography>
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Color
+              </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {ANNOTATION_COLORS.map((color) => (
+                {ANNOTATION_COLORS.map(color => (
                   <Box
                     key={color}
                     sx={{
@@ -483,19 +515,19 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
                 ))}
               </Box>
             </Box>
-            
+
             <TextField
-              label="Tags (comma-separated)"
+              label='Tags (comma-separated)'
               value={annotationForm.tags}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, tags: e.target.value }))}
-              placeholder="analysis, trend, important"
+              onChange={e => setAnnotationForm(prev => ({ ...prev, tags: e.target.value }))}
+              placeholder='analysis, trend, important'
               fullWidth
             />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setNewAnnotationDialog(false)}>Cancel</Button>
-          <Button onClick={handleCreateAnnotation} variant="contained">
+          <Button onClick={handleCreateAnnotation} variant='contained'>
             Add Annotation
           </Button>
         </DialogActions>
@@ -505,36 +537,32 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
       <Dialog
         open={!!selectedAnnotation}
         onClose={() => setSelectedAnnotation(null)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
-        <DialogTitle>
-          {selectedAnnotation?.title} - Comments
-        </DialogTitle>
+        <DialogTitle>{selectedAnnotation?.title} - Comments</DialogTitle>
         <DialogContent>
           {selectedAnnotation && (
             <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
                 {selectedAnnotation.description}
               </Typography>
-              
+
               {selectedAnnotation.comments.length > 0 && (
                 <List sx={{ mb: 2 }}>
-                  {selectedAnnotation.comments.map((comment) => (
-                    <ListItem key={comment.id} alignItems="flex-start">
+                  {selectedAnnotation.comments.map(comment => (
+                    <ListItem key={comment.id} alignItems='flex-start'>
                       <ListItemAvatar>
-                        <Avatar src={comment.author.avatar}>
-                          {comment.author.name[0]}
-                        </Avatar>
+                        <Avatar src={comment.author.avatar}>{comment.author.name[0]}</Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={comment.author.name}
                         secondary={
                           <Box>
-                            <Typography variant="body2" sx={{ mt: 0.5 }}>
+                            <Typography variant='body2' sx={{ mt: 0.5 }}>
                               {comment.content}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant='caption' color='text.secondary'>
                               {format(new Date(comment.createdAt), 'MMM d, h:mm a')}
                             </Typography>
                           </Box>
@@ -544,18 +572,18 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
                   ))}
                 </List>
               )}
-              
+
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField
-                  label="Add a comment..."
+                  label='Add a comment...'
                   value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
+                  onChange={e => setNewComment(e.target.value)}
                   multiline
                   rows={2}
                   fullWidth
                 />
                 <Button
-                  variant="contained"
+                  variant='contained'
                   onClick={handleAddComment}
                   disabled={!newComment.trim()}
                 >

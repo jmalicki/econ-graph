@@ -95,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const renderNavigationItems = (items: NavigationItem[], showDivider = false) => (
     <>
       {showDivider && <Divider sx={{ my: 1 }} />}
-      {items.map((item) => (
+      {items.map(item => (
         <ListItem key={item.path} disablePadding>
           <ListItemButton
             selected={location.pathname === item.path}
@@ -133,9 +133,10 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
               }}
               secondaryTypographyProps={{
                 fontSize: '0.75rem',
-                color: location.pathname === item.path 
-                  ? theme.palette.primary.contrastText 
-                  : theme.palette.text.secondary,
+                color:
+                  location.pathname === item.path
+                    ? theme.palette.primary.contrastText
+                    : theme.palette.text.secondary,
               }}
             />
           </ListItemButton>
@@ -156,11 +157,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <TrendingUpIcon sx={{ mr: 1 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant='h6' sx={{ fontWeight: 600 }}>
             EconGraph
           </Typography>
         </Box>
-        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+        <Typography variant='body2' sx={{ opacity: 0.8 }}>
           Economic Data Visualization
         </Typography>
       </Box>
@@ -183,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           backgroundColor: theme.palette.background.paper,
         }}
       >
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant='caption' color='text.secondary'>
           Built with modern web technologies
         </Typography>
       </Box>

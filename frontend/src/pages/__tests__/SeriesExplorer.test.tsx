@@ -7,7 +7,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TestProviders } from '../../test-utils/test-providers';
 import SeriesExplorer from '../SeriesExplorer';
-import { mockSearchResults, mockDataSources, mockSuggestions } from '../../test-utils/mocks/data';
+// Removed unused imports: mockSearchResults, mockDataSources, mockSuggestions
 
 function renderSeriesExplorer() {
   return render(
@@ -22,9 +22,9 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test basic page rendering and search interface
     // PURPOSE: Verify that users can access the search functionality
     // This ensures the primary discovery interface is available
-    
+
     renderSeriesExplorer();
-    
+
     // Verify main elements are present
     expect(screen.getByRole('heading', { name: /explore economic series/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i)).toBeInTheDocument();
@@ -35,22 +35,22 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test search functionality with user input
     // PURPOSE: Verify that search is triggered by user input
     // This tests the core search workflow
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
-    
+
     // Type search query
     await user.type(searchInput, 'GDP growth');
-    
+
     // Verify input value
     expect(searchInput).toHaveValue('GDP growth');
-    
+
     // Trigger search manually
     const searchButton = screen.getByRole('button', { name: /^search$/i });
     await user.click(searchButton);
-    
+
     // Search should show loading state
     await waitFor(() => {
       expect(screen.getByText(/searching/i)).toBeInTheDocument();
@@ -61,17 +61,17 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test search results display
     // PURPOSE: Verify that search results are shown to users
     // This ensures users can see and interact with search results
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'GDP');
-    
+
     // Just verify the search input works - results not yet implemented
     expect(searchInput).toHaveValue('GDP');
-    
+
     // Component structure is ready for search results when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -80,19 +80,19 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test autocomplete suggestions functionality
     // PURPOSE: Verify that users get helpful suggestions while typing
     // This improves search discoverability and user experience
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
-    
+
     // Type partial query to trigger suggestions
     await user.clear(searchInput);
     await user.type(searchInput, 'GDP');
-    
+
     // Just verify the search input works - suggestions not yet implemented
     expect(searchInput).toHaveValue('GDP');
-    
+
     // Component structure is ready for search suggestions when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -101,24 +101,24 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test search filtering functionality
     // PURPOSE: Verify that users can refine search results with filters
     // This supports focused discovery of relevant series
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     // Open filters panel
     const filtersButton = screen.getByTestId('filters-button');
     await user.click(filtersButton);
-    
+
     // Apply data source filter
     const sourceFilter = screen.getByLabelText(/data source/i);
     await user.click(sourceFilter);
     await user.click(screen.getByRole('option', { name: /federal reserve economic data/i }));
-    
+
     // Apply frequency filter
     const frequencyFilter = screen.getByLabelText(/frequency/i);
     await user.click(frequencyFilter);
     await user.click(screen.getByText(/monthly/i));
-    
+
     // Verify filters are applied
     expect(screen.getByDisplayValue(/federal reserve/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue(/monthly/i)).toBeInTheDocument();
@@ -128,27 +128,27 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test result sorting functionality
     // PURPOSE: Verify that users can sort results by different criteria
     // This helps users find the most relevant or recent series
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     // Perform search first
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.type(searchInput, 'economic');
-    
+
     // Wait for results
     await waitFor(() => {
       expect(screen.queryByText(/searching/i)).not.toBeInTheDocument();
     });
-    
+
     // Change sort order - need to open advanced search first
     const filtersButton = screen.getByTestId('filters-button');
     await user.click(filtersButton);
-    
+
     const sortSelect = screen.getByLabelText(/sort by/i);
     await user.click(sortSelect);
     await user.click(screen.getByText(/title/i));
-    
+
     // Verify sort option is selected
     expect(screen.getByDisplayValue(/title/i)).toBeInTheDocument();
   });
@@ -157,17 +157,17 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test relevance score display
     // PURPOSE: Verify that users can see how relevant each result is
     // This helps users understand search quality and result ranking
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'GDP');
-    
+
     // Just verify the search input works - relevance scores not yet implemented
     expect(searchInput).toHaveValue('GDP');
-    
+
     // Component structure is ready for relevance scores when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -176,19 +176,19 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test spelling correction functionality
     // PURPOSE: Verify that users get helpful corrections for typos
     // This improves search success rate despite spelling errors
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
-    
+
     // Type query with spelling error
     await user.clear(searchInput);
     await user.type(searchInput, 'unemploymnt'); // Missing 'e'
-    
+
     // Just verify the search input accepts the misspelled text
     expect(searchInput).toHaveValue('unemploymnt');
-    
+
     // Component structure is ready for spelling suggestions when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -197,17 +197,17 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test empty results handling
     // PURPOSE: Verify appropriate messaging when no results are found
     // This provides helpful feedback for unsuccessful searches
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.type(searchInput, 'nonexistent-economic-series-xyz');
-    
+
     await waitFor(() => {
       expect(screen.getByText(/no results found/i)).toBeInTheDocument();
     });
-    
+
     // Should suggest alternative actions
     expect(screen.getByText(/try different keywords/i)).toBeInTheDocument();
     expect(screen.getByText(/check spelling/i)).toBeInTheDocument();
@@ -217,18 +217,18 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test navigation to series detail page
     // PURPOSE: Verify that users can access detailed series information
     // This enables deeper exploration of specific series
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     // Perform search
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'GDP');
-    
+
     // Just verify the search input works - results not yet implemented
     expect(searchInput).toHaveValue('GDP');
-    
+
     // Component structure is ready for navigation when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -237,23 +237,23 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test advanced search functionality
     // PURPOSE: Verify that power users can access advanced search features
     // This supports sophisticated search scenarios
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     // Open advanced search
     // Check if advanced search functionality exists - find the advanced search button
     const advancedButton = screen.getByRole('button', { name: /advanced search/i });
     await user.click(advancedButton);
-    
+
     // Should show advanced options
     expect(screen.getByLabelText(/similarity threshold/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/include inactive series/i)).toBeInTheDocument();
-    
+
     // Test similarity threshold adjustment
     const thresholdSlider = screen.getByLabelText(/similarity threshold/i);
     fireEvent.change(thresholdSlider, { target: { value: '0.5' } });
-    
+
     expect(thresholdSlider).toHaveValue('0.5');
   });
 
@@ -261,18 +261,18 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test search result pagination
     // PURPOSE: Verify that users can navigate through large result sets
     // This ensures scalability for comprehensive searches
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     // Perform search that returns many results
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'economic');
-    
+
     // Just verify the search input works - pagination not yet implemented
     expect(searchInput).toHaveValue('economic');
-    
+
     // Component structure is ready for pagination when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -281,18 +281,18 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test search preference persistence
     // PURPOSE: Verify that user preferences are remembered across sessions
     // This improves user experience by maintaining preferred settings
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     // Set preferences
     const filtersButton = screen.getByTestId('filters-button');
     await user.click(filtersButton);
-    
+
     const sourceFilter = screen.getByLabelText(/data source/i);
     await user.click(sourceFilter);
     await user.click(screen.getByRole('option', { name: /federal reserve economic data/i }));
-    
+
     // Preferences should be saved to localStorage
     expect(localStorage.setItem).toHaveBeenCalledWith(
       'searchPreferences',
@@ -304,17 +304,17 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test search statistics display
     // PURPOSE: Verify that users can see search performance metrics
     // This provides transparency about search quality and coverage
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'GDP');
-    
+
     // Just verify the search input works - statistics not yet implemented
     expect(searchInput).toHaveValue('GDP');
-    
+
     // Component structure is ready for search statistics when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -323,16 +323,16 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test keyboard accessibility and shortcuts
     // PURPOSE: Verify that power users can navigate efficiently with keyboard
     // This improves accessibility and user productivity
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
-    
+
     // Test Ctrl+K to focus search (common shortcut)
     await user.keyboard('{Control>}k{/Control}');
     expect(searchInput).toHaveFocus();
-    
+
     // Test Escape to clear search
     await user.type(searchInput, 'test query');
     await user.keyboard('{Escape}');
@@ -343,17 +343,17 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test data source attribution in results
     // PURPOSE: Verify that users can see where data comes from
     // This ensures transparency and helps users assess data quality
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'GDP');
-    
+
     // Just verify the search input works - data source info not yet implemented
     expect(searchInput).toHaveValue('GDP');
-    
+
     // Component structure is ready for data source information when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });
@@ -362,18 +362,18 @@ describe('SeriesExplorer', () => {
     // REQUIREMENT: Test search result export
     // PURPOSE: Verify that users can export search results for external use
     // This supports data portability and integration workflows
-    
+
     const user = userEvent.setup();
     renderSeriesExplorer();
-    
+
     // Perform search
     const searchInput = screen.getByPlaceholderText(/e.g., unemployment, GDP, inflation/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'economic');
-    
+
     // Just verify the search input works - export functionality not yet implemented
     expect(searchInput).toHaveValue('economic');
-    
+
     // Component structure is ready for export functionality when backend is connected
     expect(screen.getByText(/explore economic series/i)).toBeInTheDocument();
   });

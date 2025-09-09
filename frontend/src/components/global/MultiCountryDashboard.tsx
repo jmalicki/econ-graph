@@ -22,14 +22,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import {
-  TrendingUp,
-  TrendingDown,
-  Compare,
-  Assessment,
-  Public,
-  Info,
-} from '@mui/icons-material';
+import { TrendingUp, TrendingDown, Compare, Assessment, Public, Info } from '@mui/icons-material';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -134,14 +127,12 @@ const MultiCountryDashboard: React.FC = () => {
   };
 
   const getSelectedCountriesData = () => {
-    return availableCountries.filter(country => 
-      selectedCountries.includes(country.id)
-    );
+    return availableCountries.filter(country => selectedCountries.includes(country.id));
   };
 
   const getComparisonChartData = (metric: 'gdp' | 'gdpGrowth' | 'inflation' | 'unemployment') => {
     const countries = getSelectedCountriesData();
-    
+
     return {
       labels: countries.map(c => c.name),
       datasets: [
@@ -170,22 +161,27 @@ const MultiCountryDashboard: React.FC = () => {
 
   const getMetricLabel = (metric: string): string => {
     switch (metric) {
-      case 'gdp': return 'GDP (Trillions USD)';
-      case 'gdpGrowth': return 'GDP Growth (%)';
-      case 'inflation': return 'Inflation Rate (%)';
-      case 'unemployment': return 'Unemployment Rate (%)';
-      default: return metric;
+      case 'gdp':
+        return 'GDP (Trillions USD)';
+      case 'gdpGrowth':
+        return 'GDP Growth (%)';
+      case 'inflation':
+        return 'Inflation Rate (%)';
+      case 'unemployment':
+        return 'Unemployment Rate (%)';
+      default:
+        return metric;
     }
   };
 
   const getMetricIcon = (metric: string, value: number) => {
     if (metric === 'gdpGrowth') {
-      return value > 0 ? <TrendingUp color="success" /> : <TrendingDown color="error" />;
+      return value > 0 ? <TrendingUp color='success' /> : <TrendingDown color='error' />;
     }
     if (metric === 'inflation' || metric === 'unemployment') {
-      return value > 3 ? <TrendingUp color="warning" /> : <TrendingDown color="success" />;
+      return value > 3 ? <TrendingUp color='warning' /> : <TrendingDown color='success' />;
     }
-    return <Assessment color="primary" />;
+    return <Assessment color='primary' />;
   };
 
   const chartOptions = {
@@ -208,10 +204,10 @@ const MultiCountryDashboard: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography variant='h4' gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         📊 Multi-Country Economic Dashboard
-        <Tooltip title="Compare economic indicators across multiple countries with interactive charts and analysis">
-          <IconButton size="small">
+        <Tooltip title='Compare economic indicators across multiple countries with interactive charts and analysis'>
+          <IconButton size='small'>
             <Info />
           </IconButton>
         </Tooltip>
@@ -225,23 +221,23 @@ const MultiCountryDashboard: React.FC = () => {
             multiple
             value={selectedCountries}
             onChange={handleCountryChange}
-            label="Select Countries to Compare"
-            renderValue={(selected) => (
+            label='Select Countries to Compare'
+            renderValue={selected => (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => {
+                {selected.map(value => {
                   const country = availableCountries.find(c => c.id === value);
                   return (
                     <Chip
                       key={value}
                       label={`${country?.name} (${country?.isoAlpha2})`}
-                      size="small"
+                      size='small'
                     />
                   );
                 })}
               </Box>
             )}
           >
-            {availableCountries.map((country) => (
+            {availableCountries.map(country => (
               <MenuItem key={country.id} value={country.id}>
                 {country.name} ({country.isoAlpha2})
               </MenuItem>
@@ -253,61 +249,73 @@ const MultiCountryDashboard: React.FC = () => {
       {/* Tabs for different views */}
       <Paper sx={{ mb: 3 }}>
         <Tabs value={activeTab} onChange={handleTabChange} centered>
-          <Tab label="Overview Cards" icon={<Assessment />} />
-          <Tab label="Comparison Charts" icon={<Compare />} />
-          <Tab label="Data Table" icon={<Public />} />
+          <Tab label='Overview Cards' icon={<Assessment />} />
+          <Tab label='Comparison Charts' icon={<Compare />} />
+          <Tab label='Data Table' icon={<Public />} />
         </Tabs>
       </Paper>
 
       {/* Tab Content */}
       {activeTab === 0 && (
         <Grid container spacing={3}>
-          {getSelectedCountriesData().map((country) => (
+          {getSelectedCountriesData().map(country => (
             <Grid item xs={12} md={6} lg={4} key={country.id}>
               <Card>
                 <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    variant='h6'
+                    gutterBottom
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
                     {country.name}
-                    <Chip label={country.isoAlpha2} size="small" color="primary" />
+                    <Chip label={country.isoAlpha2} size='small' color='primary' />
                   </Typography>
-                  
+
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Assessment color="primary" />
+                        <Assessment color='primary' />
                         <Box>
-                          <Typography variant="h6">${country.gdp}T</Typography>
-                          <Typography variant="caption" color="textSecondary">GDP</Typography>
+                          <Typography variant='h6'>${country.gdp}T</Typography>
+                          <Typography variant='caption' color='textSecondary'>
+                            GDP
+                          </Typography>
                         </Box>
                       </Box>
                     </Grid>
-                    
+
                     <Grid item xs={6}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {getMetricIcon('gdpGrowth', country.gdpGrowth)}
                         <Box>
-                          <Typography variant="h6">{country.gdpGrowth}%</Typography>
-                          <Typography variant="caption" color="textSecondary">Growth</Typography>
+                          <Typography variant='h6'>{country.gdpGrowth}%</Typography>
+                          <Typography variant='caption' color='textSecondary'>
+                            Growth
+                          </Typography>
                         </Box>
                       </Box>
                     </Grid>
-                    
+
                     <Grid item xs={6}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {getMetricIcon('inflation', country.inflation)}
                         <Box>
-                          <Typography variant="h6">{country.inflation}%</Typography>
-                          <Typography variant="caption" color="textSecondary">Inflation</Typography>
+                          <Typography variant='h6'>{country.inflation}%</Typography>
+                          <Typography variant='caption' color='textSecondary'>
+                            Inflation
+                          </Typography>
                         </Box>
                       </Box>
                     </Grid>
-                    
+
                     <Grid item xs={6}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {getMetricIcon('unemployment', country.unemployment)}
                         <Box>
-                          <Typography variant="h6">{country.unemployment}%</Typography>
-                          <Typography variant="caption" color="textSecondary">Unemployment</Typography>
+                          <Typography variant='h6'>{country.unemployment}%</Typography>
+                          <Typography variant='caption' color='textSecondary'>
+                            Unemployment
+                          </Typography>
                         </Box>
                       </Box>
                     </Grid>
@@ -323,28 +331,36 @@ const MultiCountryDashboard: React.FC = () => {
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>GDP Comparison</Typography>
+              <Typography variant='h6' gutterBottom>
+                GDP Comparison
+              </Typography>
               <Line data={getComparisonChartData('gdp')} options={chartOptions} />
             </Paper>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>GDP Growth Comparison</Typography>
+              <Typography variant='h6' gutterBottom>
+                GDP Growth Comparison
+              </Typography>
               <Line data={getComparisonChartData('gdpGrowth')} options={chartOptions} />
             </Paper>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>Inflation Rate Comparison</Typography>
+              <Typography variant='h6' gutterBottom>
+                Inflation Rate Comparison
+              </Typography>
               <Line data={getComparisonChartData('inflation')} options={chartOptions} />
             </Paper>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>Unemployment Rate Comparison</Typography>
+              <Typography variant='h6' gutterBottom>
+                Unemployment Rate Comparison
+              </Typography>
               <Line data={getComparisonChartData('unemployment')} options={chartOptions} />
             </Paper>
           </Grid>
@@ -353,39 +369,50 @@ const MultiCountryDashboard: React.FC = () => {
 
       {activeTab === 2 && (
         <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>Economic Indicators Comparison Table</Typography>
+          <Typography variant='h6' gutterBottom>
+            Economic Indicators Comparison Table
+          </Typography>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>Country</TableCell>
-                  <TableCell align="right">GDP (Trillions USD)</TableCell>
-                  <TableCell align="right">GDP Growth (%)</TableCell>
-                  <TableCell align="right">Inflation (%)</TableCell>
-                  <TableCell align="right">Unemployment (%)</TableCell>
-                  <TableCell align="right">Population (Millions)</TableCell>
+                  <TableCell align='right'>GDP (Trillions USD)</TableCell>
+                  <TableCell align='right'>GDP Growth (%)</TableCell>
+                  <TableCell align='right'>Inflation (%)</TableCell>
+                  <TableCell align='right'>Unemployment (%)</TableCell>
+                  <TableCell align='right'>Population (Millions)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {getSelectedCountriesData().map((country) => (
+                {getSelectedCountriesData().map(country => (
                   <TableRow key={country.id}>
-                    <TableCell component="th" scope="row">
+                    <TableCell component='th' scope='row'>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {country.name}
-                        <Chip label={country.isoAlpha2} size="small" variant="outlined" />
+                        <Chip label={country.isoAlpha2} size='small' variant='outlined' />
                       </Box>
                     </TableCell>
-                    <TableCell align="right">${country.gdp}</TableCell>
-                    <TableCell align="right" sx={{ color: country.gdpGrowth > 0 ? 'success.main' : 'error.main' }}>
+                    <TableCell align='right'>${country.gdp}</TableCell>
+                    <TableCell
+                      align='right'
+                      sx={{ color: country.gdpGrowth > 0 ? 'success.main' : 'error.main' }}
+                    >
                       {country.gdpGrowth}%
                     </TableCell>
-                    <TableCell align="right" sx={{ color: country.inflation > 3 ? 'warning.main' : 'text.primary' }}>
+                    <TableCell
+                      align='right'
+                      sx={{ color: country.inflation > 3 ? 'warning.main' : 'text.primary' }}
+                    >
                       {country.inflation}%
                     </TableCell>
-                    <TableCell align="right" sx={{ color: country.unemployment > 5 ? 'error.main' : 'text.primary' }}>
+                    <TableCell
+                      align='right'
+                      sx={{ color: country.unemployment > 5 ? 'error.main' : 'text.primary' }}
+                    >
                       {country.unemployment}%
                     </TableCell>
-                    <TableCell align="right">{country.population}</TableCell>
+                    <TableCell align='right'>{country.population}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

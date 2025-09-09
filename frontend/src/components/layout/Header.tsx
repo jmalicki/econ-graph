@@ -117,18 +117,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   return (
     <>
       <AppBar
-        position="fixed"
+        position='fixed'
         sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          zIndex: theme => theme.zIndex.drawer + 1,
           background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 100%)',
         }}
       >
         <Toolbar>
           {/* Menu button for mobile navigation */}
           <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
+            color='inherit'
+            aria-label='open drawer'
+            edge='start'
             onClick={onMenuClick}
             sx={{ mr: 2, display: { sm: 'none' } }}
           >
@@ -139,9 +139,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 0 }}>
             <TrendingUpIcon sx={{ mr: 1 }} />
             <Typography
-              variant="h6"
+              variant='h6'
               noWrap
-              component="div"
+              component='div'
               sx={{
                 fontWeight: 600,
                 letterSpacing: '0.5px',
@@ -153,23 +153,21 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
           {/* Search functionality */}
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-            <Box 
-              component="form"
+            <Box
+              component='form'
               onSubmit={handleSearchSubmit}
               sx={{ maxWidth: 600, width: '100%' }}
             >
-              <Search
-                sx={{ width: '100%' }}
-              >
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="Search economic series..."
-                inputProps={{ 'aria-label': 'search economic series' }}
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
+              <Search sx={{ width: '100%' }}>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase
+                  placeholder='Search economic series...'
+                  inputProps={{ 'aria-label': 'search economic series' }}
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
               </Search>
             </Box>
           </Box>
@@ -179,23 +177,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             {isAuthenticated ? (
               <>
                 <Button
-                  color="inherit"
+                  color='inherit'
                   startIcon={<AnalyticsIcon />}
-                  href="/analysis"
+                  href='/analysis'
                   sx={{ display: { xs: 'none', md: 'flex' } }}
                 >
                   Professional Analysis
                 </Button>
-                
-                <IconButton
-                  onClick={handleUserMenuOpen}
-                  sx={{ p: 0 }}
-                >
-                  <Avatar 
-                    src={user?.avatar} 
-                    alt={user?.name}
-                    sx={{ width: 32, height: 32 }}
-                  >
+
+                <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
+                  <Avatar src={user?.avatar} alt={user?.name} sx={{ width: 32, height: 32 }}>
                     {user?.name?.[0]}
                   </Avatar>
                 </IconButton>
@@ -209,8 +200,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 >
                   <MenuItem disabled>
                     <Box>
-                      <Typography variant="subtitle2">{user?.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant='subtitle2'>{user?.name}</Typography>
+                      <Typography variant='caption' color='text.secondary'>
                         {user?.email}
                       </Typography>
                     </Box>
@@ -218,20 +209,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                   <Divider />
                   <MenuItem onClick={handleProfileClick}>
                     <ListItemIcon>
-                      <SettingsIcon fontSize="small" />
+                      <SettingsIcon fontSize='small' />
                     </ListItemIcon>
                     <ListItemText>Profile & Settings</ListItemText>
                   </MenuItem>
-                  <MenuItem onClick={() => window.location.href = '/analysis'}>
+                  <MenuItem onClick={() => (window.location.href = '/analysis')}>
                     <ListItemIcon>
-                      <AnalyticsIcon fontSize="small" />
+                      <AnalyticsIcon fontSize='small' />
                     </ListItemIcon>
                     <ListItemText>Professional Analysis</ListItemText>
                   </MenuItem>
                   <Divider />
                   <MenuItem onClick={handleSignOut}>
                     <ListItemIcon>
-                      <ExitToAppIcon fontSize="small" />
+                      <ExitToAppIcon fontSize='small' />
                     </ListItemIcon>
                     <ListItemText>Sign Out</ListItemText>
                   </MenuItem>
@@ -239,16 +230,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               </>
             ) : (
               <Button
-                color="inherit"
-                variant="outlined"
+                color='inherit'
+                variant='outlined'
                 startIcon={<PersonIcon />}
                 onClick={() => setLoginOpen(true)}
-                sx={{ 
+                sx={{
                   borderColor: 'rgba(255, 255, 255, 0.5)',
                   '&:hover': {
                     borderColor: 'white',
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
+                  },
                 }}
               >
                 Sign In
@@ -266,12 +257,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       />
 
       {/* User Profile Dialog */}
-      {user && (
-        <UserProfile
-          open={profileOpen}
-          onClose={() => setProfileOpen(false)}
-        />
-      )}
+      {user && <UserProfile open={profileOpen} onClose={() => setProfileOpen(false)} />}
     </>
   );
 };

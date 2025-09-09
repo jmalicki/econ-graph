@@ -30,15 +30,12 @@ function App() {
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         {/* REQUIREMENT: Modern responsive design */}
         <Header onMenuClick={handleSidebarToggle} />
-        
-        <Sidebar 
-          open={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
-        />
-        
+
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
         {/* Main content area */}
         <Box
-          component="main"
+          component='main'
           sx={{
             flexGrow: 1,
             pt: { xs: 7, sm: 8 }, // Account for header height
@@ -46,16 +43,16 @@ function App() {
             transition: 'padding-left 0.3s ease',
           }}
         >
-          <Container maxWidth="xl" sx={{ py: 3 }}>
+          <Container maxWidth='xl' sx={{ py: 3 }}>
             <Routes>
               {/* REQUIREMENT: Function similarly to FRED but with modern UX */}
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/explore" element={<SeriesExplorer />} />
-              <Route path="/series/:id" element={<SeriesDetail />} />
-              <Route path="/sources" element={<DataSources />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/analysis/:id?" element={<ProfessionalAnalysis />} />
-              <Route path="/global" element={<GlobalAnalysis />} />
+              <Route path='/' element={<Dashboard />} />
+              <Route path='/explore' element={<SeriesExplorer />} />
+              <Route path='/series/:id' element={<SeriesDetail />} />
+              <Route path='/sources' element={<DataSources />} />
+              <Route path='/about' element={<About />} />
+              <Route path='/analysis/:id?' element={<ProfessionalAnalysis />} />
+              <Route path='/global' element={<GlobalAnalysis />} />
             </Routes>
           </Container>
         </Box>

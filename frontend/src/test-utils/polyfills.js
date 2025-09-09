@@ -17,7 +17,7 @@ if (typeof global.ReadableStream === 'undefined') {
   } catch (e) {
     // Fallback minimal polyfill
     global.ReadableStream = class ReadableStream {
-      constructor() {}
+      // Empty constructor for polyfill compatibility
     };
   }
 }
@@ -59,11 +59,11 @@ if (typeof global.Response === 'undefined') {
       this.headers = new global.Headers(init.headers);
       this.ok = this.status >= 200 && this.status < 300;
     }
-    
+
     async json() {
       return typeof this.body === 'string' ? JSON.parse(this.body) : this.body;
     }
-    
+
     async text() {
       return typeof this.body === 'string' ? this.body : JSON.stringify(this.body);
     }
@@ -80,27 +80,29 @@ if (typeof global.Headers === 'undefined') {
         } else if (Array.isArray(init)) {
           init.forEach(([key, value]) => this._headers.set(key.toLowerCase(), value));
         } else if (typeof init === 'object') {
-          Object.entries(init).forEach(([key, value]) => this._headers.set(key.toLowerCase(), value));
+          Object.entries(init).forEach(([key, value]) =>
+            this._headers.set(key.toLowerCase(), value)
+          );
         }
       }
     }
-    
+
     get(name) {
       return this._headers.get(name.toLowerCase());
     }
-    
+
     set(name, value) {
       this._headers.set(name.toLowerCase(), value);
     }
-    
+
     has(name) {
       return this._headers.has(name.toLowerCase());
     }
-    
+
     delete(name) {
       this._headers.delete(name.toLowerCase());
     }
-    
+
     forEach(callback) {
       this._headers.forEach(callback);
     }
@@ -109,7 +111,7 @@ if (typeof global.Headers === 'undefined') {
 
 // Fetch polyfill
 if (typeof global.fetch === 'undefined') {
-  global.fetch = async function(input, init) {
+  global.fetch = async function (input, init) {
     return new global.Response('{}', { status: 200 });
   };
 }

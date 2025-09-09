@@ -58,10 +58,22 @@ interface ChartCollaborationConnectedProps {
 }
 
 const ANNOTATION_COLORS = [
-  '#f44336', '#e91e63', '#9c27b0', '#673ab7',
-  '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4',
-  '#009688', '#4caf50', '#8bc34a', '#cddc39',
-  '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'
+  '#f44336',
+  '#e91e63',
+  '#9c27b0',
+  '#673ab7',
+  '#3f51b5',
+  '#2196f3',
+  '#03a9f4',
+  '#00bcd4',
+  '#009688',
+  '#4caf50',
+  '#8bc34a',
+  '#cddc39',
+  '#ffeb3b',
+  '#ffc107',
+  '#ff9800',
+  '#ff5722',
 ];
 
 const ANNOTATION_TYPES = [
@@ -97,11 +109,11 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
     loadComments,
     getUserById,
     getCommentsForAnnotation,
-  } = useCollaboration({ 
-    seriesId, 
-    chartId, 
-    autoRefresh: true, 
-    refreshInterval: 30000 
+  } = useCollaboration({
+    seriesId,
+    chartId,
+    autoRefresh: true,
+    refreshInterval: 30000,
   });
 
   // Local state
@@ -110,7 +122,11 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
   const [shareDialog, setShareDialog] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'mine' | 'pinned'>('all');
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
     open: false,
     message: '',
     severity: 'success',
@@ -159,7 +175,9 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
       await createAnnotation({
         seriesId,
         annotationDate: annotationForm.annotationDate,
-        annotationValue: annotationForm.annotationValue ? parseFloat(annotationForm.annotationValue) : undefined,
+        annotationValue: annotationForm.annotationValue
+          ? parseFloat(annotationForm.annotationValue)
+          : undefined,
         title: annotationForm.title,
         content: annotationForm.content,
         annotationType: annotationForm.annotationType,
@@ -208,24 +226,33 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
     }
   }, [chartId, shareForm, shareChart, showSnackbar]);
 
-  const handleDeleteAnnotation = useCallback(async (annotationId: string) => {
-    if (!window.confirm('Are you sure you want to delete this annotation?')) return;
+  const handleDeleteAnnotation = useCallback(
+    async (annotationId: string) => {
+      if (!window.confirm('Are you sure you want to delete this annotation?')) return;
 
-    try {
-      await deleteAnnotation(annotationId);
-      showSnackbar('Annotation deleted successfully');
-    } catch (error) {
-      showSnackbar(error instanceof Error ? error.message : 'Failed to delete annotation', 'error');
-    }
-  }, [deleteAnnotation, showSnackbar]);
+      try {
+        await deleteAnnotation(annotationId);
+        showSnackbar('Annotation deleted successfully');
+      } catch (error) {
+        showSnackbar(
+          error instanceof Error ? error.message : 'Failed to delete annotation',
+          'error'
+        );
+      }
+    },
+    [deleteAnnotation, showSnackbar]
+  );
 
-  const handleAnnotationSelect = useCallback(async (annotation: ChartAnnotationType) => {
-    setSelectedAnnotation(annotation);
-    await loadComments(annotation.id);
-    if (onAnnotationClick) {
-      onAnnotationClick(annotation);
-    }
-  }, [loadComments, onAnnotationClick]);
+  const handleAnnotationSelect = useCallback(
+    async (annotation: ChartAnnotationType) => {
+      setSelectedAnnotation(annotation);
+      await loadComments(annotation.id);
+      if (onAnnotationClick) {
+        onAnnotationClick(annotation);
+      }
+    },
+    [loadComments, onAnnotationClick]
+  );
 
   // Filter annotations
   const filteredAnnotations = annotations.filter(annotation => {
@@ -239,17 +266,18 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
     }
   });
 
-  const totalComments = annotations.reduce((sum, annotation) => 
-    sum + (getCommentsForAnnotation(annotation.id).length || 0), 0
+  const totalComments = annotations.reduce(
+    (sum, annotation) => sum + (getCommentsForAnnotation(annotation.id).length || 0),
+    0
   );
 
-  const activeCollaborators = collaborators.filter(c => 
-    users[c.userId] && Date.now() - new Date(c.lastAccessedAt || 0).getTime() < 300000 // 5 minutes
+  const activeCollaborators = collaborators.filter(
+    c => users[c.userId] && Date.now() - new Date(c.lastAccessedAt || 0).getTime() < 300000 // 5 minutes
   );
 
   if (!currentUser) {
     return (
-      <Alert severity="warning" sx={{ m: 2 }}>
+      <Alert severity='warning' sx={{ m: 2 }}>
         Please log in to access collaboration features.
       </Alert>
     );
@@ -259,10 +287,10 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
     <>
       {/* Collaboration Panel */}
       <Drawer
-        anchor="right"
+        anchor='right'
         open={isOpen}
         onClose={onToggle}
-        variant="persistent"
+        variant='persistent'
         sx={{
           width: 420,
           flexShrink: 0,
@@ -278,19 +306,19 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
         <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            <Typography variant='h6' sx={{ flexGrow: 1 }}>
               Chart Collaboration
             </Typography>
-            <Badge badgeContent={totalComments} color="primary">
+            <Badge badgeContent={totalComments} color='primary'>
               <CommentIcon />
             </Badge>
-            <IconButton onClick={onToggle} size="small" sx={{ ml: 1 }}>
+            <IconButton onClick={onToggle} size='small' sx={{ ml: 1 }}>
               <CloseIcon />
             </IconButton>
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => {}}>
+            <Alert severity='error' sx={{ mb: 2 }} onClose={() => {}}>
               {error}
             </Alert>
           )}
@@ -298,31 +326,35 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
           {/* Collaborators */}
           {chartId && (
             <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="subtitle2">
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
+              >
+                <Typography variant='subtitle2'>
                   Active Collaborators ({activeCollaborators.length})
                 </Typography>
-                <IconButton size="small" onClick={() => setShareDialog(true)}>
+                <IconButton size='small' onClick={() => setShareDialog(true)}>
                   <ShareIcon />
                 </IconButton>
               </Box>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {activeCollaborators.slice(0, 8).map((collaborator) => {
+                {activeCollaborators.slice(0, 8).map(collaborator => {
                   const user = getUserById(collaborator.userId);
                   return (
-                    <Tooltip 
-                      key={collaborator.id} 
+                    <Tooltip
+                      key={collaborator.id}
                       title={user ? `${user.name} (${collaborator.role})` : 'Loading...'}
                     >
                       <Badge
-                        color="success"
-                        variant="dot"
+                        color='success'
+                        variant='dot'
                         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                       >
-                        <Avatar 
-                          src={user?.avatarUrl}
-                          sx={{ width: 32, height: 32 }}
-                        >
+                        <Avatar src={user?.avatarUrl} sx={{ width: 32, height: 32 }}>
                           {user?.name?.[0] || '?'}
                         </Avatar>
                       </Badge>
@@ -330,9 +362,7 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
                   );
                 })}
                 {activeCollaborators.length > 8 && (
-                  <Avatar sx={{ width: 32, height: 32 }}>
-                    +{activeCollaborators.length - 8}
-                  </Avatar>
+                  <Avatar sx={{ width: 32, height: 32 }}>+{activeCollaborators.length - 8}</Avatar>
                 )}
               </Box>
             </Box>
@@ -343,10 +373,10 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
           {/* Controls */}
           <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
             <Button
-              variant="contained"
+              variant='contained'
               startIcon={<AddIcon />}
               onClick={() => setNewAnnotationDialog(true)}
-              size="small"
+              size='small'
               fullWidth
               disabled={loading}
             >
@@ -355,18 +385,18 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
           </Box>
 
           {/* Filter */}
-          <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+          <FormControl size='small' fullWidth sx={{ mb: 2 }}>
             <InputLabel>Filter Annotations</InputLabel>
             <Select
               value={filterBy}
-              onChange={(e) => setFilterBy(e.target.value as any)}
-              label="Filter Annotations"
+              onChange={e => setFilterBy(e.target.value as any)}
+              label='Filter Annotations'
             >
-              <MenuItem value="all">All Annotations ({annotations.length})</MenuItem>
-              <MenuItem value="mine">
+              <MenuItem value='all'>All Annotations ({annotations.length})</MenuItem>
+              <MenuItem value='mine'>
                 My Annotations ({annotations.filter(a => a.userId === currentUser.id).length})
               </MenuItem>
-              <MenuItem value="pinned">
+              <MenuItem value='pinned'>
                 Pinned ({annotations.filter(a => a.isPinned).length})
               </MenuItem>
             </Select>
@@ -380,15 +410,17 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
           )}
 
           {/* Annotations List */}
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          <Typography variant='subtitle2' sx={{ mb: 1 }}>
             Annotations ({filteredAnnotations.length})
           </Typography>
-          
+
           <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
             <List>
-              {filteredAnnotations.map((annotation) => {
+              {filteredAnnotations.map(annotation => {
                 const author = getUserById(annotation.userId);
-                const annotationType = ANNOTATION_TYPES.find(t => t.value === annotation.annotationType);
+                const annotationType = ANNOTATION_TYPES.find(
+                  t => t.value === annotation.annotationType
+                );
                 const commentCount = getCommentsForAnnotation(annotation.id).length;
 
                 return (
@@ -407,7 +439,7 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
                     <ListItemAvatar>
                       <Avatar
                         src={author?.avatarUrl}
-                        sx={{ 
+                        sx={{
                           bgcolor: annotation.color || '#1976d2',
                           width: 32,
                           height: 32,
@@ -416,11 +448,11 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
                         {annotationType?.icon || '📝'}
                       </Avatar>
                     </ListItemAvatar>
-                    
+
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle2" noWrap>
+                          <Typography variant='subtitle2' noWrap>
                             {annotation.title}
                           </Typography>
                           {annotation.isPinned && <PinIcon sx={{ fontSize: 16 }} />}
@@ -429,53 +461,52 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
                       }
                       secondary={
                         <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            {author?.name || 'Loading...'} • {' '}
-                            {annotation.createdAt ? 
-                              format(new Date(annotation.createdAt), 'MMM d, h:mm a') : 
-                              'Just now'
-                            }
+                          <Typography variant='caption' color='text.secondary'>
+                            {author?.name || 'Loading...'} •{' '}
+                            {annotation.createdAt
+                              ? format(new Date(annotation.createdAt), 'MMM d, h:mm a')
+                              : 'Just now'}
                           </Typography>
                           <br />
-                          <Typography variant="body2" noWrap>
+                          <Typography variant='body2' noWrap>
                             {annotation.description || annotation.title}
                           </Typography>
                           {annotation.tags && annotation.tags.length > 0 && (
                             <Box sx={{ mt: 0.5 }}>
-                              {annotation.tags.map((tag) => (
-                                <Chip 
-                                  key={tag} 
-                                  label={tag} 
-                                  size="small" 
-                                  sx={{ mr: 0.5, fontSize: '0.7rem' }} 
+                              {annotation.tags.map(tag => (
+                                <Chip
+                                  key={tag}
+                                  label={tag}
+                                  size='small'
+                                  sx={{ mr: 0.5, fontSize: '0.7rem' }}
                                 />
                               ))}
                             </Box>
                           )}
                           {commentCount > 0 && (
-                            <Typography variant="caption" color="primary">
+                            <Typography variant='caption' color='primary'>
                               {commentCount} comment{commentCount !== 1 ? 's' : ''}
                             </Typography>
                           )}
                         </Box>
                       }
                     />
-                    
+
                     <ListItemSecondaryAction>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                         <IconButton
-                          size="small"
-                          onClick={(e) => {
+                          size='small'
+                          onClick={e => {
                             e.stopPropagation();
                             toggleAnnotationVisibility(annotation.id);
                           }}
                         >
                           {annotation.isVisible ? <VisibilityIcon /> : <VisibilityOffIcon />}
                         </IconButton>
-                        
+
                         <IconButton
-                          size="small"
-                          onClick={(e) => {
+                          size='small'
+                          onClick={e => {
                             e.stopPropagation();
                             toggleAnnotationPin(annotation.id);
                           }}
@@ -483,15 +514,15 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
                         >
                           <PinIcon />
                         </IconButton>
-                        
+
                         {annotation.userId === currentUser.id && (
                           <IconButton
-                            size="small"
-                            onClick={(e) => {
+                            size='small'
+                            onClick={e => {
                               e.stopPropagation();
                               handleDeleteAnnotation(annotation.id);
                             }}
-                            color="error"
+                            color='error'
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -504,7 +535,7 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
             </List>
 
             {filteredAnnotations.length === 0 && !loading && (
-              <Alert severity="info" sx={{ mt: 2 }}>
+              <Alert severity='info' sx={{ mt: 2 }}>
                 No annotations found. Click "Add Annotation" to create your first annotation.
               </Alert>
             )}
@@ -516,67 +547,75 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
       <Dialog
         open={newAnnotationDialog}
         onClose={() => setNewAnnotationDialog(false)}
-        maxWidth="sm"
+        maxWidth='sm'
         fullWidth
       >
         <DialogTitle>Add Chart Annotation</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <TextField
-              label="Title"
+              label='Title'
               value={annotationForm.title}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, title: e.target.value }))}
+              onChange={e => setAnnotationForm(prev => ({ ...prev, title: e.target.value }))}
               required
               fullWidth
             />
-            
+
             <TextField
-              label="Content"
+              label='Content'
               value={annotationForm.content}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, content: e.target.value }))}
+              onChange={e => setAnnotationForm(prev => ({ ...prev, content: e.target.value }))}
               multiline
               rows={3}
               required
               fullWidth
             />
-            
+
             <TextField
-              label="Date"
-              type="date"
+              label='Date'
+              type='date'
               value={annotationForm.annotationDate}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, annotationDate: e.target.value }))}
+              onChange={e =>
+                setAnnotationForm(prev => ({ ...prev, annotationDate: e.target.value }))
+              }
               required
               InputLabelProps={{ shrink: true }}
               fullWidth
             />
-            
+
             <TextField
-              label="Value (optional)"
-              type="number"
+              label='Value (optional)'
+              type='number'
               value={annotationForm.annotationValue}
-              onChange={(e) => setAnnotationForm(prev => ({ ...prev, annotationValue: e.target.value }))}
+              onChange={e =>
+                setAnnotationForm(prev => ({ ...prev, annotationValue: e.target.value }))
+              }
               fullWidth
             />
-            
+
             <FormControl fullWidth>
               <InputLabel>Annotation Type</InputLabel>
               <Select
                 value={annotationForm.annotationType}
-                onChange={(e) => setAnnotationForm(prev => ({ ...prev, annotationType: e.target.value }))}
-                label="Annotation Type"
+                onChange={e =>
+                  setAnnotationForm(prev => ({ ...prev, annotationType: e.target.value }))
+                }
+                label='Annotation Type'
               >
-                {ANNOTATION_TYPES.map((type) => (
+                {ANNOTATION_TYPES.map(type => (
                   <MenuItem key={type.value} value={type.value}>
                     {type.icon} {type.label}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            
+
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Color</Typography>
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Color
+              </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {ANNOTATION_COLORS.map((color) => (
+                {ANNOTATION_COLORS.map(color => (
                   <Box
                     key={color}
                     sx={{
@@ -598,22 +637,20 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
               <InputLabel>Visibility</InputLabel>
               <Select
                 value={annotationForm.isPublic ? 'true' : 'false'}
-                onChange={(e) => setAnnotationForm(prev => ({ ...prev, isPublic: e.target.value === 'true' }))}
-                label="Visibility"
+                onChange={e =>
+                  setAnnotationForm(prev => ({ ...prev, isPublic: e.target.value === 'true' }))
+                }
+                label='Visibility'
               >
-                <MenuItem value="true">Public - Visible to all collaborators</MenuItem>
-                <MenuItem value="false">Private - Only visible to you</MenuItem>
+                <MenuItem value='true'>Public - Visible to all collaborators</MenuItem>
+                <MenuItem value='false'>Private - Only visible to you</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setNewAnnotationDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleCreateAnnotation} 
-            variant="contained"
-            disabled={loading}
-          >
+          <Button onClick={handleCreateAnnotation} variant='contained' disabled={loading}>
             Add Annotation
           </Button>
         </DialogActions>
@@ -623,42 +660,37 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
       <Dialog
         open={!!selectedAnnotation}
         onClose={() => setSelectedAnnotation(null)}
-        maxWidth="md"
+        maxWidth='md'
         fullWidth
       >
-        <DialogTitle>
-          {selectedAnnotation?.title} - Comments
-        </DialogTitle>
+        <DialogTitle>{selectedAnnotation?.title} - Comments</DialogTitle>
         <DialogContent>
           {selectedAnnotation && (
             <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
                 {selectedAnnotation.description}
               </Typography>
-              
+
               {getCommentsForAnnotation(selectedAnnotation.id).length > 0 && (
                 <List sx={{ mb: 2 }}>
-                  {getCommentsForAnnotation(selectedAnnotation.id).map((comment) => {
+                  {getCommentsForAnnotation(selectedAnnotation.id).map(comment => {
                     const author = getUserById(comment.userId);
                     return (
-                      <ListItem key={comment.id} alignItems="flex-start">
+                      <ListItem key={comment.id} alignItems='flex-start'>
                         <ListItemAvatar>
-                          <Avatar src={author?.avatarUrl}>
-                            {author?.name?.[0] || '?'}
-                          </Avatar>
+                          <Avatar src={author?.avatarUrl}>{author?.name?.[0] || '?'}</Avatar>
                         </ListItemAvatar>
                         <ListItemText
                           primary={author?.name || 'Loading...'}
                           secondary={
                             <Box>
-                              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                              <Typography variant='body2' sx={{ mt: 0.5 }}>
                                 {comment.content}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {comment.createdAt ? 
-                                  format(new Date(comment.createdAt), 'MMM d, h:mm a') : 
-                                  'Just now'
-                                }
+                              <Typography variant='caption' color='text.secondary'>
+                                {comment.createdAt
+                                  ? format(new Date(comment.createdAt), 'MMM d, h:mm a')
+                                  : 'Just now'}
                               </Typography>
                             </Box>
                           }
@@ -668,18 +700,18 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
                   })}
                 </List>
               )}
-              
+
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField
-                  label="Add a comment..."
+                  label='Add a comment...'
                   value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
+                  onChange={e => setNewComment(e.target.value)}
                   multiline
                   rows={2}
                   fullWidth
                 />
                 <Button
-                  variant="contained"
+                  variant='contained'
                   onClick={handleAddComment}
                   disabled={!newComment.trim() || loading}
                 >
@@ -695,46 +727,37 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
       </Dialog>
 
       {/* Share Chart Dialog */}
-      <Dialog
-        open={shareDialog}
-        onClose={() => setShareDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={shareDialog} onClose={() => setShareDialog(false)} maxWidth='sm' fullWidth>
         <DialogTitle>Share Chart</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <TextField
-              label="User ID to share with"
+              label='User ID to share with'
               value={shareForm.targetUserId}
-              onChange={(e) => setShareForm(prev => ({ ...prev, targetUserId: e.target.value }))}
+              onChange={e => setShareForm(prev => ({ ...prev, targetUserId: e.target.value }))}
               required
               fullWidth
-              helperText="Enter the user ID of the person you want to share with"
+              helperText='Enter the user ID of the person you want to share with'
             />
-            
+
             <FormControl fullWidth>
               <InputLabel>Permission Level</InputLabel>
               <Select
                 value={shareForm.permissionLevel}
-                onChange={(e) => setShareForm(prev => ({ ...prev, permissionLevel: e.target.value }))}
-                label="Permission Level"
+                onChange={e => setShareForm(prev => ({ ...prev, permissionLevel: e.target.value }))}
+                label='Permission Level'
               >
-                <MenuItem value="view">View - Can view annotations</MenuItem>
-                <MenuItem value="comment">Comment - Can view and comment</MenuItem>
-                <MenuItem value="edit">Edit - Can create and edit annotations</MenuItem>
-                <MenuItem value="admin">Admin - Full access</MenuItem>
+                <MenuItem value='view'>View - Can view annotations</MenuItem>
+                <MenuItem value='comment'>Comment - Can view and comment</MenuItem>
+                <MenuItem value='edit'>Edit - Can create and edit annotations</MenuItem>
+                <MenuItem value='admin'>Admin - Full access</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShareDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleShareChart} 
-            variant="contained"
-            disabled={loading}
-          >
+          <Button onClick={handleShareChart} variant='contained' disabled={loading}>
             Share Chart
           </Button>
         </DialogActions>
@@ -752,4 +775,3 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
 };
 
 export default ChartCollaborationConnected;
-

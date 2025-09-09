@@ -49,7 +49,7 @@ interface TabPanelProps {
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other }) => {
   return (
     <div
-      role="tabpanel"
+      role='tabpanel'
       hidden={value !== index}
       id={`auth-tabpanel-${index}`}
       aria-labelledby={`auth-tab-${index}`}
@@ -61,8 +61,16 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other })
 };
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) => {
-  const { signInWithGoogle, signInWithFacebook, signInWithEmail, signUp, isLoading, error, clearError } = useAuth();
-  
+  const {
+    signInWithGoogle,
+    signInWithFacebook,
+    signInWithEmail,
+    signUp,
+    isLoading,
+    error,
+    clearError,
+  } = useAuth();
+
   const [tabValue, setTabValue] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -73,54 +81,61 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
   });
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
-  const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-    setFormErrors({});
-    clearError();
-  }, [clearError]);
+  const handleTabChange = useCallback(
+    (event: React.SyntheticEvent, newValue: number) => {
+      setTabValue(newValue);
+      setFormErrors({});
+      clearError();
+    },
+    [clearError]
+  );
 
-  const handleInputChange = useCallback((field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: event.target.value }));
-    // Clear field error when user starts typing
-    if (formErrors[field]) {
-      setFormErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  }, [formErrors]);
+  const handleInputChange = useCallback(
+    (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData(prev => ({ ...prev, [field]: event.target.value }));
+      // Clear field error when user starts typing
+      if (formErrors[field]) {
+        setFormErrors(prev => ({ ...prev, [field]: '' }));
+      }
+    },
+    [formErrors]
+  );
 
   const validateForm = useCallback(() => {
     const errors: { [key: string]: string } = {};
-    
+
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = 'Email is invalid';
     }
-    
+
     if (!formData.password) {
       errors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
     }
-    
-    if (tabValue === 1) { // Sign up tab
+
+    if (tabValue === 1) {
+      // Sign up tab
       if (!formData.name) {
         errors.name = 'Name is required';
       }
-      
+
       if (!formData.confirmPassword) {
         errors.confirmPassword = 'Please confirm your password';
       } else if (formData.password !== formData.confirmPassword) {
         errors.confirmPassword = 'Passwords do not match';
       }
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   }, [formData, tabValue]);
 
   const handleEmailAuth = useCallback(async () => {
     if (!validateForm()) return;
-    
+
     try {
       if (tabValue === 0) {
         // Sign in
@@ -129,7 +144,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
         // Sign up
         await signUp(formData.email, formData.password, formData.name);
       }
-      
+
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -165,39 +180,42 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
     onClose();
   }, [onClose, clearError]);
 
-  const handleKeyPress = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      handleEmailAuth();
-    }
-  }, [handleEmailAuth]);
+  const handleKeyPress = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleEmailAuth();
+      }
+    },
+    [handleEmailAuth]
+  );
 
   return (
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth='sm'
       fullWidth
       PaperProps={{
-        sx: { borderRadius: 2 }
+        sx: { borderRadius: 2 },
       }}
     >
       <DialogTitle sx={{ pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h5" component="h2">
+          <Typography variant='h5' component='h2'>
             Welcome to EconGraph
           </Typography>
-          <IconButton onClick={handleClose} size="small">
+          <IconButton onClick={handleClose} size='small'>
             <CloseIcon />
           </IconButton>
         </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
           Sign in to access professional chart collaboration features
         </Typography>
       </DialogTitle>
 
       <DialogContent>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
+          <Alert severity='error' sx={{ mb: 2 }} onClose={clearError}>
             {error}
           </Alert>
         )}
@@ -205,9 +223,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
         {/* OAuth Buttons */}
         <Box sx={{ mb: 3 }}>
           <Button
-            variant="outlined"
+            variant='outlined'
             fullWidth
-            size="large"
+            size='large'
             startIcon={<GoogleIcon />}
             onClick={handleGoogleAuth}
             disabled={isLoading}
@@ -215,11 +233,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
           >
             Continue with Google
           </Button>
-          
+
           <Button
-            variant="outlined"
+            variant='outlined'
             fullWidth
-            size="large"
+            size='large'
             startIcon={<FacebookIcon />}
             onClick={handleFacebookAuth}
             disabled={isLoading}
@@ -230,7 +248,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
         </Box>
 
         <Divider sx={{ my: 2 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             or
           </Typography>
         </Divider>
@@ -238,16 +256,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
         {/* Email/Password Form */}
         <Box>
           <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 2 }}>
-            <Tab label="Sign In" />
-            <Tab label="Sign Up" />
+            <Tab label='Sign In' />
+            <Tab label='Sign Up' />
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
             {/* Sign In Form */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
-                label="Email"
-                type="email"
+                label='Email'
+                type='email'
                 value={formData.email}
                 onChange={handleInputChange('email')}
                 onKeyPress={handleKeyPress}
@@ -256,15 +274,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
                 fullWidth
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
+                    <InputAdornment position='start'>
+                      <EmailIcon color='action' />
                     </InputAdornment>
                   ),
                 }}
               />
-              
+
               <TextField
-                label="Password"
+                label='Password'
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={handleInputChange('password')}
@@ -274,16 +292,13 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
                 fullWidth
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
+                    <InputAdornment position='start'>
+                      <LockIcon color='action' />
                     </InputAdornment>
                   ),
                   endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
+                    <InputAdornment position='end'>
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge='end'>
                         {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                       </IconButton>
                     </InputAdornment>
@@ -297,7 +312,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
             {/* Sign Up Form */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
-                label="Full Name"
+                label='Full Name'
                 value={formData.name}
                 onChange={handleInputChange('name')}
                 error={!!formErrors.name}
@@ -305,16 +320,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
                 fullWidth
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon color="action" />
+                    <InputAdornment position='start'>
+                      <PersonIcon color='action' />
                     </InputAdornment>
                   ),
                 }}
               />
-              
+
               <TextField
-                label="Email"
-                type="email"
+                label='Email'
+                type='email'
                 value={formData.email}
                 onChange={handleInputChange('email')}
                 error={!!formErrors.email}
@@ -322,15 +337,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
                 fullWidth
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
+                    <InputAdornment position='start'>
+                      <EmailIcon color='action' />
                     </InputAdornment>
                   ),
                 }}
               />
-              
+
               <TextField
-                label="Password"
+                label='Password'
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={handleInputChange('password')}
@@ -339,26 +354,23 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
                 fullWidth
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
+                    <InputAdornment position='start'>
+                      <LockIcon color='action' />
                     </InputAdornment>
                   ),
                   endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
+                    <InputAdornment position='end'>
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge='end'>
                         {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                       </IconButton>
                     </InputAdornment>
                   ),
                 }}
               />
-              
+
               <TextField
-                label="Confirm Password"
-                type="password"
+                label='Confirm Password'
+                type='password'
                 value={formData.confirmPassword}
                 onChange={handleInputChange('confirmPassword')}
                 onKeyPress={handleKeyPress}
@@ -367,8 +379,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
                 fullWidth
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
+                    <InputAdornment position='start'>
+                      <LockIcon color='action' />
                     </InputAdornment>
                   ),
                 }}
@@ -380,26 +392,28 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
 
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button
-          variant="contained"
+          variant='contained'
           fullWidth
-          size="large"
+          size='large'
           onClick={handleEmailAuth}
           disabled={isLoading}
           sx={{ py: 1.5 }}
         >
           {isLoading ? (
-            <CircularProgress size={24} color="inherit" />
+            <CircularProgress size={24} color='inherit' />
+          ) : tabValue === 0 ? (
+            'Sign In'
           ) : (
-            tabValue === 0 ? 'Sign In' : 'Create Account'
+            'Create Account'
           )}
         </Button>
       </DialogActions>
 
       {tabValue === 1 && (
         <Box sx={{ px: 3, pb: 2 }}>
-          <Typography variant="caption" color="text.secondary" align="center" display="block">
-            By creating an account, you agree to our Terms of Service and Privacy Policy.
-            Your data is secure and will only be used for chart collaboration features.
+          <Typography variant='caption' color='text.secondary' align='center' display='block'>
+            By creating an account, you agree to our Terms of Service and Privacy Policy. Your data
+            is secure and will only be used for chart collaboration features.
           </Typography>
         </Box>
       )}
