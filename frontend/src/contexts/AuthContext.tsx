@@ -323,7 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Facebook login with timeout
-      const loginResult = await new Promise<any>((resolve, reject) => {
+      await new Promise<any>((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Facebook login timeout. Please try again.'));
         }, 30000); // 30 second timeout

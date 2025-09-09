@@ -6,6 +6,7 @@
 import '@testing-library/jest-dom';
 import 'whatwg-fetch'; // Polyfill for fetch in test environment
 import { configure } from '@testing-library/react';
+import ResizeObserver from 'resize-observer-polyfill';
 // Removed unused imports: mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions
 
 // Configure React Testing Library for CI environment
@@ -279,12 +280,8 @@ jest.mock('react-chartjs-2', () => ({
   },
 }));
 
-// Mock ResizeObserver for chart components
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+// Use ResizeObserver polyfill for testing
+global.ResizeObserver = ResizeObserver;
 
 // Mock IntersectionObserver for lazy loading components
 global.IntersectionObserver = jest.fn().mockImplementation(() => ({

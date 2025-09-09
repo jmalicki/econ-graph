@@ -10,23 +10,10 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import LoginDialog from '../LoginDialog';
 import { AuthProvider } from '../../../contexts/AuthContext';
 
-// Mock ResizeObserver with a more robust implementation
-const mockResizeObserver = jest.fn();
-mockResizeObserver.mockImplementation((callback) => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+// Note: ResizeObserver is mocked in setupTests.ts using resize-observer-polyfill
 
-// Override the global ResizeObserver
-Object.defineProperty(window, 'ResizeObserver', {
-  writable: true,
-  configurable: true,
-  value: mockResizeObserver,
-});
-
-// Also set it on global
-global.ResizeObserver = mockResizeObserver;
+// Set up Facebook App ID for testing
+process.env.REACT_APP_FACEBOOK_APP_ID = 'test-facebook-app-id';
 
 // Mock the auth context
 const mockAuthContext = {
@@ -62,7 +49,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </ThemeProvider>
 );
 
-describe.skip('LoginDialog', () => {
+describe('LoginDialog', () => {
   const mockOnClose = jest.fn();
   const mockOnSuccess = jest.fn();
 
@@ -82,7 +69,7 @@ describe.skip('LoginDialog', () => {
     expect(screen.getByText('Welcome to EconGraph')).toBeInTheDocument();
     expect(screen.getByText('Continue with Google')).toBeInTheDocument();
     expect(screen.getByText('Continue with Facebook')).toBeInTheDocument();
-    expect(screen.getByText('Sign In')).toBeInTheDocument();
+    expect(screen.getAllByText('Sign In')).toHaveLength(2); // Tab and button
   });
 
   it('does not render when closed', () => {
@@ -123,8 +110,10 @@ describe.skip('LoginDialog', () => {
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } });
 
-    // Click sign in button
-    fireEvent.click(screen.getByText('Sign In'));
+    // Click sign in button (get the form button, not the tab)
+    const signInButtons = screen.getAllByText('Sign In');
+    const formButton = signInButtons.find(button => button.getAttribute('type') === 'button');
+    fireEvent.click(formButton!);
 
     await waitFor(() => {
       expect(mockAuthContext.signInWithEmail).toHaveBeenCalledWith('test@example.com', 'password123');
@@ -197,8 +186,10 @@ describe.skip('LoginDialog', () => {
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } });
 
-    // Click sign in button
-    fireEvent.click(screen.getByText('Sign In'));
+    // Click sign in button (get the form button, not the tab)
+    const signInButtons = screen.getAllByText('Sign In');
+    const formButton = signInButtons.find(button => button.getAttribute('type') === 'button');
+    fireEvent.click(formButton!);
 
     await waitFor(() => {
       expect(mockAuthContext.signInWithEmail).toHaveBeenCalledWith('test@example.com', 'password123');
@@ -263,7 +254,10 @@ describe.skip('LoginDialog', () => {
     // Buttons should be disabled during loading
     expect(screen.getByText('Continue with Google')).toBeDisabled();
     expect(screen.getByText('Continue with Facebook')).toBeDisabled();
-    expect(screen.getByText('Sign In')).toBeDisabled();
+    // Get the form button (not the tab) and check if it's disabled
+    const signInButtons = screen.getAllByText('Sign In');
+    const formButton = signInButtons.find(button => button.getAttribute('type') === 'button');
+    expect(formButton).toBeDisabled();
   });
 
   it('clears error when user switches tabs', () => {
@@ -304,7 +298,9 @@ describe.skip('LoginDialog', () => {
     );
 
     // Try to submit without filling fields
-    fireEvent.click(screen.getByText('Sign In'));
+    const signInButtons = screen.getAllByText('Sign In');
+    const formButton = signInButtons.find(button => button.getAttribute('type') === 'button');
+    fireEvent.click(formButton!);
 
     // Should show validation errors
     expect(screen.getByText('Email is required')).toBeInTheDocument();
@@ -324,8 +320,8 @@ describe.skip('LoginDialog', () => {
     // Switch to sign up tab
     fireEvent.click(screen.getByText('Sign Up'));
 
-    expect(screen.getByText('Full Name')).toBeInTheDocument();
-    expect(screen.getByText('Confirm Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Full Name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument();
     expect(screen.getByText('Create Account')).toBeInTheDocument();
   });
 
