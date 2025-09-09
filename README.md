@@ -12,11 +12,11 @@
 > **Professional 20-minute investor video demo with British narration**
 
 ### 🏆 **NEW: Full 20-Minute Investor Video Demo - Complete Presentation**
-[![EconGraph 20-Minute Investor Demo](https://img.shields.io/badge/🏆%20Full%2020--Minute%20Investor%20Demo-Complete%20Presentation-gold?style=for-the-badge&logo=play)](https://github.com/jmalicki/econ-graph/raw/main/demo-videos/full-20-minute-demo-british.mp3)
+[![EconGraph 20-Minute Investor Demo](https://img.shields.io/badge/🏆%20Create%2020--Minute%20Video%20Demo-Professional%20Presentation-gold?style=for-the-badge&logo=video)](./demo-tools/create-full-20-minute-video-demo.sh)
 
-**[🎯 Create Your Own 20-Minute Video Demo](./demo-tools/create-full-20-minute-video-demo.sh)**
+**[🎯 Create Your 20-Minute Video Demo Now](./demo-tools/create-full-20-minute-video-demo.sh)**
 
-> **💼 PROFESSIONAL INVESTOR PRESENTATION: Complete 20-minute video demo structure with British-accented narration covering comprehensive business case, working prototype demonstration, market analysis, and investment thesis.**
+> **💼 PROFESSIONAL INVESTOR PRESENTATION: Complete 20-minute video demo creation tool with British-accented narration, live UI demonstration, and comprehensive business case. Run the script to launch the app and narration, then record your screen to create the final video.**
 
 **🎯 Full 20-Minute Structure:**
 - **[0-4min]** Opening & Market Analysis (landing page, $8.2B market opportunity, disruption)
