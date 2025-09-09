@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     initAuth();
-  }, [refreshUser]);
+  }, []); // refreshUser is not needed in dependency array for initialization
 
   const signInWithGoogle = useCallback(async () => {
     try {
