@@ -15,3 +15,5 @@ pub mod collaboration_integration_tests;
 #[cfg(test)]
 pub mod e2e_tests;
 pub mod epic_e2e_tests;
+#[cfg(test)]
+pub mod graphql_annotation_tests;
