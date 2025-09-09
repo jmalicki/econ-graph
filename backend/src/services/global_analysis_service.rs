@@ -1,20 +1,20 @@
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
 use crate::models::{
-    Country, CountryCorrelation, CountryWithEconomicData, CorrelationNetworkNode,
-    GlobalEconomicEvent, GlobalEventWithImpacts, NewCountryCorrelation, TradePartner,
-    CorrelationConnection, IndicatorCategory
+    CorrelationConnection, CorrelationNetworkNode, Country, CountryCorrelation,
+    CountryWithEconomicData, GlobalEconomicEvent, GlobalEventWithImpacts, IndicatorCategory,
+    NewCountryCorrelation, TradePartner,
+};
+use crate::schema::{
+    countries, country_correlations, event_country_impacts, global_economic_events,
+    global_economic_indicators, global_indicator_data, trade_relationships,
 };
 use bigdecimal::{BigDecimal, ToPrimitive};
-use rust_decimal::prelude::{Decimal, FromStr};
-use crate::schema::{
-    countries, country_correlations, global_economic_indicators, global_indicator_data,
-    trade_relationships, global_economic_events, event_country_impacts
-};
+use chrono::{NaiveDate, Utc};
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
+use rust_decimal::prelude::{Decimal, FromStr};
 use std::collections::HashMap;
-use chrono::{NaiveDate, Utc};
 // Removed duplicate Decimal import - already imported from prelude
 
 /// Service for global economic network analysis
@@ -39,7 +39,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load countries: {}", e);
-                 AppError::database_error(e.to_string())
+                AppError::database_error(e.to_string())
             })?;
 
         let mut result = Vec::new();
@@ -51,10 +51,18 @@ impl GlobalAnalysisService {
 
             result.push(CountryWithEconomicData {
                 country,
-                latest_gdp: economic_data.get("GDP").map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
-                latest_gdp_growth: economic_data.get("GDP_GROWTH").map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
-                latest_inflation: economic_data.get("INFLATION").map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
-                latest_unemployment: economic_data.get("UNEMPLOYMENT").map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
+                latest_gdp: economic_data
+                    .get("GDP")
+                    .map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
+                latest_gdp_growth: economic_data
+                    .get("GDP_GROWTH")
+                    .map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
+                latest_inflation: economic_data
+                    .get("INFLATION")
+                    .map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
+                latest_unemployment: economic_data
+                    .get("UNEMPLOYMENT")
+                    .map(|d| BigDecimal::from_str(&d.to_string()).unwrap_or_default()),
                 trade_partners,
                 economic_health_score: health_score,
             });
@@ -83,7 +91,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load countries: {}", e);
-                 AppError::database_error(e.to_string())
+                AppError::database_error(e.to_string())
             })?;
 
         let mut correlations = Vec::new();
@@ -98,8 +106,16 @@ impl GlobalAnalysisService {
                     indicator_category,
                     start_date,
                     end_date,
-                ).await {
-                    if correlation.correlation_coefficient.to_f64().unwrap_or(0.0).abs() >= min_correlation {
+                )
+                .await
+                {
+                    if correlation
+                        .correlation_coefficient
+                        .to_f64()
+                        .unwrap_or(0.0)
+                        .abs()
+                        >= min_correlation
+                    {
                         correlations.push(correlation);
                     }
                 }
@@ -131,10 +147,12 @@ impl GlobalAnalysisService {
                 ))
                 .do_update()
                 .set((
-                    country_correlations::correlation_coefficient.eq(new_correlation.correlation_coefficient.clone()),
+                    country_correlations::correlation_coefficient
+                        .eq(new_correlation.correlation_coefficient.clone()),
                     country_correlations::sample_size.eq(new_correlation.sample_size),
                     country_correlations::p_value.eq(new_correlation.p_value.clone()),
-                    country_correlations::is_significant.eq(new_correlation.is_significant.unwrap_or(false)),
+                    country_correlations::is_significant
+                        .eq(new_correlation.is_significant.unwrap_or(false)),
                     country_correlations::calculated_at.eq(Utc::now()),
                 ))
                 .execute(&mut conn)
@@ -170,16 +188,19 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load correlations: {}", e);
-                 AppError::database_error(e.to_string())
+                AppError::database_error(e.to_string())
             })?;
 
         // Build network nodes
-        let mut country_connections: HashMap<uuid::Uuid, Vec<CorrelationConnection>> = HashMap::new();
+        let mut country_connections: HashMap<uuid::Uuid, Vec<CorrelationConnection>> =
+            HashMap::new();
         let mut countries_map: HashMap<uuid::Uuid, Country> = HashMap::new();
 
         // Load all countries involved in correlations
         for correlation in &correlations {
-            if let std::collections::hash_map::Entry::Vacant(e) = countries_map.entry(correlation.country_a_id) {
+            if let std::collections::hash_map::Entry::Vacant(e) =
+                countries_map.entry(correlation.country_a_id)
+            {
                 let country = countries::table
                     .find(correlation.country_a_id)
                     .first::<Country>(&mut conn)
@@ -191,7 +212,9 @@ impl GlobalAnalysisService {
                 e.insert(country);
             }
 
-            if let std::collections::hash_map::Entry::Vacant(e) = countries_map.entry(correlation.country_b_id) {
+            if let std::collections::hash_map::Entry::Vacant(e) =
+                countries_map.entry(correlation.country_b_id)
+            {
                 let country = countries::table
                     .find(correlation.country_b_id)
                     .first::<Country>(&mut conn)
@@ -211,7 +234,11 @@ impl GlobalAnalysisService {
                 target_country: countries_map[&correlation.country_b_id].clone(),
                 correlation_coefficient: corr_value,
                 indicator_category: correlation.indicator_category.clone(),
-                significance_level: correlation.p_value.clone().map(|p| p.to_f64().unwrap_or(1.0)).unwrap_or(1.0),
+                significance_level: correlation
+                    .p_value
+                    .clone()
+                    .map(|p| p.to_f64().unwrap_or(1.0))
+                    .unwrap_or(1.0),
                 connection_strength,
             };
 
@@ -219,15 +246,21 @@ impl GlobalAnalysisService {
                 target_country: countries_map[&correlation.country_a_id].clone(),
                 correlation_coefficient: corr_value,
                 indicator_category: correlation.indicator_category.clone(),
-                significance_level: correlation.p_value.clone().map(|p| p.to_f64().unwrap_or(1.0)).unwrap_or(1.0),
+                significance_level: correlation
+                    .p_value
+                    .clone()
+                    .map(|p| p.to_f64().unwrap_or(1.0))
+                    .unwrap_or(1.0),
                 connection_strength,
             };
 
-            country_connections.entry(correlation.country_a_id)
+            country_connections
+                .entry(correlation.country_a_id)
                 .or_default()
                 .push(connection_a_to_b);
 
-            country_connections.entry(correlation.country_b_id)
+            country_connections
+                .entry(correlation.country_b_id)
                 .or_default()
                 .push(connection_b_to_a);
         }
@@ -247,7 +280,11 @@ impl GlobalAnalysisService {
         }
 
         // Sort by centrality score (most central first)
-        network_nodes.sort_by(|a, b| b.centrality_score.partial_cmp(&a.centrality_score).unwrap_or(std::cmp::Ordering::Equal));
+        network_nodes.sort_by(|a, b| {
+            b.centrality_score
+                .partial_cmp(&a.centrality_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         Ok(network_nodes)
     }
@@ -286,7 +323,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load global events: {}", e);
-                 AppError::database_error(e.to_string())
+                AppError::database_error(e.to_string())
             })?;
 
         let mut result = Vec::new();
@@ -316,14 +353,18 @@ impl GlobalAnalysisService {
         use crate::schema::trade_relationships::dsl::*;
 
         let trade_data = trade_relationships
-            .filter(exporter_country_id.eq(country_id).or(importer_country_id.eq(country_id)))
+            .filter(
+                exporter_country_id
+                    .eq(country_id)
+                    .or(importer_country_id.eq(country_id)),
+            )
             .order(export_value_usd.desc().nulls_last())
             .limit(limit)
             .load::<crate::models::TradeRelationship>(conn)
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load trade relationships: {}", e);
-                 AppError::database_error(e.to_string())
+                AppError::database_error(e.to_string())
             })?;
 
         let mut partners = Vec::new();
@@ -345,7 +386,10 @@ impl GlobalAnalysisService {
                 })?;
 
             let trade_value = trade.export_value_usd.unwrap_or_default();
-            let trade_intensity_value = trade.trade_intensity.map(|t| t.to_f64().unwrap_or(0.0)).unwrap_or(0.0);
+            let trade_intensity_value = trade
+                .trade_intensity
+                .map(|t| t.to_f64().unwrap_or(0.0))
+                .unwrap_or(0.0);
             let relationship_type = if trade.exporter_country_id == country_id {
                 "Export".to_string()
             } else {
@@ -377,7 +421,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load indicators: {}", e);
-                 AppError::database_error(e.to_string())
+                AppError::database_error(e.to_string())
             })?;
 
         let mut result = HashMap::new();
@@ -391,7 +435,9 @@ impl GlobalAnalysisService {
                 .await
             {
                 // Convert BigDecimal to Decimal for compatibility
-                let decimal_value = Decimal::from_str(&latest_data.value.unwrap_or_default().to_string()).unwrap_or_default();
+                let decimal_value =
+                    Decimal::from_str(&latest_data.value.unwrap_or_default().to_string())
+                        .unwrap_or_default();
                 result.insert(indicator.category.clone(), decimal_value);
             }
         }
@@ -468,9 +514,7 @@ impl GlobalAnalysisService {
         }
 
         // Simple degree centrality weighted by connection strength
-        let total_strength: f64 = connections.iter()
-            .map(|c| c.connection_strength)
-            .sum();
+        let total_strength: f64 = connections.iter().map(|c| c.connection_strength).sum();
 
         total_strength / connections.len() as f64
     }
@@ -488,7 +532,7 @@ impl GlobalAnalysisService {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to load event impacts: {}", e);
-                 AppError::database_error(e.to_string())
+                AppError::database_error(e.to_string())
             })?;
 
         let mut result = Vec::new();
@@ -519,7 +563,11 @@ impl GlobalAnalysisService {
 
     /// Classify impact severity based on magnitude
     fn classify_impact_severity(impact: &crate::models::EventCountryImpact) -> String {
-        match impact.impact_magnitude.as_ref().map(|m| m.to_f64().unwrap_or(0.0).abs()) {
+        match impact
+            .impact_magnitude
+            .as_ref()
+            .map(|m| m.to_f64().unwrap_or(0.0).abs())
+        {
             Some(magnitude) if magnitude >= 10.0 => "Critical".to_string(),
             Some(magnitude) if magnitude >= 5.0 => "Severe".to_string(),
             Some(magnitude) if magnitude >= 2.0 => "Moderate".to_string(),

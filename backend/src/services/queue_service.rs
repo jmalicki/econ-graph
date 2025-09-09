@@ -4,7 +4,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
 use crate::{
-    database::DatabasePool,
+    database::{create_pool, DatabasePool},
     error::AppResult,
     models::{CrawlQueueItem, QueueStatistics, QueueStatus, UpdateCrawlQueueItem},
     schema::crawl_queue,
@@ -391,6 +391,8 @@ mod tests {
         // REQUIREMENT: Queue must use SKIP LOCKED for concurrent processing
         // PURPOSE: Verify that queue items can be retrieved without blocking
         // This ensures multiple workers can process the queue simultaneously
+
+        use crate::test_utils::TestContainer;
 
         let container = TestContainer::new().await;
         let pool = container.pool();

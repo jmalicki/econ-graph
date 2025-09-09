@@ -3,9 +3,9 @@
 // This provides intelligent scheduling, priority management, and error handling
 
 use crate::services::comprehensive_series_catalog::{
-    ComprehensiveSeriesCatalog, SeriesDefinition, DataSource, EconomicCategory, DataFrequency,
+    ComprehensiveSeriesCatalog, DataFrequency, DataSource, EconomicCategory, SeriesDefinition,
 };
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
 use tokio::time::{sleep, Duration as TokioDuration};
@@ -85,8 +85,8 @@ impl EnhancedCrawlerScheduler {
 
         // Set conservative rate limits for different data sources
         rate_limits.insert(DataSource::FRED, 120); // FRED allows 120 requests/minute
-        rate_limits.insert(DataSource::BLS, 25);   // BLS is more restrictive
-        rate_limits.insert(DataSource::BEA, 30);   // BEA moderate limits
+        rate_limits.insert(DataSource::BLS, 25); // BLS is more restrictive
+        rate_limits.insert(DataSource::BEA, 30); // BEA moderate limits
         rate_limits.insert(DataSource::Census, 40); // Census moderate limits
         rate_limits.insert(DataSource::Treasury, 60); // Treasury reasonable limits
 
@@ -153,10 +153,10 @@ impl EnhancedCrawlerScheduler {
     /// Calculate retry delay based on priority (higher priority = shorter delay)
     fn calculate_retry_delay(&self, priority: u8) -> u32 {
         match priority {
-            1 => 5,  // 5 minutes for highest priority
-            2 => 15, // 15 minutes for high priority
-            3 => 30, // 30 minutes for medium priority
-            4 => 60, // 1 hour for low priority
+            1 => 5,   // 5 minutes for highest priority
+            2 => 15,  // 15 minutes for high priority
+            3 => 30,  // 30 minutes for medium priority
+            4 => 60,  // 1 hour for low priority
             _ => 120, // 2 hours for lowest priority
         }
     }
@@ -262,7 +262,8 @@ impl EnhancedCrawlerScheduler {
             let now = Utc::now();
 
             // Get existing retry count from failed jobs if any
-            let retry_count = self.failed_jobs
+            let retry_count = self
+                .failed_jobs
                 .get(&job.series_id)
                 .map(|r| r.retry_count + 1)
                 .unwrap_or(1);
@@ -286,7 +287,8 @@ impl EnhancedCrawlerScheduler {
                 },
             };
 
-            self.failed_jobs.insert(job.series_id.clone(), result.clone());
+            self.failed_jobs
+                .insert(job.series_id.clone(), result.clone());
 
             // Schedule retry if within retry limit
             if retry_count <= job.retry_limit {
@@ -306,11 +308,15 @@ impl EnhancedCrawlerScheduler {
         let now = Utc::now();
         let today_start = now.date_naive().and_hms_opt(0, 0, 0).unwrap().and_utc();
 
-        let completed_today = self.completed_jobs.values()
+        let completed_today = self
+            .completed_jobs
+            .values()
             .filter(|r| r.end_time.map_or(false, |t| t >= today_start))
             .count();
 
-        let failed_today = self.failed_jobs.values()
+        let failed_today = self
+            .failed_jobs
+            .values()
             .filter(|r| r.end_time.map_or(false, |t| t >= today_start))
             .count();
 
@@ -321,11 +327,12 @@ impl EnhancedCrawlerScheduler {
             0.0
         };
 
-        let average_crawl_time = self.completed_jobs.values()
+        let average_crawl_time = self
+            .completed_jobs
+            .values()
             .filter_map(|r| {
-                r.end_time.map(|end| {
-                    (end - r.start_time).num_seconds() as f64
-                })
+                r.end_time
+                    .map(|end| (end - r.start_time).num_seconds() as f64)
             })
             .collect::<Vec<f64>>();
 
@@ -335,7 +342,9 @@ impl EnhancedCrawlerScheduler {
             0.0
         };
 
-        let next_high_priority = self.job_queue.iter()
+        let next_high_priority = self
+            .job_queue
+            .iter()
             .filter(|job| job.priority <= 2)
             .map(|job| job.next_scheduled_crawl)
             .min();
@@ -343,7 +352,8 @@ impl EnhancedCrawlerScheduler {
         // Estimate completion time based on queue size and average crawl time
         let estimated_completion = if !self.job_queue.is_empty() && avg_time > 0.0 {
             let remaining_jobs = self.job_queue.len();
-            let estimated_seconds = (remaining_jobs as f64 * avg_time) / self.max_concurrent_jobs as f64;
+            let estimated_seconds =
+                (remaining_jobs as f64 * avg_time) / self.max_concurrent_jobs as f64;
             Some(now + Duration::seconds(estimated_seconds as i64))
         } else {
             None
@@ -365,14 +375,16 @@ impl EnhancedCrawlerScheduler {
 
     /// Get series by category for targeted crawling
     pub fn get_jobs_by_category(&self, category: &EconomicCategory) -> Vec<&CrawlJobConfig> {
-        self.job_queue.iter()
+        self.job_queue
+            .iter()
             .filter(|job| job.category == *category)
             .collect()
     }
 
     /// Get jobs by priority level
     pub fn get_jobs_by_priority(&self, priority: u8) -> Vec<&CrawlJobConfig> {
-        self.job_queue.iter()
+        self.job_queue
+            .iter()
             .filter(|job| job.priority == priority)
             .collect()
     }
@@ -435,7 +447,8 @@ impl EnhancedCrawlerScheduler {
 
     /// Get failed jobs that need attention
     pub fn get_failed_jobs(&self) -> Vec<&CrawlResult> {
-        self.failed_jobs.values()
+        self.failed_jobs
+            .values()
             .filter(|r| r.retry_count > 3) // Jobs that exceeded retry limit
             .collect()
     }
@@ -511,8 +524,12 @@ mod tests {
         assert!(scheduler.can_make_request(&DataSource::FRED));
 
         // Test rate limit configuration
-        assert!(scheduler.rate_limit_per_source.contains_key(&DataSource::FRED));
-        assert!(scheduler.rate_limit_per_source.contains_key(&DataSource::BLS));
+        assert!(scheduler
+            .rate_limit_per_source
+            .contains_key(&DataSource::FRED));
+        assert!(scheduler
+            .rate_limit_per_source
+            .contains_key(&DataSource::BLS));
     }
 
     #[test]

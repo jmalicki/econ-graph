@@ -376,13 +376,19 @@ impl ComprehensiveSeriesCatalog {
             SeriesDefinition {
                 id: "FEDFUNDS".to_string(),
                 title: "Federal Funds Effective Rate".to_string(),
-                description: "Interest rate at which depository institutions trade federal funds overnight".to_string(),
+                description:
+                    "Interest rate at which depository institutions trade federal funds overnight"
+                        .to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Monthly,
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Percent".to_string(),
                 category: EconomicCategory::InterestRates,
-                tags: vec!["fed funds".to_string(), "interest rates".to_string(), "monetary policy".to_string()],
+                tags: vec![
+                    "fed funds".to_string(),
+                    "interest rates".to_string(),
+                    "monetary policy".to_string(),
+                ],
                 priority: 1,
                 is_active: true,
                 start_date: Some("1954-07-01".to_string()),
@@ -397,7 +403,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Percent".to_string(),
                 category: EconomicCategory::InterestRates,
-                tags: vec!["fed funds".to_string(), "daily".to_string(), "monetary policy".to_string()],
+                tags: vec![
+                    "fed funds".to_string(),
+                    "daily".to_string(),
+                    "monetary policy".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1954-07-01".to_string()),
@@ -406,13 +416,18 @@ impl ComprehensiveSeriesCatalog {
             SeriesDefinition {
                 id: "GS10".to_string(),
                 title: "10-Year Treasury Constant Maturity Rate".to_string(),
-                description: "Yield on 10-year Treasury securities at constant maturity".to_string(),
+                description: "Yield on 10-year Treasury securities at constant maturity"
+                    .to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Daily,
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Percent".to_string(),
                 category: EconomicCategory::InterestRates,
-                tags: vec!["treasury".to_string(), "10 year".to_string(), "long term".to_string()],
+                tags: vec![
+                    "treasury".to_string(),
+                    "10 year".to_string(),
+                    "long term".to_string(),
+                ],
                 priority: 1,
                 is_active: true,
                 start_date: Some("1962-01-02".to_string()),
@@ -427,7 +442,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Percent".to_string(),
                 category: EconomicCategory::InterestRates,
-                tags: vec!["treasury".to_string(), "2 year".to_string(), "short term".to_string()],
+                tags: vec![
+                    "treasury".to_string(),
+                    "2 year".to_string(),
+                    "short term".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1976-06-01".to_string()),
@@ -435,14 +454,20 @@ impl ComprehensiveSeriesCatalog {
             },
             SeriesDefinition {
                 id: "T10Y2Y".to_string(),
-                title: "10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity".to_string(),
-                description: "Yield curve spread between 10-year and 2-year Treasury rates".to_string(),
+                title: "10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity"
+                    .to_string(),
+                description: "Yield curve spread between 10-year and 2-year Treasury rates"
+                    .to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Daily,
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Percent".to_string(),
                 category: EconomicCategory::InterestRates,
-                tags: vec!["yield curve".to_string(), "spread".to_string(), "recession indicator".to_string()],
+                tags: vec![
+                    "yield curve".to_string(),
+                    "spread".to_string(),
+                    "recession indicator".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1976-06-01".to_string()),
@@ -493,13 +518,18 @@ impl ComprehensiveSeriesCatalog {
             SeriesDefinition {
                 id: "BOPGSTB".to_string(),
                 title: "Trade Balance: Goods and Services, Balance of Payments Basis".to_string(),
-                description: "Difference between exports and imports of goods and services".to_string(),
+                description: "Difference between exports and imports of goods and services"
+                    .to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Monthly,
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
                 units: "Millions of Dollars".to_string(),
                 category: EconomicCategory::Trade,
-                tags: vec!["trade balance".to_string(), "exports".to_string(), "imports".to_string()],
+                tags: vec![
+                    "trade balance".to_string(),
+                    "exports".to_string(),
+                    "imports".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1992-01-01".to_string()),
@@ -508,7 +538,8 @@ impl ComprehensiveSeriesCatalog {
             SeriesDefinition {
                 id: "EXPGS".to_string(),
                 title: "Exports of Goods and Services".to_string(),
-                description: "Total exports of goods and services from the United States".to_string(),
+                description: "Total exports of goods and services from the United States"
+                    .to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Monthly,
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
@@ -543,14 +574,19 @@ impl ComprehensiveSeriesCatalog {
         vec![
             SeriesDefinition {
                 id: "HOUST".to_string(),
-                title: "Housing Starts: Total New Privately Owned Housing Units Started".to_string(),
+                title: "Housing Starts: Total New Privately Owned Housing Units Started"
+                    .to_string(),
                 description: "Number of new privately owned housing units started".to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Monthly,
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
                 units: "Thousands of Units".to_string(),
                 category: EconomicCategory::Housing,
-                tags: vec!["housing starts".to_string(), "construction".to_string(), "real estate".to_string()],
+                tags: vec![
+                    "housing starts".to_string(),
+                    "construction".to_string(),
+                    "real estate".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1959-01-01".to_string()),
@@ -565,7 +601,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
                 units: "Index Jan 2000=100".to_string(),
                 category: EconomicCategory::Housing,
-                tags: vec!["home prices".to_string(), "case shiller".to_string(), "real estate".to_string()],
+                tags: vec![
+                    "home prices".to_string(),
+                    "case shiller".to_string(),
+                    "real estate".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1987-01-01".to_string()),
@@ -652,7 +692,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
                 units: "Billions of Dollars".to_string(),
                 category: EconomicCategory::Consumer,
-                tags: vec!["consumer spending".to_string(), "consumption".to_string(), "pce".to_string()],
+                tags: vec![
+                    "consumer spending".to_string(),
+                    "consumption".to_string(),
+                    "pce".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1959-01-01".to_string()),
@@ -667,7 +711,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Index 1966:Q1=100".to_string(),
                 category: EconomicCategory::Consumer,
-                tags: vec!["consumer confidence".to_string(), "sentiment".to_string(), "expectations".to_string()],
+                tags: vec![
+                    "consumer confidence".to_string(),
+                    "sentiment".to_string(),
+                    "expectations".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1978-01-01".to_string()),
@@ -682,7 +730,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
                 units: "Millions of Dollars".to_string(),
                 category: EconomicCategory::Consumer,
-                tags: vec!["retail sales".to_string(), "consumer spending".to_string(), "commerce".to_string()],
+                tags: vec![
+                    "retail sales".to_string(),
+                    "consumer spending".to_string(),
+                    "commerce".to_string(),
+                ],
                 priority: 2,
                 is_active: true,
                 start_date: Some("1992-01-01".to_string()),
@@ -697,13 +749,18 @@ impl ComprehensiveSeriesCatalog {
             SeriesDefinition {
                 id: "GPDI".to_string(),
                 title: "Gross Private Domestic Investment".to_string(),
-                description: "Total private investment in equipment, structures, and inventories".to_string(),
+                description: "Total private investment in equipment, structures, and inventories"
+                    .to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Quarterly,
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
                 units: "Billions of Dollars".to_string(),
                 category: EconomicCategory::Business,
-                tags: vec!["investment".to_string(), "business spending".to_string(), "capex".to_string()],
+                tags: vec![
+                    "investment".to_string(),
+                    "business spending".to_string(),
+                    "capex".to_string(),
+                ],
                 priority: 3,
                 is_active: true,
                 start_date: Some("1947-01-01".to_string()),
@@ -718,7 +775,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::SeasonallyAdjusted,
                 units: "Millions of Dollars".to_string(),
                 category: EconomicCategory::Business,
-                tags: vec!["new orders".to_string(), "manufacturing".to_string(), "business activity".to_string()],
+                tags: vec![
+                    "new orders".to_string(),
+                    "manufacturing".to_string(),
+                    "business activity".to_string(),
+                ],
                 priority: 3,
                 is_active: true,
                 start_date: Some("1992-01-01".to_string()),
@@ -732,14 +793,19 @@ impl ComprehensiveSeriesCatalog {
         vec![
             SeriesDefinition {
                 id: "FYFSGDA188S".to_string(),
-                title: "Federal Surplus or Deficit [-] as Percent of Gross Domestic Product".to_string(),
+                title: "Federal Surplus or Deficit [-] as Percent of Gross Domestic Product"
+                    .to_string(),
                 description: "Federal government budget balance as percentage of GDP".to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Annual,
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Percent of GDP".to_string(),
                 category: EconomicCategory::Government,
-                tags: vec!["budget deficit".to_string(), "fiscal policy".to_string(), "government".to_string()],
+                tags: vec![
+                    "budget deficit".to_string(),
+                    "fiscal policy".to_string(),
+                    "government".to_string(),
+                ],
                 priority: 3,
                 is_active: true,
                 start_date: Some("1929-01-01".to_string()),
@@ -747,14 +813,19 @@ impl ComprehensiveSeriesCatalog {
             },
             SeriesDefinition {
                 id: "GFDEGDQ188S".to_string(),
-                title: "Federal Debt: Total Public Debt as Percent of Gross Domestic Product".to_string(),
+                title: "Federal Debt: Total Public Debt as Percent of Gross Domestic Product"
+                    .to_string(),
                 description: "Total federal debt as percentage of GDP".to_string(),
                 source: DataSource::FRED,
                 frequency: DataFrequency::Quarterly,
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Percent of GDP".to_string(),
                 category: EconomicCategory::Government,
-                tags: vec!["federal debt".to_string(), "debt to gdp".to_string(), "fiscal".to_string()],
+                tags: vec![
+                    "federal debt".to_string(),
+                    "debt to gdp".to_string(),
+                    "fiscal".to_string(),
+                ],
                 priority: 3,
                 is_active: true,
                 start_date: Some("1966-01-01".to_string()),
@@ -775,7 +846,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "U.S. Dollars to One Euro".to_string(),
                 category: EconomicCategory::International,
-                tags: vec!["exchange rate".to_string(), "euro".to_string(), "currency".to_string()],
+                tags: vec![
+                    "exchange rate".to_string(),
+                    "euro".to_string(),
+                    "currency".to_string(),
+                ],
                 priority: 3,
                 is_active: true,
                 start_date: Some("1999-01-04".to_string()),
@@ -790,7 +865,11 @@ impl ComprehensiveSeriesCatalog {
                 seasonal_adjustment: SeasonalAdjustment::NotSeasonallyAdjusted,
                 units: "Chinese Yuan to One U.S. Dollar".to_string(),
                 category: EconomicCategory::International,
-                tags: vec!["exchange rate".to_string(), "yuan".to_string(), "china".to_string()],
+                tags: vec![
+                    "exchange rate".to_string(),
+                    "yuan".to_string(),
+                    "china".to_string(),
+                ],
                 priority: 3,
                 is_active: true,
                 start_date: Some("1981-01-02".to_string()),
@@ -801,7 +880,10 @@ impl ComprehensiveSeriesCatalog {
 
     /// Get all series by category
     pub fn get_by_category(&self, category: &EconomicCategory) -> Vec<&SeriesDefinition> {
-        self.series.iter().filter(|s| s.category == *category).collect()
+        self.series
+            .iter()
+            .filter(|s| s.category == *category)
+            .collect()
     }
 
     /// Get all series by source
@@ -811,7 +893,10 @@ impl ComprehensiveSeriesCatalog {
 
     /// Get all series by priority level
     pub fn get_by_priority(&self, priority: u8) -> Vec<&SeriesDefinition> {
-        self.series.iter().filter(|s| s.priority == priority).collect()
+        self.series
+            .iter()
+            .filter(|s| s.priority == priority)
+            .collect()
     }
 
     /// Get all high-priority series (priority 1-2)
