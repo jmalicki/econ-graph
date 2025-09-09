@@ -59,15 +59,15 @@ mod tests {
 
         let variables = json!({
             "input": {
-                "user_id": test_user.id.to_string(),
-                "series_id": series_id.to_string(),
-                "annotation_date": "2024-01-15",
-                "annotation_value": 100.5,
+                "userId": test_user.id.to_string(),
+                "seriesId": series_id.to_string(),
+                "annotationDate": "2024-01-15",
+                "annotationValue": 100.5,
                 "title": "Test Annotation Title",
                 "content": "This is a test annotation content",
-                "annotation_type": "note",
+                "annotationType": "note",
                 "color": "#ff0000",
-                "is_public": true
+                "isPublic": true
             }
         });
 
@@ -125,7 +125,7 @@ mod tests {
         let test_user = create_test_user(&pool, "test2@example.com", "Test User 2").await?;
         let series_id = Uuid::new_v4();
 
-        // Test the GraphQL mutation with incorrect field names (camelCase)
+        // Test the GraphQL mutation with incorrect field names (snake_case instead of camelCase)
         let mutation = r#"
             mutation CreateAnnotation($input: CreateAnnotationInput!) {
                 createAnnotation(input: $input) {
@@ -137,12 +137,12 @@ mod tests {
 
         let variables = json!({
             "input": {
-                "userId": test_user.id.to_string(),  // Wrong: should be user_id
-                "seriesId": series_id.to_string(),   // Wrong: should be series_id
-                "annotationDate": "2024-01-15",      // Wrong: should be annotation_date
+                "user_id": test_user.id.to_string(),     // Wrong: should be userId (camelCase)
+                "series_id": series_id.to_string(),      // Wrong: should be seriesId (camelCase)
+                "annotation_date": "2024-01-15",         // Wrong: should be annotationDate (camelCase)
                 "title": "Test Title",
                 "content": "Test content",
-                "annotationType": "note"             // Wrong: should be annotation_type
+                "annotation_type": "note"                // Wrong: should be annotationType (camelCase)
             }
         });
 
@@ -158,8 +158,8 @@ mod tests {
 
         let error_message = response.errors[0].message.to_string();
         assert!(
-            error_message.contains("Unknown field") || error_message.contains("Field"),
-            "Error should indicate unknown field: {}",
+            error_message.contains("field") && error_message.contains("required"),
+            "Error should indicate missing required field: {}",
             error_message
         );
 
@@ -212,13 +212,13 @@ mod tests {
 
             let variables = json!({
                 "input": {
-                    "user_id": test_user.id.to_string(),
-                    "series_id": series_id.to_string(),
-                    "annotation_date": "2024-01-15",
+                    "userId": test_user.id.to_string(),
+                    "seriesId": series_id.to_string(),
+                    "annotationDate": "2024-01-15",
                     "title": title,
                     "content": "Test content for title validation",
-                    "annotation_type": "note",
-                    "is_public": true
+                    "annotationType": "note",
+                    "isPublic": true
                 }
             });
 
