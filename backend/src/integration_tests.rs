@@ -88,7 +88,7 @@ mod tests {
             #[diesel(sql_type = diesel::sql_types::BigInt)]
             count: i64,
         }
-        
+
         let relationship_count: i64 = diesel::sql_query(
             "SELECT COUNT(*) as count FROM economic_series es 
              INNER JOIN data_sources ds ON es.source_id = ds.id

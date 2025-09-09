@@ -174,7 +174,6 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
 
   const handleUpdateAnnotation = useCallback((id: string, updates: Partial<ChartAnnotation>) => {
     onAnnotationUpdate(id, updates);
-    setEditingAnnotation(null);
   }, [onAnnotationUpdate]);
 
   const handleAddComment = useCallback(() => {
