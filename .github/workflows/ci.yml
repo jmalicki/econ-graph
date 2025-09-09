@@ -111,8 +111,12 @@ jobs:
       working-directory: frontend
 
     - name: Run frontend tests
-      run: npm test -- --coverage --watchAll=false
+      run: npm test -- --coverage --watchAll=false --maxWorkers=2 --forceExit
       working-directory: frontend
+      env:
+        CI: true
+        NODE_ENV: test
+        NODE_OPTIONS: '--max_old_space_size=4096'
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3

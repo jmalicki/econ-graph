@@ -48,16 +48,26 @@ use crate::{
 /// - Research workflows requiring specific types of economic indicators
 ///
 /// # Examples
-/// ```rust
+/// ```rust,no_run
+/// use econ_graph_backend::services::list_series;
+/// use econ_graph_backend::models::SeriesSearchParams;
+/// use econ_graph_backend::database::DatabasePool;
+/// use uuid::Uuid;
+/// 
+/// # async fn example(pool: &DatabasePool) -> Result<(), Box<dyn std::error::Error>> {
 /// // Find all active employment-related series from BLS
+/// let bls_source_id = Uuid::new_v4();
 /// let params = SeriesSearchParams {
 ///     source_id: Some(bls_source_id),
-///     category: Some("employment".to_string()),
+///     query: Some("employment".to_string()),
 ///     is_active: Some(true),
 ///     limit: Some(50),
-///     ..Default::default()
+///     frequency: None,
+///     offset: Some(0),
 /// };
-/// let employment_series = list_series(&pool, params).await?;
+/// let employment_series = list_series(pool, params).await?;
+/// # Ok(())
+/// # }
 /// ```
 pub async fn list_series(
     pool: &DatabasePool,
@@ -134,13 +144,22 @@ pub async fn list_series(
 /// - Permission checks for series access control
 ///
 /// # Examples
-/// ```rust
+/// ```rust,no_run
+/// use econ_graph_backend::services::get_series_by_id;
+/// use econ_graph_backend::database::DatabasePool;
+/// use econ_graph_backend::error::AppError;
+/// use uuid::Uuid;
+/// 
+/// # async fn example(pool: &DatabasePool) -> Result<(), AppError> {
 /// // Retrieve GDP series information
-/// if let Some(gdp_series) = get_series_by_id(&pool, gdp_series_id).await? {
+/// let gdp_series_id = Uuid::new_v4();
+/// if let Some(gdp_series) = get_series_by_id(pool, gdp_series_id).await? {
 ///     println!("Found series: {}", gdp_series.title);
 /// } else {
 ///     return Err(AppError::NotFound("Series not found".to_string()));
 /// }
+/// # Ok(())
+/// # }
 /// ```
 pub async fn get_series_by_id(
     pool: &DatabasePool,
@@ -198,18 +217,28 @@ pub async fn get_series_by_id(
 /// - Real-time data monitoring with latest values only
 ///
 /// # Examples
-/// ```rust
+/// ```rust,no_run
+/// use econ_graph_backend::services::get_series_data;
+/// use econ_graph_backend::models::DataQueryParams;
+/// use econ_graph_backend::database::DatabasePool;
+/// use uuid::Uuid;
+/// use chrono::NaiveDate;
+/// 
+/// # async fn example(pool: &DatabasePool) -> Result<(), Box<dyn std::error::Error>> {
 /// // Get last 12 months of employment data, original releases only
+/// let employment_series_id = Uuid::new_v4();
 /// let params = DataQueryParams {
 ///     series_id: employment_series_id,
-///     start_date: Some(NaiveDate::from_ymd(2023, 12, 1)),
-///     end_date: Some(NaiveDate::from_ymd(2024, 11, 30)),
+///     start_date: Some(NaiveDate::from_ymd_opt(2023, 12, 1).unwrap()),
+///     end_date: Some(NaiveDate::from_ymd_opt(2024, 11, 30).unwrap()),
 ///     original_only: Some(true),
 ///     latest_revision_only: Some(false),
 ///     limit: Some(12),
 ///     offset: Some(0),
 /// };
-/// let data_points = get_series_data(&pool, params).await?;
+/// let data_points = get_series_data(pool, params).await?;
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// # Data Quality Considerations

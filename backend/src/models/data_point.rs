@@ -28,14 +28,20 @@ use crate::schema::data_points;
 /// Indexes are maintained on `series_id`, `date`, and `revision_date` for optimal query performance.
 ///
 /// # Examples
-/// ```rust
+/// ```rust,no_run
+/// use econ_graph_backend::models::DataPoint;
+/// use uuid::Uuid;
+/// use chrono::{NaiveDate, Utc};
+/// use bigdecimal::BigDecimal;
+/// 
 /// // A GDP data point showing a quarterly observation
+/// let gdp_series_uuid = Uuid::new_v4();
 /// let gdp_point = DataPoint {
 ///     id: Uuid::new_v4(),
 ///     series_id: gdp_series_uuid,
-///     date: NaiveDate::from_ymd(2024, 3, 31), // Q1 2024
+///     date: NaiveDate::from_ymd_opt(2024, 3, 31).unwrap(), // Q1 2024
 ///     value: Some(BigDecimal::from(27_360_000_000_000i64)), // $27.36 trillion
-///     revision_date: NaiveDate::from_ymd(2024, 4, 25), // First estimate release
+///     revision_date: NaiveDate::from_ymd_opt(2024, 4, 25).unwrap(), // First estimate release
 ///     is_original_release: true,
 ///     created_at: Utc::now(),
 ///     updated_at: Utc::now(),
@@ -101,13 +107,20 @@ pub struct DataPoint {
 /// - Adding revised estimates for existing observation periods
 ///
 /// # Examples
-/// ```rust
+/// ```rust,no_run
+/// use econ_graph_backend::models::NewDataPoint;
+/// use uuid::Uuid;
+/// use chrono::NaiveDate;
+/// use bigdecimal::BigDecimal;
+/// use std::str::FromStr;
+/// 
 /// // Creating a new unemployment rate observation
+/// let unemployment_series_id = Uuid::new_v4();
 /// let new_point = NewDataPoint {
 ///     series_id: unemployment_series_id,
-///     date: NaiveDate::from_ymd(2024, 11, 30), // November 2024
+///     date: NaiveDate::from_ymd_opt(2024, 11, 30).unwrap(), // November 2024
 ///     value: Some(BigDecimal::from_str("4.1").unwrap()), // 4.1% unemployment
-///     revision_date: NaiveDate::from_ymd(2024, 12, 6), // Release date
+///     revision_date: NaiveDate::from_ymd_opt(2024, 12, 6).unwrap(), // Release date
 ///     is_original_release: true,
 /// };
 /// ```
@@ -151,11 +164,16 @@ pub struct NewDataPoint {
 /// supporting compliance and data governance requirements.
 ///
 /// # Examples
-/// ```rust
+/// ```rust,no_run
+/// use econ_graph_backend::models::UpdateDataPoint;
+/// use chrono::{NaiveDate, Utc};
+/// use bigdecimal::BigDecimal;
+/// use std::str::FromStr;
+/// 
 /// // Revising a GDP estimate from preliminary to final
 /// let revision = UpdateDataPoint {
 ///     value: Some(BigDecimal::from_str("27365000000000").unwrap()), // Revised up
-///     revision_date: Some(NaiveDate::from_ymd(2024, 6, 27)), // Final estimate date
+///     revision_date: Some(NaiveDate::from_ymd_opt(2024, 6, 27).unwrap()), // Final estimate date
 ///     is_original_release: Some(false), // This is now a revision
 ///     updated_at: Utc::now(),
 /// };
@@ -253,12 +271,17 @@ pub struct DataPointWithSeries {
 /// - Optional parameters reduce query complexity when not needed
 ///
 /// # Examples
-/// ```rust
+/// ```rust,no_run
+/// use econ_graph_backend::models::DataQueryParams;
+/// use uuid::Uuid;
+/// use chrono::NaiveDate;
+/// 
 /// // Query last 12 months of employment data, original releases only
+/// let employment_series_id = Uuid::new_v4();
 /// let params = DataQueryParams {
 ///     series_id: employment_series_id,
-///     start_date: Some(NaiveDate::from_ymd(2023, 12, 1)),
-///     end_date: Some(NaiveDate::from_ymd(2024, 11, 30)),
+///     start_date: Some(NaiveDate::from_ymd_opt(2023, 12, 1).unwrap()),
+///     end_date: Some(NaiveDate::from_ymd_opt(2024, 11, 30).unwrap()),
 ///     original_only: Some(true),
 ///     latest_revision_only: Some(false),
 ///     limit: Some(12),
@@ -479,8 +502,22 @@ impl DataPoint {
     /// - Long-term economic performance tracking
     ///
     /// # Examples
-    /// ```rust
-    /// let current_gdp = DataPoint { value: Some(BigDecimal::from(27360)), ..Default::default() };
+    /// ```rust,no_run
+    /// use econ_graph_backend::models::DataPoint;
+    /// use bigdecimal::BigDecimal;
+    /// use uuid::Uuid;
+    /// use chrono::{NaiveDate, Utc};
+    /// 
+    /// let current_gdp = DataPoint { 
+    ///     id: Uuid::new_v4(), 
+    ///     series_id: Uuid::new_v4(), 
+    ///     date: NaiveDate::from_ymd_opt(2024, 3, 31).unwrap(),
+    ///     value: Some(BigDecimal::from(27360)), 
+    ///     revision_date: NaiveDate::from_ymd_opt(2024, 4, 25).unwrap(),
+    ///     is_original_release: true,
+    ///     created_at: Utc::now(),
+    ///     updated_at: Utc::now(),
+    /// };
     /// let previous_year_gdp = Some(BigDecimal::from(26744));
     /// let yoy_growth = current_gdp.calculate_yoy_change(previous_year_gdp);
     /// // Result: Some(2.3) representing 2.3% growth
@@ -520,8 +557,22 @@ impl DataPoint {
     /// - Policy impact assessment over quarters
     ///
     /// # Examples
-    /// ```rust
-    /// let q2_gdp = DataPoint { value: Some(BigDecimal::from(27360)), ..Default::default() };
+    /// ```rust,no_run
+    /// use econ_graph_backend::models::DataPoint;
+    /// use bigdecimal::BigDecimal;
+    /// use uuid::Uuid;
+    /// use chrono::{NaiveDate, Utc};
+    /// 
+    /// let q2_gdp = DataPoint { 
+    ///     id: Uuid::new_v4(), 
+    ///     series_id: Uuid::new_v4(), 
+    ///     date: NaiveDate::from_ymd_opt(2024, 6, 30).unwrap(),
+    ///     value: Some(BigDecimal::from(27360)), 
+    ///     revision_date: NaiveDate::from_ymd_opt(2024, 7, 25).unwrap(),
+    ///     is_original_release: true,
+    ///     created_at: Utc::now(),
+    ///     updated_at: Utc::now(),
+    /// };
     /// let q1_gdp = BigDecimal::from(27100);
     /// let qoq_growth = q2_gdp.calculate_qoq_change(Some(&q1_gdp));
     /// // Result: Some(0.96) representing 0.96% quarterly growth
@@ -566,8 +617,22 @@ impl DataPoint {
     /// adjusted data for trend analysis.
     ///
     /// # Examples
-    /// ```rust
-    /// let nov_employment = DataPoint { value: Some(BigDecimal::from(157500)), ..Default::default() };
+    /// ```rust,no_run
+    /// use econ_graph_backend::models::DataPoint;
+    /// use bigdecimal::BigDecimal;
+    /// use uuid::Uuid;
+    /// use chrono::{NaiveDate, Utc};
+    /// 
+    /// let nov_employment = DataPoint { 
+    ///     id: Uuid::new_v4(), 
+    ///     series_id: Uuid::new_v4(), 
+    ///     date: NaiveDate::from_ymd_opt(2024, 11, 30).unwrap(),
+    ///     value: Some(BigDecimal::from(157500)), 
+    ///     revision_date: NaiveDate::from_ymd_opt(2024, 12, 6).unwrap(),
+    ///     is_original_release: true,
+    ///     created_at: Utc::now(),
+    ///     updated_at: Utc::now(),
+    /// };
     /// let oct_employment = BigDecimal::from(157300);
     /// let mom_change = nov_employment.calculate_mom_change(Some(&oct_employment));
     /// // Result: Some(0.13) representing 0.13% monthly employment growth

@@ -5,7 +5,21 @@
 // All imports at the top
 import '@testing-library/jest-dom';
 import 'whatwg-fetch'; // Polyfill for fetch in test environment
+import { configure } from '@testing-library/react';
 import { mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions } from './test-utils/mocks/data';
+
+// Configure React Testing Library for CI environment
+configure({ 
+  asyncUtilTimeout: 10000, // Increase timeout for CI environment
+  testIdAttribute: 'data-testid',
+});
+
+// Set Jest timeout for CI environment
+if (process.env.CI) {
+  jest.setTimeout(30000); // 30 seconds for CI
+} else {
+  jest.setTimeout(10000); // 10 seconds for local
+}
 
 // CRITICAL: Import polyfills FIRST before any other imports
 require('./test-utils/polyfills');
