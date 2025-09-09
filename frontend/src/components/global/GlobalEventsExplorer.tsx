@@ -21,7 +21,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Tooltip,
+  // Tooltip, // Unused but kept for future features
   Divider,
 } from '@mui/material';
 import {
@@ -32,12 +32,12 @@ import {
   Policy,
   Nature,
   TrendingDown,
-  TrendingUp,
+  // TrendingUp, // Unused but kept for future features
   Public,
   Schedule as TimelineIcon,
   Assessment,
   Warning,
-  Error,
+  // Error, // Unused but kept for future features
   Info,
 } from '@mui/icons-material';
 

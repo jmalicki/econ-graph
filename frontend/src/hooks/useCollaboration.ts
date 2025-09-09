@@ -14,7 +14,6 @@ import {
   ChartCollaboratorType,
   UserType,
   CreateAnnotationInput,
-  AddCommentInput,
   ShareChartInput,
   DeleteAnnotationInput,
   AnnotationsForSeriesResponse,

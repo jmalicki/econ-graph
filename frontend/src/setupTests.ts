@@ -2,13 +2,13 @@
 // PURPOSE: Configure testing environment with necessary polyfills and mocks
 // This ensures all tests have access to required testing utilities and API mocks
 
-// CRITICAL: Import polyfills FIRST before any other imports
-require('./test-utils/polyfills');
-
+// All imports at the top
 import '@testing-library/jest-dom';
 import 'whatwg-fetch'; // Polyfill for fetch in test environment
-// Mock GraphQL client directly instead of using MSW
 import { mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions } from './test-utils/mocks/data';
+
+// CRITICAL: Import polyfills FIRST before any other imports
+require('./test-utils/polyfills');
 
 // Mock the hook functions directly - this is simpler and more reliable
 jest.mock('./hooks/useSeriesData', () => ({

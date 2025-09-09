@@ -134,7 +134,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
 
   const [showEvents, setShowEvents] = useState(showEconomicEvents);
   const [showCorrelation, setShowCorrelation] = useState(false);
-  const [annotations] = useState<ChartAnnotation[]>([]);
+  // const [annotations] = useState<ChartAnnotation[]>([]); // Unused but kept for future features
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Calculate technical indicators

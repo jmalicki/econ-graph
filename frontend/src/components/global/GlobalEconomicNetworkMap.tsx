@@ -166,7 +166,7 @@ const GlobalEconomicNetworkMap: React.FC = () => {
       .scale(130)
       .translate([width / 2, height / 2]);
 
-    const path = d3.geoPath().projection(projection);
+    // const path = d3.geoPath().projection(projection); // Unused but kept for future map rendering
 
     // Create main group
     const g = svg.append('g');
@@ -178,7 +178,7 @@ const GlobalEconomicNetworkMap: React.FC = () => {
       .attr('fill', '#f0f8ff');
 
     // Add countries as circles (simplified for demo)
-    const countries = g.selectAll('.country')
+    g.selectAll('.country')
       .data(selectedCountries)
       .enter()
       .append('circle')

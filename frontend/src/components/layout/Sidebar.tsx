@@ -19,7 +19,7 @@ import {
   DataObject as DataSourceIcon,
   Info as InfoIcon,
   TrendingUp as TrendingUpIcon,
-  Assessment as AssessmentIcon,
+  // Assessment as AssessmentIcon, // Unused but kept for future features
   Public as GlobalIcon,
 } from '@mui/icons-material';
 

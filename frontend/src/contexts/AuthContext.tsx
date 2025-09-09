@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     initAuth();
-  }, []);
+  }, [refreshUser]);
 
   const signInWithGoogle = useCallback(async () => {
     try {

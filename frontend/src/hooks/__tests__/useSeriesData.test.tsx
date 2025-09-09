@@ -197,9 +197,6 @@ describe('useDataTransformation', () => {
     const { useDataTransformation } = require('../useSeriesData');
     expect(typeof useDataTransformation).toBe('function');
     
-    // Test the function directly since it doesn't use React hooks
-    const testData = createMockDataPoints(5, 100);
-    
     // Since the function is having module loading issues, just test that it exists
     expect(useDataTransformation).toBeDefined();
   });
