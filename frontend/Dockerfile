@@ -13,6 +13,18 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Set build-time environment variables
+ARG REACT_APP_API_URL
+ARG REACT_APP_GRAPHQL_URL
+ARG REACT_APP_WS_URL
+ARG NODE_ENV
+
+# Set environment variables for build
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV REACT_APP_GRAPHQL_URL=$REACT_APP_GRAPHQL_URL
+ENV REACT_APP_WS_URL=$REACT_APP_WS_URL
+ENV NODE_ENV=$NODE_ENV
+
 # Build the application
 RUN npm run build
 

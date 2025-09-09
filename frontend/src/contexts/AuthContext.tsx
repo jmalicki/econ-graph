@@ -48,7 +48,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // OAuth Configuration
 // Removed unused GOOGLE_CLIENT_ID constant
 const FACEBOOK_APP_ID = process.env.REACT_APP_FACEBOOK_APP_ID || '';
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 // Facebook SDK initialization
 declare global {
@@ -59,23 +59,44 @@ declare global {
 }
 
 const initFacebookSDK = () => {
-  return new Promise<void>(resolve => {
+  return new Promise<void>((resolve, reject) => {
+    // Set a timeout for Facebook SDK initialization
+    const timeout = setTimeout(() => {
+      reject(new Error('Facebook SDK initialization timeout'));
+    }, 10000); // 10 second timeout
+
     window.fbAsyncInit = () => {
-      window.FB.init({
-        appId: FACEBOOK_APP_ID,
-        cookie: true,
-        xfbml: true,
-        version: 'v18.0',
-      });
-      resolve();
+      try {
+        window.FB.init({
+          appId: FACEBOOK_APP_ID,
+          cookie: true,
+          xfbml: true,
+          version: 'v18.0',
+        });
+        clearTimeout(timeout);
+        resolve();
+      } catch (error) {
+        clearTimeout(timeout);
+        reject(new Error('Facebook SDK initialization failed'));
+      }
     };
 
-    // Load Facebook SDK
+    // Load Facebook SDK with error handling
     if (!document.getElementById('facebook-jssdk')) {
       const script = document.createElement('script');
       script.id = 'facebook-jssdk';
       script.src = 'https://connect.facebook.net/en_US/sdk.js';
+      script.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error('Failed to load Facebook SDK'));
+      };
       document.head.appendChild(script);
+    } else {
+      // SDK already loaded, check if FB is available
+      if (window.FB) {
+        clearTimeout(timeout);
+        resolve();
+      }
     }
   });
 };
@@ -137,8 +158,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Initialize Facebook SDK
-        await initFacebookSDK();
+        // Initialize Facebook SDK (non-blocking - don't fail if Facebook SDK fails)
+        try {
+          await initFacebookSDK();
+          console.log('Facebook SDK initialized successfully');
+        } catch (facebookError) {
+          console.warn('Facebook SDK initialization failed:', facebookError);
+          // Continue without Facebook SDK - it will be handled when user tries to use it
+        }
 
         // Check for existing session
         const token = localStorage.getItem('auth_token');
@@ -224,22 +251,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      await new Promise<void>((resolve, reject) => {
+      // Check if Facebook SDK is available
+      if (!window.FB) {
+        throw new Error('Facebook SDK not available. Please refresh the page and try again.');
+      }
+
+      // Facebook login with timeout
+      const loginResult = await new Promise<any>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Facebook login timeout. Please try again.'));
+        }, 30000); // 30 second timeout
+
         window.FB.login(
           (response: any) => {
+            clearTimeout(timeout);
             if (response.authResponse) {
-              resolve();
+              resolve(response);
             } else {
-              reject(new Error('Facebook login cancelled'));
+              reject(new Error('Facebook login cancelled or failed'));
             }
           },
           { scope: 'email,public_profile' }
         );
       });
 
-      // Get user info from Facebook
+      // Get user info from Facebook with timeout
       const userInfo = await new Promise<any>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Failed to get Facebook user info - timeout'));
+        }, 10000); // 10 second timeout
+
         window.FB.api('/me', { fields: 'id,name,email,picture' }, (response: any) => {
+          clearTimeout(timeout);
           if (response && !response.error) {
             resolve(response);
           } else {
@@ -266,7 +309,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (!response.ok) {
-        throw new Error('Facebook authentication failed');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Facebook authentication failed');
       }
 
       const authData = await response.json();

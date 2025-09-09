@@ -4,7 +4,7 @@
  * This enables professional multi-user collaboration with proper authentication
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -80,6 +80,22 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
     confirmPassword: '',
   });
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [isFacebookAvailable, setIsFacebookAvailable] = useState(false);
+
+  // Check if Facebook SDK is available
+  useEffect(() => {
+    const checkFacebookSDK = () => {
+      setIsFacebookAvailable(!!(window as any).FB);
+    };
+
+    // Check immediately
+    checkFacebookSDK();
+
+    // Check again after a short delay in case SDK is still loading
+    const timeout = setTimeout(checkFacebookSDK, 1000);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   const handleTabChange = useCallback(
     (event: React.SyntheticEvent, newValue: number) => {
@@ -145,30 +161,36 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
         await signUp(formData.email, formData.password, formData.name);
       }
 
+      // Only close dialog and call success callback if authentication was successful
       onSuccess?.();
       onClose();
     } catch (error) {
-      // Error is handled by the auth context
+      // Error is handled by the auth context - dialog stays open so user can read error
+      console.error('Authentication error:', error);
     }
   }, [formData, tabValue, signInWithEmail, signUp, validateForm, onSuccess, onClose]);
 
   const handleGoogleAuth = useCallback(async () => {
     try {
       await signInWithGoogle();
+      // Only close dialog and call success callback if authentication was successful
       onSuccess?.();
       onClose();
     } catch (error) {
-      // Error is handled by the auth context
+      // Error is handled by the auth context - dialog stays open so user can read error
+      console.error('Google authentication error:', error);
     }
   }, [signInWithGoogle, onSuccess, onClose]);
 
   const handleFacebookAuth = useCallback(async () => {
     try {
       await signInWithFacebook();
+      // Only close dialog and call success callback if authentication was successful
       onSuccess?.();
       onClose();
     } catch (error) {
-      // Error is handled by the auth context
+      // Error is handled by the auth context - dialog stays open so user can read error
+      console.error('Facebook authentication error:', error);
     }
   }, [signInWithFacebook, onSuccess, onClose]);
 
@@ -240,10 +262,10 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
             size='large'
             startIcon={<FacebookIcon />}
             onClick={handleFacebookAuth}
-            disabled={isLoading}
+            disabled={isLoading || !isFacebookAvailable}
             sx={{ textTransform: 'none', py: 1.5 }}
           >
-            Continue with Facebook
+            {isFacebookAvailable ? 'Continue with Facebook' : 'Facebook (Unavailable)'}
           </Button>
         </Box>
 

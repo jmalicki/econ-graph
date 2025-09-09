@@ -20,7 +20,12 @@ echo "✅ Backend image built successfully"
 # Build frontend image
 echo "📦 Building frontend image..."
 cd ../frontend
-docker build -t econ-graph-frontend:latest .
+docker build \
+  --build-arg REACT_APP_API_URL="" \
+  --build-arg REACT_APP_GRAPHQL_URL="/graphql" \
+  --build-arg REACT_APP_WS_URL="ws://localhost/graphql" \
+  --build-arg NODE_ENV="production" \
+  -t econ-graph-frontend:latest .
 echo "✅ Frontend image built successfully"
 
 # Load images into kind cluster

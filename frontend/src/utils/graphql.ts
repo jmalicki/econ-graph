@@ -4,7 +4,7 @@
  * This enables efficient data fetching with the Rust backend GraphQL API
  */
 
-const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT || '/graphql';
+const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_URL || '/graphql';
 
 export interface GraphQLResponse<T = any> {
   data?: T;
