@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: econ-graph-config
+  namespace: econ-graph
+data:
+  # Backend configuration
+  DATABASE_URL: "postgresql://postgres:password@postgres-service:5432/econ_graph"
+  RUST_LOG: "info"
+  JWT_SECRET: "your-jwt-secret-key-change-in-production"
+  CORS_ORIGIN: "http://localhost:3000"
+
+  # Frontend configuration
+  REACT_APP_API_URL: "http://localhost:8080"
+  REACT_APP_GRAPHQL_URL: "http://localhost:8080/graphql"
+  REACT_APP_WS_URL: "ws://localhost:8080/graphql"
+
+  # Environment
+  NODE_ENV: "development"

@@ -1,25 +1,32 @@
-# Multi-stage build for Rust backend
-FROM rust:1.75 as builder
+# Multi-stage Dockerfile for EconGraph Backend
+FROM rust:1.88-slim AS builder
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app directory
+# Set working directory
 WORKDIR /app
 
-# Copy manifests
-COPY backend/Cargo.toml backend/Cargo.lock ./
+# Copy Cargo files
+COPY Cargo.toml ./
+COPY Cargo.lock* ./
 
-# Copy source code
-COPY backend/src ./src
-COPY backend/diesel.toml ./
-COPY backend/migrations ./migrations
+# Create a dummy main.rs to build dependencies
+RUN mkdir src && echo "fn main() {}" > src/main.rs
 
-# Build application
+# Build dependencies (this layer will be cached)
+RUN cargo build --release
+
+# Remove dummy main.rs and copy actual source code
+RUN rm src/main.rs
+COPY src ./src
+COPY migrations ./migrations
+
+# Build the actual application
 RUN cargo build --release
 
 # Runtime stage
@@ -27,36 +34,32 @@ FROM debian:bookworm-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
+    ca-certificates \
     libssl3 \
     libpq5 \
-    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app user
-RUN useradd -m -u 1001 appuser
+# Create non-root user
+RUN useradd -r -s /bin/false econuser
 
-# Create app directory
+# Set working directory
 WORKDIR /app
 
 # Copy binary from builder stage
-COPY --from=builder /app/target/release/econ-graph-backend /app/
+COPY --from=builder /app/target/release/econ-graph-backend /app/econ-graph-backend
 
-# Copy migrations
-COPY --from=builder /app/migrations ./migrations
-COPY --from=builder /app/diesel.toml ./
+# Change ownership to non-root user
+RUN chown econuser:econuser /app/econ-graph-backend
 
-# Change ownership
-RUN chown -R appuser:appuser /app
-
-# Switch to app user
-USER appuser
+# Switch to non-root user
+USER econuser
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
-# Run the binary
+# Run the application
 CMD ["./econ-graph-backend"]

@@ -1,0 +1,17 @@
+# Cargo configuration for optimized test execution
+[build]
+# Use all available CPU cores for compilation
+jobs = 12
+
+[test]
+# Optimize test execution
+# Tests already run in parallel by default, but we can optimize further
+
+# Environment variables for test optimization
+[env]
+# Use all CPU cores for test execution
+RUST_TEST_THREADS = "12"
+
+# Optimize for faster test execution
+RUST_BACKTRACE = "0"  # Disable backtraces for faster execution
+RUST_LOG = "warn"     # Reduce logging verbosity during tests

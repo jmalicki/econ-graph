@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: econ-graph
+  labels:
+    name: econ-graph
+    app: econ-graph

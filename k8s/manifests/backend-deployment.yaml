@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: econ-graph-backend
+  namespace: econ-graph
+  labels:
+    app: econ-graph-backend
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: econ-graph-backend
+  template:
+    metadata:
+      labels:
+        app: econ-graph-backend
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: econ-graph-backend:latest
+        imagePullPolicy: Never  # Use local image
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: econ-graph-config
+              key: DATABASE_URL
+        - name: RUST_LOG
+          valueFrom:
+            configMapKeyRef:
+              name: econ-graph-config
+              key: RUST_LOG
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: econ-graph-secrets
+              key: jwt-secret
+        - name: CORS_ORIGIN
+          valueFrom:
+            configMapKeyRef:
+              name: econ-graph-config
+              key: CORS_ORIGIN
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: econ-graph-secrets
+              key: google-client-id
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: econ-graph-secrets
+              key: google-client-secret
+        - name: FACEBOOK_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: econ-graph-secrets
+              key: facebook-app-id
+        - name: FACEBOOK_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: econ-graph-secrets
+              key: facebook-app-secret
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: econ-graph-backend-service
+  namespace: econ-graph
+  labels:
+    app: econ-graph-backend
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080
+    protocol: TCP
+    name: http
+  selector:
+    app: econ-graph-backend

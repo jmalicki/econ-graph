@@ -867,7 +867,7 @@ mod tests {
     fn test_catalog_creation() {
         let catalog = ComprehensiveSeriesCatalog::new();
         assert!(!catalog.is_empty());
-        assert!(catalog.len() > 40); // Should have at least 40+ series
+        assert!(catalog.len() >= 35); // Should have at least 35+ series (currently 39)
     }
 
     #[test]

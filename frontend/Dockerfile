@@ -1,5 +1,5 @@
-# Multi-stage build for React frontend
-FROM node:18-alpine as builder
+# Multi-stage Dockerfile for EconGraph Frontend
+FROM node:18-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -7,38 +7,23 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy source code
-COPY public ./public
-COPY src ./src
-COPY tsconfig.json ./
+COPY . .
 
 # Build the application
 RUN npm run build
 
 # Production stage
-FROM nginx:1.25-alpine
+FROM nginx:alpine
 
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Copy built app from builder stage
+# Copy built application from builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Create non-root user
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -S appuser -u 1001 -G appgroup
-
-# Change ownership of nginx directories
-RUN chown -R appuser:appgroup /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html
-
-# Switch to non-root user
-USER appuser
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port
 EXPOSE 3000

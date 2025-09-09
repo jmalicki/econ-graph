@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: econ-graph-frontend
+  namespace: econ-graph
+  labels:
+    app: econ-graph-frontend
+    component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: econ-graph-frontend
+  template:
+    metadata:
+      labels:
+        app: econ-graph-frontend
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: econ-graph-frontend:latest
+        imagePullPolicy: Never  # Use local image
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: REACT_APP_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: econ-graph-config
+              key: REACT_APP_API_URL
+        - name: REACT_APP_GRAPHQL_URL
+          valueFrom:
+            configMapKeyRef:
+              name: econ-graph-config
+              key: REACT_APP_GRAPHQL_URL
+        - name: REACT_APP_WS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: econ-graph-config
+              key: REACT_APP_WS_URL
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: econ-graph-config
+              key: NODE_ENV
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: econ-graph-frontend-service
+  namespace: econ-graph
+  labels:
+    app: econ-graph-frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30000
+    protocol: TCP
+    name: http
+  selector:
+    app: econ-graph-frontend
