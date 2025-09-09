@@ -25,6 +25,7 @@ import {
   ExitToApp as ExitToAppIcon,
   Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import LoginDialog from '../auth/LoginDialog';
 import UserProfile from '../auth/UserProfile';
@@ -78,6 +79,7 @@ interface HeaderProps {
  */
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { user, isAuthenticated, signOut } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -92,8 +94,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     if (searchQuery.trim()) {
       // REQUIREMENT: Search functionality similar to FRED
       // Navigate to search results page with the query
-      window.location.href = `/explore?q=${encodeURIComponent(searchQuery.trim())}`;
+      navigate(`/explore?q=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const handleLogoClick = () => {
+    navigate('/');
   };
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -136,7 +142,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           </IconButton>
 
           {/* Application title and logo */}
-          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 0 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              flexGrow: 0,
+              cursor: 'pointer',
+              '&:hover': {
+                opacity: 0.8,
+              },
+            }}
+            onClick={handleLogoClick}
+          >
             <TrendingUpIcon sx={{ mr: 1 }} />
             <Typography
               variant='h6'
@@ -179,7 +196,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <Button
                   color='inherit'
                   startIcon={<AnalyticsIcon />}
-                  href='/analysis'
+                  onClick={() => navigate('/analysis')}
                   sx={{ display: { xs: 'none', md: 'flex' } }}
                 >
                   Professional Analysis

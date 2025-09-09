@@ -722,36 +722,38 @@ const SeriesExplorer: React.FC = () => {
 
           {/* Action buttons */}
           <Grid item xs={12} sm={6} md={2}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Button
                 variant='contained'
                 size='large'
                 onClick={handleSearch}
                 disabled={isLoading}
                 startIcon={isLoading ? <CircularProgress size={16} /> : <SearchIcon />}
-                sx={{ flexGrow: 1 }}
+                fullWidth
               >
                 Search
               </Button>
-              <Button
-                variant='outlined'
-                size='small'
-                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                startIcon={<FilterIcon />}
-                sx={{ mr: 1 }}
-                data-testid='filters-button'
-              >
-                Filters
-              </Button>
-              <Tooltip title='Advanced Search'>
-                <IconButton
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant='outlined'
+                  size='small'
                   onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                  color={showAdvancedSearch ? 'primary' : 'default'}
-                  aria-label='Advanced Search'
+                  startIcon={<FilterIcon />}
+                  sx={{ flexGrow: 1 }}
+                  data-testid='filters-button'
                 >
-                  <AdvancedIcon />
-                </IconButton>
-              </Tooltip>
+                  Filters
+                </Button>
+                <Tooltip title='Advanced Search'>
+                  <IconButton
+                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                    color={showAdvancedSearch ? 'primary' : 'default'}
+                    aria-label='Advanced Search'
+                  >
+                    <AdvancedIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
           </Grid>
         </Grid>

@@ -46,7 +46,7 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // OAuth Configuration
-// Removed unused GOOGLE_CLIENT_ID constant
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const FACEBOOK_APP_ID = process.env.REACT_APP_FACEBOOK_APP_ID || '';
 const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
@@ -197,18 +197,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      // Mock Google authentication for demo purposes
-      // In production, this would use Google OAuth web flow
-      const result = {
-        id: 'google-demo-user-123',
-        email: 'demo@econgraph.com',
-        name: 'Demo Google User',
-        imageUrl: 'https://via.placeholder.com/100',
-        authentication: {
-          idToken: 'demo-id-token',
-          accessToken: 'demo-access-token',
-        },
-      };
+      // Check if Google Client ID is configured
+      let result: any;
+      if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === '') {
+        // Demo mode when Google Client ID is not configured
+        result = {
+          id: 'google-demo-user-123',
+          email: 'demo@econgraph.com',
+          name: 'Demo Google User',
+          imageUrl: 'https://via.placeholder.com/100',
+          authentication: {
+            idToken: 'demo-id-token',
+            accessToken: 'demo-access-token',
+          },
+        };
+      } else {
+        // Real Google OAuth flow
+        result = await new Promise((resolve, reject) => {
+          // Load Google Identity Services
+          if (typeof (window as any).google === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.onload = () => {
+              (window as any).google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: (response: any) => {
+                  try {
+                    // Decode the JWT token to get user info
+                    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                    resolve({
+                      id: payload.sub,
+                      email: payload.email,
+                      name: payload.name,
+                      imageUrl: payload.picture,
+                      authentication: {
+                        idToken: response.credential,
+                        accessToken: response.credential,
+                      },
+                    });
+                  } catch (error) {
+                    reject(error);
+                  }
+                },
+              });
+              (window as any).google.accounts.id.prompt();
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+          } else {
+            (window as any).google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID,
+              callback: (response: any) => {
+                try {
+                  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                  resolve({
+                    id: payload.sub,
+                    email: payload.email,
+                    name: payload.name,
+                    imageUrl: payload.picture,
+                    authentication: {
+                      idToken: response.credential,
+                      accessToken: response.credential,
+                    },
+                  });
+                } catch (error) {
+                  reject(error);
+                }
+              },
+            });
+            (window as any).google.accounts.id.prompt();
+          }
+        });
+      }
 
       if (result) {
         // Send Google token to backend for verification and user creation/login

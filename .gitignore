@@ -43,6 +43,9 @@
 .env.test
 .env.production
 
+# Secrets file - contains sensitive configuration
+secrets.env
+
 # IDE
 .vscode/
 .idea/
