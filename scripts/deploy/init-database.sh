@@ -10,14 +10,18 @@ echo "🗄️  Initializing PostgreSQL database for EconGraph..."
 # Database configuration
 DB_NAME="econ_graph"
 DB_USER="postgres"
-DB_PASSWORD="password"
-DB_HOST="localhost"
-DB_PORT="5432"
+DB_PASSWORD="${POSTGRES_PASSWORD:-password}"
+DB_HOST="${POSTGRES_HOST:-localhost}"
+DB_PORT="${POSTGRES_PORT:-5432}"
+
+# Set password environment variable to avoid prompts
+export PGPASSWORD="$DB_PASSWORD"
 
 # Check if PostgreSQL is running
 if ! pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER; then
     echo "❌ PostgreSQL is not running or not accessible at $DB_HOST:$DB_PORT"
     echo "Please make sure PostgreSQL is running and accessible."
+    echo "You can set the password with: export POSTGRES_PASSWORD=your_password"
     exit 1
 fi
 
