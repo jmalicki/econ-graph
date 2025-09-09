@@ -7,11 +7,10 @@
 #[cfg(test)]
 mod collaboration_integration_tests {
     use crate::{
-        database::DatabasePool,
+        database::{DatabasePool, create_pool},
         services::{CollaborationService, collaboration_service::PermissionLevel},
         models::{User, NewUser},
         error::AppResult,
-        test_utils::get_test_pool,
     };
     use chrono::{NaiveDate, Utc};
     use bigdecimal::BigDecimal;
@@ -19,6 +18,27 @@ mod collaboration_integration_tests {
     use diesel::prelude::*;
     use diesel_async::RunQueryDsl;
     use std::str::FromStr;
+    use testcontainers::{runners::AsyncRunner};
+    use testcontainers_modules::postgres::Postgres;
+
+    /// Create a test database pool with proper container lifecycle management
+    /// Returns (container, pool) - the container must be kept alive for the test duration
+    async fn create_test_pool() -> (testcontainers::ContainerAsync<Postgres>, DatabasePool) {
+        let postgres_container = Postgres::default().start().await.unwrap();
+        let connection_string = format!(
+            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
+            postgres_container.get_host_port_ipv4(5432).await.unwrap()
+        );
+        
+        let pool = create_pool(&connection_string).await
+            .expect("Failed to create connection pool");
+            
+        // Run migrations
+        crate::database::run_migrations(&connection_string).await
+            .expect("Failed to run migrations");
+            
+        (postgres_container, pool)
+    }
 
     /// Create a test user for collaboration tests
     async fn create_test_user(pool: &DatabasePool, email: &str, name: &str) -> AppResult<User> {
@@ -53,7 +73,7 @@ mod collaboration_integration_tests {
 
     #[tokio::test]
     async fn test_create_and_retrieve_annotation() -> AppResult<()> {
-        let pool = get_test_pool().await;
+        let (_container, pool) = create_test_pool().await;
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create test user
@@ -97,7 +117,7 @@ mod collaboration_integration_tests {
 
     #[tokio::test]
     async fn test_annotation_visibility_permissions() -> AppResult<()> {
-        let pool = get_test_pool().await;
+        let (_container, pool) = create_test_pool().await;
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create test users
@@ -161,7 +181,7 @@ mod collaboration_integration_tests {
 
     #[tokio::test]
     async fn test_annotation_comments_workflow() -> AppResult<()> {
-        let pool = get_test_pool().await;
+        let (_container, pool) = create_test_pool().await;
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create test users
@@ -186,15 +206,15 @@ mod collaboration_integration_tests {
 
         // Add comment by user2
         let comment1 = collaboration_service.add_comment(
-            annotation.id,
             user2.id,
+            annotation.id,
             "I think this shows strong growth momentum.".to_string(),
         ).await?;
 
         // Add reply by user1
         let comment2 = collaboration_service.add_comment(
-            annotation.id,
             user1.id,
+            annotation.id,
             "Good point! The underlying fundamentals support this view.".to_string(),
         ).await?;
 
@@ -216,7 +236,7 @@ mod collaboration_integration_tests {
 
     #[tokio::test]
     async fn test_chart_sharing_and_permissions() -> AppResult<()> {
-        let pool = get_test_pool().await;
+        let (_container, pool) = create_test_pool().await;
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create test users
@@ -264,7 +284,7 @@ mod collaboration_integration_tests {
 
     #[tokio::test]
     async fn test_annotation_deletion_permissions() -> AppResult<()> {
-        let pool = get_test_pool().await;
+        let (_container, pool) = create_test_pool().await;
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create test users
@@ -307,7 +327,7 @@ mod collaboration_integration_tests {
 
     #[tokio::test]
     async fn test_collaboration_workflow_end_to_end() -> AppResult<()> {
-        let pool = get_test_pool().await;
+        let (_container, pool) = create_test_pool().await;
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create test users representing different roles
@@ -349,8 +369,8 @@ mod collaboration_integration_tests {
 
         // 3. Manager adds strategic commentary
         let manager_comment = collaboration_service.add_comment(
-            initial_annotation.id,
             manager.id,
+            initial_annotation.id,
             "This aligns with our Q1 investment thesis. Consider increasing allocation to growth sectors.".to_string(),
         ).await?;
 
@@ -369,8 +389,8 @@ mod collaboration_integration_tests {
 
         // 5. Analyst responds to manager's comment
         let analyst_response = collaboration_service.add_comment(
-            initial_annotation.id,
             analyst.id,
+            initial_annotation.id,
             "Agreed. I'll prepare sector allocation recommendations for the next portfolio review.".to_string(),
         ).await?;
 
@@ -419,7 +439,7 @@ mod collaboration_integration_tests {
 
     #[tokio::test]
     async fn test_collaboration_performance_and_scale() -> AppResult<()> {
-        let pool = get_test_pool().await;
+        let (_container, pool) = create_test_pool().await;
         let collaboration_service = CollaborationService::new(pool.clone());
 
         // Create multiple users
@@ -475,8 +495,8 @@ mod collaboration_integration_tests {
         
         futures::future::try_join_all(users.iter().map(|user| {
             collaboration_service.add_comment(
-                annotations[0].id,
                 user.id,
+                annotations[0].id,
                 format!("Performance test comment from user {}", user.name),
             )
         })).await?;
