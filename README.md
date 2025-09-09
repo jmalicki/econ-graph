@@ -7,16 +7,24 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-blue)](https://github.com/jmalicki/econ-graph/tree/main/frontend)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎬 **COMPREHENSIVE INVESTOR DEMO**
+## 🎬 **FULLY AUTOMATED 20-MINUTE INVESTOR VIDEO**
 
-> **Professional 20-minute investor video demo with British narration**
+> **🚀 COMPLETELY AUTOMATED: Professional investor demo with live preview - just sit back and watch!**
 
-### 🏆 **NEW: Full 20-Minute Investor Video Demo - Complete Presentation**
-[![EconGraph 20-Minute Investor Demo](https://img.shields.io/badge/🏆%20Create%2020--Minute%20Video%20Demo-Professional%20Presentation-gold?style=for-the-badge&logo=video)](./demo-tools/create-full-20-minute-video-demo.sh)
+### 🏆 **NEW: Fully Automated 20-Minute Investor Video with LIVE PREVIEW**
+[![EconGraph Automated Investor Demo](https://img.shields.io/badge/🎬%20AUTOMATED%20VIDEO%20DEMO-Live%20Preview%20%7C%20Just%20Watch!-red?style=for-the-badge&logo=video&logoColor=white)](./demo-tools/create-automated-20min-investor-video.sh)
 
-**[🎯 Create Your 20-Minute Video Demo Now](./demo-tools/create-full-20-minute-video-demo.sh)**
+**[🎯 RUN AUTOMATED VIDEO NOW - NO WORK REQUIRED!](./demo-tools/create-automated-20min-investor-video.sh)**
 
-> **💼 PROFESSIONAL INVESTOR PRESENTATION: Complete 20-minute video demo creation tool with British-accented narration, live UI demonstration, and comprehensive business case. Run the script to launch the app and narration, then record your screen to create the final video.**
+> **🤖 FULLY AUTOMATED SYSTEM: Complete 20-minute investor demo that runs itself! Features professional British narration, automated UI interactions, live preview in QuickTime, and comprehensive business presentation. Just run the script and watch - perfect for investors, board meetings, and customer demos.**
+
+### ✨ **What You Get Automatically:**
+- **📹 Live Preview**: Watch recording happen in real-time in QuickTime
+- **🎵 Professional Narration**: 7.7-minute British-accented investor pitch  
+- **🤖 Automated UI**: Fully scripted React app interactions with visual feedback
+- **💼 Business Focus**: Market analysis ($8.2B opportunity), technical depth, ROI
+- **👁️ Visual Overlays**: Live status updates and progress tracking during demo
+- **🚀 Zero Setup**: Automatic backend/frontend startup and browser automation
 
 **🎯 Full 20-Minute Structure:**
 - **[0-4min]** Opening & Market Analysis (landing page, $8.2B market opportunity, disruption)
