@@ -1,0 +1,92 @@
+# EconGraph Pre-commit Configuration
+# Ensures code quality and formatting consistency across all commits
+# Run: pre-commit install (to set up hooks)
+# Run: pre-commit run --all-files (to check all files)
+
+repos:
+  # Rust formatting and linting
+  - repo: local
+    hooks:
+      - id: rust-fmt
+        name: Rust Format Check
+        entry: bash -c 'cd backend && cargo fmt --all -- --check'
+        language: system
+        files: '^backend/.*\.rs$'
+        pass_filenames: false
+
+      - id: rust-clippy
+        name: Rust Clippy Lints
+        entry: bash -c 'cd backend && cargo clippy --all-targets --all-features -- -D warnings -A unused_imports -A dead_code -A clippy::empty_line_after_doc_comments -A clippy::explicit_auto_deref -A clippy::unused_enumerate_index -A clippy::manual_range_contains -A clippy::unnecessary_map_or -A clippy::inherent_to_string -A clippy::too_many_arguments -A clippy::uninlined_format_args -A clippy::needless_borrow -A unused_variables -A clippy::if_same_then_else -A clippy::assertions_on_constants -A clippy::useless_vec -A clippy::overly_complex_bool_expr -A clippy::manual_clamp -A clippy::upper_case_acronyms -A unused_must_use -A unused_mut -A clippy::derivable_impls'
+        language: system
+        files: '^backend/.*\.rs$'
+        pass_filenames: false
+
+  # Frontend formatting and linting
+  - repo: local
+    hooks:
+      - id: frontend-prettier
+        name: Frontend Prettier Check
+        entry: bash -c 'cd frontend && npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"'
+        language: system
+        files: '^frontend/src/.*\.(ts|tsx|js|jsx|json|css|md)$'
+        pass_filenames: false
+
+      - id: frontend-eslint
+        name: Frontend ESLint Check
+        entry: bash -c 'cd frontend && npx eslint "src/**/*.{ts,tsx,js,jsx}" --max-warnings 10'
+        language: system
+        files: '^frontend/src/.*\.(ts|tsx|js|jsx)$'
+        pass_filenames: false
+
+      - id: typescript-check
+        name: TypeScript Compilation Check
+        entry: bash -c 'cd frontend && npx tsc --noEmit'
+        language: system
+        files: '^frontend/.*\.(ts|tsx)$'
+        pass_filenames: false
+
+  # General file quality checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^(.*\.md|.*\.txt)$'
+      - id: end-of-file-fixer
+        exclude: '^(.*\.md|.*\.txt|.*\.mp4|.*\.aiff|.*\.wav)$'
+      - id: check-yaml
+      - id: check-json
+        exclude: '^frontend/package.*\.json$'  # package.json can have comments
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=5000']  # 5MB limit
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Markdown and documentation
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--disable', 'MD013', 'MD041', '--']  # Disable line length and first line rules
+
+  # Security checks
+  - repo: local
+    hooks:
+      - id: rust-audit
+        name: Rust Security Audit
+        entry: bash -c 'cd backend && cargo audit'
+        language: system
+        files: '^backend/Cargo\.(toml|lock)$'
+        pass_filenames: false
+
+      - id: npm-audit
+        name: NPM Security Audit
+        entry: bash -c 'cd frontend && npm audit --audit-level moderate'
+        language: system
+        files: '^frontend/package.*\.json$'
+        pass_filenames: false
+
+# Global configuration
+default_install_hook_types: [pre-commit, pre-push]
+fail_fast: false  # Continue running hooks even if one fails
