@@ -1,3 +1,6 @@
+-- Enable required PostgreSQL extensions
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Create data_sources table
 CREATE TABLE data_sources (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

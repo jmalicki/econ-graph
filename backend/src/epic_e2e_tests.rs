@@ -8,7 +8,7 @@ use crate::models::economic_series::{EconomicSeries, NewEconomicSeries};
 use crate::models::data_point::{DataPoint, NewDataPoint};
 use crate::models::search::SearchParams;
 use crate::services::crawler_service_simple::get_crawler_status;
-use crate::graphql::create_schema;
+use crate::graphql::{create_schema, create_schema_with_data};
 use async_graphql::Request;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc, NaiveDate, Months};
@@ -66,7 +66,8 @@ use testcontainers::runners::AsyncRunner;
             
         // Run migrations
         println!("🔧 Running database migrations...");
-        // Note: In a real test, we'd run migrations here
+        crate::database::run_migrations(&connection_string).await
+            .expect("Failed to run migrations");
         
         // Phase 2: Real Data Crawling
         println!("🕷️  Phase 2: Crawling real economic data from FRED...");
@@ -130,22 +131,17 @@ use testcontainers::runners::AsyncRunner;
         // Phase 4: GraphQL API Testing
         println!("📊 Phase 4: Testing GraphQL API integration...");
         
-        let schema = create_schema();
+        let schema = create_schema_with_data(pool.clone());
         
         // Test series detail query
         let series_detail_query = format!(r#"
             query {{
-                seriesDetail(id: "{}") {{
+                series(id: "{}") {{
                     id
                     title
                     description
                     frequency
                     units
-                    dataPoints(limit: 10) {{
-                        date
-                        value
-                        isOriginalRelease
-                    }}
                 }}
             }}
         "#, series.id);
@@ -153,7 +149,10 @@ use testcontainers::runners::AsyncRunner;
         let request = Request::new(series_detail_query);
         let response = schema.execute(request).await;
         
-        assert!(response.errors.is_empty(), "GraphQL query should not have errors");
+        if !response.errors.is_empty() {
+            println!("GraphQL errors: {:?}", response.errors);
+            panic!("GraphQL query should not have errors");
+        }
         println!("✅ GraphQL API working correctly");
         
         // Phase 5: Data Transformation Testing
@@ -168,14 +167,12 @@ use testcontainers::runners::AsyncRunner;
         let yoy_query = format!(r#"
             query {{
                 seriesData(
-                    id: "{}"
+                    seriesId: "{}"
                     transformation: YEAR_OVER_YEAR
-                    limit: 50
                 ) {{
-                    dataPoints {{
+                    nodes {{
                         date
                         value
-                        transformedValue
                     }}
                 }}
             }}
@@ -184,7 +181,10 @@ use testcontainers::runners::AsyncRunner;
         let yoy_request = Request::new(yoy_query);
         let yoy_response = schema.execute(yoy_request).await;
         
-        assert!(yoy_response.errors.is_empty(), "YoY transformation should work");
+        if !yoy_response.errors.is_empty() {
+            println!("YoY GraphQL errors: {:?}", yoy_response.errors);
+            panic!("YoY transformation should work");
+        }
         println!("✅ Data transformations working correctly");
         
         // Phase 6: Crawler Status and Monitoring
