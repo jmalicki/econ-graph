@@ -3,7 +3,6 @@
  * PURPOSE: Handle HTTP requests for authentication endpoints
  * This provides REST API endpoints for Google, Facebook, and email authentication
  */
-
 use crate::auth::models::*;
 use crate::auth::services::AuthService;
 use crate::error::AppError;
@@ -76,10 +75,7 @@ pub async fn handle_google_auth(
         user: UserResponse::from(user),
     };
 
-    Ok(reply::with_status(
-        reply::json(&response),
-        StatusCode::OK,
-    ))
+    Ok(reply::with_status(reply::json(&response), StatusCode::OK))
 }
 
 /// Handle Facebook OAuth authentication
@@ -111,7 +107,9 @@ pub async fn handle_facebook_auth(
         .create_or_update_oauth_user(
             AuthProvider::Facebook,
             facebook_user_info.id,
-            facebook_user_info.email.unwrap_or_else(|| format!("fb_user_{}@econgraph.com", facebook_id)),
+            facebook_user_info
+                .email
+                .unwrap_or_else(|| format!("fb_user_{}@econgraph.com", facebook_id)),
             facebook_user_info.name,
             facebook_user_info.picture.map(|p| p.data.url),
         )
@@ -150,10 +148,7 @@ pub async fn handle_facebook_auth(
         user: UserResponse::from(user),
     };
 
-    Ok(reply::with_status(
-        reply::json(&response),
-        StatusCode::OK,
-    ))
+    Ok(reply::with_status(reply::json(&response), StatusCode::OK))
 }
 
 /// Handle email/password login
@@ -210,10 +205,7 @@ pub async fn handle_login(
         user: UserResponse::from(user),
     };
 
-    Ok(reply::with_status(
-        reply::json(&response),
-        StatusCode::OK,
-    ))
+    Ok(reply::with_status(reply::json(&response), StatusCode::OK))
 }
 
 /// Handle user registration

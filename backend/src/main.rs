@@ -23,8 +23,8 @@ mod test_utils;
 #[cfg(test)]
 mod integration_tests;
 
-use auth::services::AuthService;
 use auth::routes::auth_routes;
+use auth::services::AuthService;
 use config::Config;
 use database::{create_pool, DatabasePool};
 use error::{AppError, AppResult};

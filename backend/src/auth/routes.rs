@@ -3,7 +3,6 @@
  * PURPOSE: Define REST API routes for authentication endpoints
  * This provides the HTTP routes that the frontend expects for authentication
  */
-
 use crate::auth::handlers::*;
 use crate::auth::middleware::{handle_auth_rejection, with_auth};
 use crate::auth::models::*;

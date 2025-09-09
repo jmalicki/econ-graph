@@ -3,7 +3,6 @@
  * PURPOSE: Define user authentication data structures and JWT tokens
  * This enables secure user management with OAuth providers
  */
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -72,8 +71,8 @@ pub struct Claims {
     pub email: String,
     pub name: String,
     pub role: UserRole,
-    pub exp: usize, // Expiration time
-    pub iat: usize, // Issued at
+    pub exp: usize,  // Expiration time
+    pub iat: usize,  // Issued at
     pub iss: String, // Issuer
 }
 

@@ -3,7 +3,6 @@
  * PURPOSE: Provide JWT token generation, OAuth verification, and user management
  * This enables secure authentication with Google and Facebook OAuth backends
  */
-
 use crate::auth::models::*;
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
@@ -37,10 +36,10 @@ pub struct AuthService {
 impl AuthService {
     /// Create new authentication service
     pub fn new(db_pool: DatabasePool) -> Self {
-        let google_client_id = env::var("GOOGLE_CLIENT_ID")
-            .unwrap_or_else(|_| "your-google-client-id".to_string());
-        let facebook_app_id = env::var("FACEBOOK_APP_ID")
-            .unwrap_or_else(|_| "your-facebook-app-id".to_string());
+        let google_client_id =
+            env::var("GOOGLE_CLIENT_ID").unwrap_or_else(|_| "your-google-client-id".to_string());
+        let facebook_app_id =
+            env::var("FACEBOOK_APP_ID").unwrap_or_else(|_| "your-facebook-app-id".to_string());
 
         AuthService {
             db_pool,
@@ -97,12 +96,9 @@ impl AuthService {
             token
         );
 
-        let response = self
-            .http_client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::AuthenticationError(format!("Google token verification failed: {}", e)))?;
+        let response = self.http_client.get(&url).send().await.map_err(|e| {
+            AppError::AuthenticationError(format!("Google token verification failed: {}", e))
+        })?;
 
         if !response.status().is_success() {
             return Err(AppError::AuthenticationError(
@@ -110,10 +106,9 @@ impl AuthService {
             ));
         }
 
-        let token_info: serde_json::Value = response
-            .json()
-            .await
-            .map_err(|e| AppError::AuthenticationError(format!("Failed to parse Google response: {}", e)))?;
+        let token_info: serde_json::Value = response.json().await.map_err(|e| {
+            AppError::AuthenticationError(format!("Failed to parse Google response: {}", e))
+        })?;
 
         // Verify audience (client ID)
         if let Some(audience) = token_info.get("audience") {
@@ -135,12 +130,13 @@ impl AuthService {
             .get(&user_info_url)
             .send()
             .await
-            .map_err(|e| AppError::AuthenticationError(format!("Failed to get Google user info: {}", e)))?;
+            .map_err(|e| {
+                AppError::AuthenticationError(format!("Failed to get Google user info: {}", e))
+            })?;
 
-        let user_info: GoogleUserInfo = user_response
-            .json()
-            .await
-            .map_err(|e| AppError::AuthenticationError(format!("Failed to parse Google user info: {}", e)))?;
+        let user_info: GoogleUserInfo = user_response.json().await.map_err(|e| {
+            AppError::AuthenticationError(format!("Failed to parse Google user info: {}", e))
+        })?;
 
         Ok(user_info)
     }
@@ -202,8 +198,9 @@ impl AuthService {
         name: String,
     ) -> AppResult<User> {
         // Hash password
-        let password_hash = PasswordHash::new(&password)
-            .map_err(|e| AppError::AuthenticationError(format!("Failed to hash password: {}", e)))?;
+        let password_hash = PasswordHash::new(&password).map_err(|e| {
+            AppError::AuthenticationError(format!("Failed to hash password: {}", e))
+        })?;
 
         // In a real implementation, this would check if user exists and store in database
         let user = User {
@@ -296,7 +293,8 @@ impl AuthService {
     /// Refresh user data
     pub async fn refresh_user(&self, user_id: Uuid) -> AppResult<User> {
         // In a real implementation, this would fetch fresh user data from database
-        self.get_user_by_id(user_id).await?
+        self.get_user_by_id(user_id)
+            .await?
             .ok_or_else(|| AppError::AuthenticationError("User not found".to_string()))
     }
 }

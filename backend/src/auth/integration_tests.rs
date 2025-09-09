@@ -18,7 +18,7 @@ mod tests {
     async fn create_test_pool() -> DatabasePool {
         let database_url = std::env::var("TEST_DATABASE_URL")
             .unwrap_or_else(|_| "postgresql://localhost:5432/econ_graph_test".to_string());
-        
+
         create_pool(&database_url)
             .await
             .expect("Failed to create test database pool")
@@ -29,7 +29,7 @@ mod tests {
     async fn test_auth_service_creation() {
         let pool = create_test_pool().await;
         let auth_service = AuthService::new(pool);
-        
+
         // Service should be created successfully
         assert!(!auth_service.google_client_id.is_empty());
         assert!(!auth_service.facebook_app_id.is_empty());
@@ -40,7 +40,7 @@ mod tests {
     async fn test_jwt_token_flow() {
         let pool = create_test_pool().await;
         let auth_service = AuthService::new(pool);
-        
+
         // Create a test user
         let user = User {
             id: Uuid::new_v4(),
@@ -58,16 +58,18 @@ mod tests {
         };
 
         // Generate token
-        let token = auth_service.generate_token(&user)
+        let token = auth_service
+            .generate_token(&user)
             .expect("Should generate token successfully");
-        
+
         assert!(!token.is_empty());
         println!("Generated JWT token: {}", token);
 
         // Verify token
-        let claims = auth_service.verify_token(&token)
+        let claims = auth_service
+            .verify_token(&token)
             .expect("Should verify token successfully");
-        
+
         assert_eq!(claims.email, user.email);
         assert_eq!(claims.name, user.name);
         assert_eq!(claims.role, user.role);
@@ -79,10 +81,10 @@ mod tests {
     async fn test_google_oauth_flow() {
         let pool = create_test_pool().await;
         let auth_service = AuthService::new(pool);
-        
+
         // Note: In a real test, you would mock the HTTP client
         // For now, we'll test the user creation flow
-        
+
         let google_user_info = GoogleUserInfo {
             id: "google-123456789".to_string(),
             email: "googleuser@gmail.com".to_string(),
@@ -91,13 +93,16 @@ mod tests {
             verified_email: true,
         };
 
-        let user = auth_service.create_or_update_oauth_user(
-            AuthProvider::Google,
-            google_user_info.id.clone(),
-            google_user_info.email.clone(),
-            google_user_info.name.clone(),
-            google_user_info.avatar.clone(),
-        ).await.expect("Should create Google user successfully");
+        let user = auth_service
+            .create_or_update_oauth_user(
+                AuthProvider::Google,
+                google_user_info.id.clone(),
+                google_user_info.email.clone(),
+                google_user_info.name.clone(),
+                google_user_info.avatar.clone(),
+            )
+            .await
+            .expect("Should create Google user successfully");
 
         assert_eq!(user.email, google_user_info.email);
         assert_eq!(user.name, google_user_info.name);
@@ -113,7 +118,7 @@ mod tests {
     async fn test_facebook_oauth_flow() {
         let pool = create_test_pool().await;
         let auth_service = AuthService::new(pool);
-        
+
         let facebook_user_info = FacebookUserInfo {
             id: "facebook-987654321".to_string(),
             email: Some("fbuser@facebook.com".to_string()),
@@ -125,13 +130,19 @@ mod tests {
             }),
         };
 
-        let user = auth_service.create_or_update_oauth_user(
-            AuthProvider::Facebook,
-            facebook_user_info.id.clone(),
-            facebook_user_info.email.clone().unwrap(),
-            facebook_user_info.name.clone(),
-            facebook_user_info.picture.as_ref().map(|p| p.data.url.clone()),
-        ).await.expect("Should create Facebook user successfully");
+        let user = auth_service
+            .create_or_update_oauth_user(
+                AuthProvider::Facebook,
+                facebook_user_info.id.clone(),
+                facebook_user_info.email.clone().unwrap(),
+                facebook_user_info.name.clone(),
+                facebook_user_info
+                    .picture
+                    .as_ref()
+                    .map(|p| p.data.url.clone()),
+            )
+            .await
+            .expect("Should create Facebook user successfully");
 
         assert_eq!(user.email, facebook_user_info.email.unwrap());
         assert_eq!(user.name, facebook_user_info.name);
@@ -147,17 +158,16 @@ mod tests {
     async fn test_email_password_auth() {
         let pool = create_test_pool().await;
         let auth_service = AuthService::new(pool);
-        
+
         // Test user creation
         let email = "newuser@econgraph.com".to_string();
         let password = "securepassword123".to_string();
         let name = "New User".to_string();
 
-        let user = auth_service.create_email_user(
-            email.clone(),
-            password.clone(),
-            name.clone(),
-        ).await.expect("Should create email user successfully");
+        let user = auth_service
+            .create_email_user(email.clone(), password.clone(), name.clone())
+            .await
+            .expect("Should create email user successfully");
 
         assert_eq!(user.email, email);
         assert_eq!(user.name, name);
@@ -165,10 +175,10 @@ mod tests {
         assert!(user.is_active);
 
         // Test authentication with demo credentials
-        let demo_user = auth_service.authenticate_email_user(
-            "demo@econgraph.com".to_string(),
-            "demo123456".to_string(),
-        ).await.expect("Should authenticate demo user successfully");
+        let demo_user = auth_service
+            .authenticate_email_user("demo@econgraph.com".to_string(), "demo123456".to_string())
+            .await
+            .expect("Should authenticate demo user successfully");
 
         assert_eq!(demo_user.email, "demo@econgraph.com");
         assert_eq!(demo_user.name, "Demo User");
@@ -180,19 +190,21 @@ mod tests {
     async fn test_authentication_failures() {
         let pool = create_test_pool().await;
         let auth_service = AuthService::new(pool);
-        
+
         // Test invalid email/password
-        let result = auth_service.authenticate_email_user(
-            "invalid@econgraph.com".to_string(),
-            "wrongpassword".to_string(),
-        ).await;
-        
+        let result = auth_service
+            .authenticate_email_user(
+                "invalid@econgraph.com".to_string(),
+                "wrongpassword".to_string(),
+            )
+            .await;
+
         assert!(result.is_err());
-        
+
         // Test invalid JWT token
         let result = auth_service.verify_token("invalid.jwt.token");
         assert!(result.is_err());
-        
+
         // Test malformed JWT token
         let result = auth_service.verify_token("not-a-jwt-token");
         assert!(result.is_err());
@@ -203,7 +215,7 @@ mod tests {
     async fn test_profile_update() {
         let pool = create_test_pool().await;
         let auth_service = AuthService::new(pool);
-        
+
         let user_id = Uuid::new_v4();
         let update_request = ProfileUpdateRequest {
             name: Some("Updated Name".to_string()),
@@ -217,8 +229,10 @@ mod tests {
             }),
         };
 
-        let updated_user = auth_service.update_user_profile(user_id, update_request.clone())
-            .await.expect("Should update profile successfully");
+        let updated_user = auth_service
+            .update_user_profile(user_id, update_request.clone())
+            .await
+            .expect("Should update profile successfully");
 
         assert_eq!(updated_user.name, update_request.name.unwrap());
         assert_eq!(updated_user.avatar, update_request.avatar);
@@ -246,7 +260,7 @@ mod tests {
         };
 
         let user_response = UserResponse::from(user.clone());
-        
+
         assert_eq!(user_response.id, user.id.to_string());
         assert_eq!(user_response.email, user.email);
         assert_eq!(user_response.name, user.name);
@@ -256,9 +270,9 @@ mod tests {
         assert_eq!(user_response.organization, user.organization);
 
         // Test JSON serialization
-        let json = serde_json::to_string(&user_response)
-            .expect("Should serialize UserResponse to JSON");
-        
+        let json =
+            serde_json::to_string(&user_response).expect("Should serialize UserResponse to JSON");
+
         assert!(json.contains(&user.email));
         assert!(json.contains(&user.name));
         println!("UserResponse JSON: {}", json);
@@ -268,7 +282,7 @@ mod tests {
     #[tokio::test]
     async fn test_request_validation() {
         use validator::Validate;
-        
+
         // Test valid login request
         let valid_login = LoginRequest {
             email: "valid@econgraph.com".to_string(),
@@ -311,21 +325,22 @@ mod tests {
     #[tokio::test]
     async fn test_password_hashing() {
         let password = "testsecurepassword123";
-        
+
         // Create password hash
-        let hash = PasswordHash::new(password)
-            .expect("Should create password hash successfully");
-        
+        let hash = PasswordHash::new(password).expect("Should create password hash successfully");
+
         assert!(!hash.hash.is_empty());
         assert_ne!(hash.hash, password); // Hash should be different from original
-        
+
         // Verify correct password
-        let is_valid = hash.verify(password)
+        let is_valid = hash
+            .verify(password)
             .expect("Should verify password successfully");
         assert!(is_valid);
-        
+
         // Verify incorrect password
-        let is_invalid = hash.verify("wrongpassword")
+        let is_invalid = hash
+            .verify("wrongpassword")
             .expect("Should verify password successfully");
         assert!(!is_invalid);
     }
@@ -344,10 +359,10 @@ mod tests {
                 "verified_email": true
             }
         });
-        
-        let google_request: GoogleAuthRequest = serde_json::from_value(google_json)
-            .expect("Should deserialize GoogleAuthRequest");
-        
+
+        let google_request: GoogleAuthRequest =
+            serde_json::from_value(google_json).expect("Should deserialize GoogleAuthRequest");
+
         assert_eq!(google_request.token, "google-oauth-token");
         assert_eq!(google_request.user_info.id, "google-123");
         assert_eq!(google_request.user_info.email, "user@gmail.com");
@@ -366,12 +381,15 @@ mod tests {
                 }
             }
         });
-        
-        let facebook_request: FacebookAuthRequest = serde_json::from_value(facebook_json)
-            .expect("Should deserialize FacebookAuthRequest");
-        
+
+        let facebook_request: FacebookAuthRequest =
+            serde_json::from_value(facebook_json).expect("Should deserialize FacebookAuthRequest");
+
         assert_eq!(facebook_request.facebook_id, "facebook-456");
         assert_eq!(facebook_request.user_info.id, "facebook-456");
-        assert_eq!(facebook_request.user_info.email.unwrap(), "user@facebook.com");
+        assert_eq!(
+            facebook_request.user_info.email.unwrap(),
+            "user@facebook.com"
+        );
     }
 }
