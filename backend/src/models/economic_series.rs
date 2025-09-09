@@ -156,62 +156,69 @@ impl Default for UpdateEconomicSeries {
 impl EconomicSeries {
     /// Find economic series by external ID and data source
     pub async fn find_by_external_id(
-        pool: &crate::database::DatabasePool, 
-        external_id: &str, 
-        data_source_id: uuid::Uuid
+        pool: &crate::database::DatabasePool,
+        external_id: &str,
+        data_source_id: uuid::Uuid,
     ) -> crate::error::AppResult<Self> {
         use crate::schema::economic_series::dsl;
-        
+
         let mut conn = pool.get().await?;
-        
+
         let series = dsl::economic_series
             .filter(dsl::external_id.eq(external_id))
             .filter(dsl::source_id.eq(data_source_id))
             .select(Self::as_select())
             .first::<Self>(&mut conn)
             .await?;
-            
+
         Ok(series)
     }
-    
+
     /// Create a new economic series
-    pub async fn create(pool: &crate::database::DatabasePool, new_series: &NewEconomicSeries) -> crate::error::AppResult<Self> {
+    pub async fn create(
+        pool: &crate::database::DatabasePool,
+        new_series: &NewEconomicSeries,
+    ) -> crate::error::AppResult<Self> {
         use crate::schema::economic_series::dsl;
-        
+
         // Validate the new series
         new_series.validate()?;
-        
+
         let mut conn = pool.get().await?;
-        
+
         let series = diesel::insert_into(dsl::economic_series)
             .values(new_series)
             .returning(Self::as_select())
             .get_result::<Self>(&mut conn)
             .await?;
-            
+
         Ok(series)
     }
 
     /// Update an existing economic series
-    pub async fn update(pool: &crate::database::DatabasePool, id: uuid::Uuid, update_data: &UpdateEconomicSeries) -> crate::error::AppResult<Self> {
+    pub async fn update(
+        pool: &crate::database::DatabasePool,
+        id: uuid::Uuid,
+        update_data: &UpdateEconomicSeries,
+    ) -> crate::error::AppResult<Self> {
         use crate::schema::economic_series::dsl;
-        
+
         let mut conn = pool.get().await?;
-        
+
         let series = diesel::update(dsl::economic_series.filter(dsl::id.eq(id)))
             .set(update_data)
             .get_result::<Self>(&mut conn)
             .await?;
-            
+
         Ok(series)
     }
 
     /// Get or create an economic series
     pub async fn get_or_create(
         pool: &crate::database::DatabasePool,
-        external_id: &str, 
+        external_id: &str,
         data_source_id: uuid::Uuid,
-        new_series: &NewEconomicSeries
+        new_series: &NewEconomicSeries,
     ) -> crate::error::AppResult<Self> {
         // Try to find existing series first
         match Self::find_by_external_id(pool, external_id, data_source_id).await {
@@ -231,9 +238,9 @@ impl EconomicSeries {
         end_date: NaiveDate,
     ) -> crate::error::AppResult<Self> {
         use crate::schema::economic_series::dsl;
-        
+
         let mut conn = pool.get().await?;
-        
+
         let update_data = UpdateEconomicSeries {
             start_date: Some(start_date),
             end_date: Some(end_date),
@@ -241,13 +248,13 @@ impl EconomicSeries {
             updated_at: Utc::now(),
             ..Default::default()
         };
-        
+
         let series = diesel::update(dsl::economic_series.filter(dsl::id.eq(series_id)))
             .set(&update_data)
             .returning(Self::as_select())
             .get_result::<Self>(&mut conn)
             .await?;
-            
+
         Ok(series)
     }
 }
@@ -261,16 +268,28 @@ mod _inline_tests {
         // REQUIREMENT: Economic series should support multiple frequency types (Daily, Weekly, Monthly, Quarterly, Annual)
         // PURPOSE: Verify that frequency strings from external APIs are correctly parsed into our enum types
         // This ensures compatibility with FRED and BLS data which use different frequency naming conventions
-        
+
         // Test standard frequency names - required for FRED compatibility
-        assert_eq!(SeriesFrequency::from("monthly".to_string()), SeriesFrequency::Monthly);
-        assert_eq!(SeriesFrequency::from("quarterly".to_string()), SeriesFrequency::Quarterly);
-        
+        assert_eq!(
+            SeriesFrequency::from("monthly".to_string()),
+            SeriesFrequency::Monthly
+        );
+        assert_eq!(
+            SeriesFrequency::from("quarterly".to_string()),
+            SeriesFrequency::Quarterly
+        );
+
         // Test abbreviated forms - required for BLS compatibility
-        assert_eq!(SeriesFrequency::from("M".to_string()), SeriesFrequency::Monthly);
-        
+        assert_eq!(
+            SeriesFrequency::from("M".to_string()),
+            SeriesFrequency::Monthly
+        );
+
         // Test unknown frequencies default to Irregular - handles edge cases gracefully
-        assert_eq!(SeriesFrequency::from("unknown".to_string()), SeriesFrequency::Irregular);
+        assert_eq!(
+            SeriesFrequency::from("unknown".to_string()),
+            SeriesFrequency::Irregular
+        );
     }
 
     #[test]
@@ -278,7 +297,7 @@ mod _inline_tests {
         // REQUIREMENT: Frequency information should be displayed consistently in the UI
         // PURPOSE: Verify that frequency enums convert to human-readable strings for display
         // This ensures the frontend shows consistent frequency labels to users
-        
+
         // Verify display format matches UI requirements
         assert_eq!(SeriesFrequency::Monthly.to_string(), "Monthly");
         assert_eq!(SeriesFrequency::Quarterly.to_string(), "Quarterly");
@@ -289,17 +308,20 @@ mod _inline_tests {
         // REQUIREMENT: All economic series data should be validated before database insertion
         // PURPOSE: Verify that input validation prevents invalid data from being stored
         // This ensures data integrity and prevents database constraint violations
-        
+
         let series = NewEconomicSeries {
             external_id: "TEST001".to_string(),
             title: "Test Series".to_string(),
             frequency: "Monthly".to_string(),
             ..Default::default()
         };
-        
+
         // Verify valid series passes validation - required for normal operation
-        assert!(series.validate().is_ok(), "Valid series should pass validation");
-        
+        assert!(
+            series.validate().is_ok(),
+            "Valid series should pass validation"
+        );
+
         // Test validation failure with empty external_id
         let invalid_series = NewEconomicSeries {
             external_id: "".to_string(), // Too short - violates minimum length constraint
@@ -307,9 +329,12 @@ mod _inline_tests {
             frequency: "Monthly".to_string(),
             ..Default::default()
         };
-        
+
         // Verify invalid data is rejected - required for data integrity
-        assert!(invalid_series.validate().is_err(), "Empty external_id should fail validation");
+        assert!(
+            invalid_series.validate().is_err(),
+            "Empty external_id should fail validation"
+        );
     }
 }
 

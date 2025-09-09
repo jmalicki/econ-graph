@@ -10,7 +10,7 @@ pub mod services;
 #[cfg(test)]
 pub mod test_utils;
 
+pub mod collaboration_integration_tests;
 #[cfg(test)]
 pub mod e2e_tests;
 pub mod epic_e2e_tests;
-pub mod collaboration_integration_tests;

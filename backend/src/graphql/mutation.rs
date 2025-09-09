@@ -1,9 +1,6 @@
 use async_graphql::*;
 
-use crate::{
-    database::DatabasePool,
-    graphql::types::*,
-};
+use crate::{database::DatabasePool, graphql::types::*};
 
 /// Root mutation object
 pub struct Mutation;
@@ -17,24 +14,22 @@ impl Mutation {
         input: TriggerCrawlInput,
     ) -> Result<CrawlerStatusType> {
         let pool = ctx.data::<DatabasePool>()?;
-        
+
         let mut _queued_items = Vec::new();
-        
+
         // Handle multiple sources and series
         let sources = input.sources.unwrap_or_else(|| vec!["FRED".to_string()]);
         let series_ids = input.series_ids.unwrap_or_else(|| vec!["GDP".to_string()]);
-        
+
         for source in &sources {
             for series_id in &series_ids {
-                let items = crate::services::crawler_service::trigger_manual_crawl(
-                    pool,
-                    source,
-                    series_id,
-                ).await?;
+                let items =
+                    crate::services::crawler_service::trigger_manual_crawl(pool, source, series_id)
+                        .await?;
                 _queued_items.extend(items);
             }
         }
-        
+
         // Return updated crawler status
         Ok(CrawlerStatusType {
             is_running: true,
@@ -52,22 +47,24 @@ impl Mutation {
     ) -> Result<ChartAnnotationType> {
         let pool = ctx.data::<DatabasePool>()?;
         let collaboration_service = crate::services::CollaborationService::new(pool.clone());
-        
+
         let user_id = uuid::Uuid::parse_str(&input.user_id)?;
         let series_id = uuid::Uuid::parse_str(&input.series_id)?;
-        
-        let annotation = collaboration_service.create_annotation(
-            user_id,
-            series_id,
-            input.annotation_date,
-            input.annotation_value,
-            input.title,
-            input.content,
-            input.annotation_type,
-            input.color,
-            input.is_public.unwrap_or(false),
-        ).await?;
-        
+
+        let annotation = collaboration_service
+            .create_annotation(
+                user_id,
+                series_id,
+                input.annotation_date,
+                input.annotation_value,
+                input.title,
+                input.content,
+                input.annotation_type,
+                input.color,
+                input.is_public.unwrap_or(false),
+            )
+            .await?;
+
         Ok(ChartAnnotationType::from(annotation))
     }
 
@@ -79,16 +76,14 @@ impl Mutation {
     ) -> Result<AnnotationCommentType> {
         let pool = ctx.data::<DatabasePool>()?;
         let collaboration_service = crate::services::CollaborationService::new(pool.clone());
-        
+
         let user_id = uuid::Uuid::parse_str(&input.user_id)?;
         let annotation_id = uuid::Uuid::parse_str(&input.annotation_id)?;
-        
-        let comment = collaboration_service.add_comment(
-            annotation_id,
-            user_id,
-            input.content,
-        ).await?;
-        
+
+        let comment = collaboration_service
+            .add_comment(annotation_id, user_id, input.content)
+            .await?;
+
         Ok(AnnotationCommentType::from(comment))
     }
 
@@ -100,11 +95,11 @@ impl Mutation {
     ) -> Result<ChartCollaboratorType> {
         let pool = ctx.data::<DatabasePool>()?;
         let collaboration_service = crate::services::CollaborationService::new(pool.clone());
-        
+
         let owner_user_id = uuid::Uuid::parse_str(&input.owner_user_id)?;
         let target_user_id = uuid::Uuid::parse_str(&input.target_user_id)?;
         let chart_id = uuid::Uuid::parse_str(&input.chart_id)?;
-        
+
         let permission_level = match input.permission_level.to_lowercase().as_str() {
             "view" => crate::services::collaboration_service::PermissionLevel::View,
             "comment" => crate::services::collaboration_service::PermissionLevel::Comment,
@@ -112,14 +107,11 @@ impl Mutation {
             "admin" => crate::services::collaboration_service::PermissionLevel::Admin,
             _ => crate::services::collaboration_service::PermissionLevel::View,
         };
-        
-        let collaborator = collaboration_service.share_chart(
-            chart_id,
-            owner_user_id,
-            target_user_id,
-            permission_level,
-        ).await?;
-        
+
+        let collaborator = collaboration_service
+            .share_chart(chart_id, owner_user_id, target_user_id, permission_level)
+            .await?;
+
         Ok(ChartCollaboratorType::from(collaborator))
     }
 
@@ -131,12 +123,14 @@ impl Mutation {
     ) -> Result<bool> {
         let pool = ctx.data::<DatabasePool>()?;
         let collaboration_service = crate::services::CollaborationService::new(pool.clone());
-        
+
         let user_id = uuid::Uuid::parse_str(&input.user_id)?;
         let annotation_id = uuid::Uuid::parse_str(&input.annotation_id)?;
-        
-        collaboration_service.delete_annotation(annotation_id, user_id).await?;
-        
+
+        collaboration_service
+            .delete_annotation(annotation_id, user_id)
+            .await?;
+
         Ok(true)
     }
 }
@@ -153,7 +147,7 @@ mod tests {
             series_ids: Some(vec!["GDP".to_string()]),
             priority: Some(8),
         };
-        
+
         assert_eq!(input.sources, Some(vec!["FRED".to_string()]));
         assert_eq!(input.priority, Some(8));
     }

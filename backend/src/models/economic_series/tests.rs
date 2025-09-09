@@ -2,15 +2,15 @@
 // PURPOSE: Test series operations with real PostgreSQL database
 // This ensures the economic series data model works correctly with all expected operations
 
-use std::sync::Arc;
-use chrono::NaiveDate;
-use uuid::Uuid;
 use crate::db_test;
-use crate::test_utils::{TestContainer, DatabaseTestExt};
 use crate::models::{
     data_source::{DataSource, NewDataSource},
     economic_series::{EconomicSeries, NewEconomicSeries, SeriesFrequency},
 };
+use crate::test_utils::{DatabaseTestExt, TestContainer};
+use chrono::NaiveDate;
+use std::sync::Arc;
+use uuid::Uuid;
 
 // Simple unit tests that don't require complex database integration
 #[cfg(test)]
@@ -22,22 +22,22 @@ mod simple_tests {
         // REQUIREMENT: Test series frequency enumeration
         // PURPOSE: Verify that frequency types convert correctly to strings
         // This tests the basic enum functionality for data categorization
-        
+
         let monthly = SeriesFrequency::Monthly.to_string();
         let quarterly = SeriesFrequency::Quarterly.to_string();
         let annual = SeriesFrequency::Annual.to_string();
-        
+
         assert_eq!(monthly, "Monthly");
         assert_eq!(quarterly, "Quarterly");
         assert_eq!(annual, "Annual");
     }
-    
+
     #[test]
     fn test_new_economic_series_creation() {
         // REQUIREMENT: Test economic series struct creation
         // PURPOSE: Verify that series can be created with correct field types
         // This tests the basic struct functionality without database interaction
-        
+
         let series = NewEconomicSeries {
             source_id: Uuid::new_v4(),
             external_id: "TEST_001".to_string(),
@@ -50,7 +50,7 @@ mod simple_tests {
             end_date: None,
             is_active: true,
         };
-        
+
         assert_eq!(series.external_id, "TEST_001");
         assert_eq!(series.title, "Test Economic Series");
         assert_eq!(series.frequency, "monthly");

@@ -1,24 +1,23 @@
+use bigdecimal::BigDecimal;
+use chrono::{DateTime, NaiveDate, Utc};
 /**
  * REQUIREMENT: Collaboration service for chart annotations and sharing
  * PURPOSE: Provide business logic for collaborative features including permissions
  * This enables secure multi-user professional economic analysis features
  */
-
 use diesel::prelude::*;
 use diesel::SelectableHelper;
 use diesel_async::RunQueryDsl;
 use uuid::Uuid;
-use chrono::{DateTime, Utc, NaiveDate};
-use bigdecimal::BigDecimal;
 
 use crate::{
     database::DatabasePool,
     error::{AppError, AppResult},
     models::user::{
-        ChartAnnotation, NewChartAnnotation, AnnotationComment, NewAnnotationComment,
-        ChartCollaborator, NewChartCollaborator, User
+        AnnotationComment, ChartAnnotation, ChartCollaborator, NewAnnotationComment,
+        NewChartAnnotation, NewChartCollaborator, User,
     },
-    schema::{chart_annotations, annotation_comments, chart_collaborators, users},
+    schema::{annotation_comments, chart_annotations, chart_collaborators, users},
 };
 
 /// Permission levels for collaboration
@@ -55,7 +54,10 @@ impl PermissionLevel {
     }
 
     pub fn can_comment(&self) -> bool {
-        matches!(self, PermissionLevel::Comment | PermissionLevel::Edit | PermissionLevel::Admin)
+        matches!(
+            self,
+            PermissionLevel::Comment | PermissionLevel::Edit | PermissionLevel::Admin
+        )
     }
 
     pub fn can_edit(&self) -> bool {
@@ -134,8 +136,9 @@ impl CollaborationService {
             chart_annotations::table
                 .filter(chart_annotations::series_id.eq(series_id))
                 .filter(
-                    chart_annotations::is_visible.eq(true)
-                        .or(chart_annotations::user_id.eq(uid))
+                    chart_annotations::is_visible
+                        .eq(true)
+                        .or(chart_annotations::user_id.eq(uid)),
                 )
                 .order_by(chart_annotations::created_at.desc())
                 .select(ChartAnnotation::as_select())
@@ -148,8 +151,8 @@ impl CollaborationService {
                 .select(ChartAnnotation::as_select())
                 .load::<ChartAnnotation>(&mut conn)
         }
-            .await
-            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(annotations)
     }
@@ -247,12 +250,14 @@ impl CollaborationService {
 
         if let Some(existing_collab) = existing {
             // Update existing permission
-        let updated = diesel::update(chart_collaborators::table.filter(chart_collaborators::id.eq(existing_collab.id)))
+            let updated = diesel::update(
+                chart_collaborators::table.filter(chart_collaborators::id.eq(existing_collab.id)),
+            )
             .set(chart_collaborators::role.eq(permission_level.to_string()))
             .returning(ChartCollaborator::as_select())
             .get_result::<ChartCollaborator>(&mut conn)
-                .await
-                .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
             return Ok(updated);
         }
@@ -295,7 +300,11 @@ impl CollaborationService {
     }
 
     /// Check if user has permission to annotate a series
-    async fn check_annotation_permission(&self, _user_id: Uuid, _series_id: Uuid) -> AppResult<bool> {
+    async fn check_annotation_permission(
+        &self,
+        _user_id: Uuid,
+        _series_id: Uuid,
+    ) -> AppResult<bool> {
         // For now, allow any authenticated user to annotate
         // In the future, this could check series ownership or collaboration permissions
         Ok(true)
@@ -332,11 +341,7 @@ impl CollaborationService {
     }
 
     /// Delete an annotation (only by owner or admin)
-    pub async fn delete_annotation(
-        &self,
-        annotation_id: Uuid,
-        user_id: Uuid,
-    ) -> AppResult<bool> {
+    pub async fn delete_annotation(&self, annotation_id: Uuid, user_id: Uuid) -> AppResult<bool> {
         let mut conn = self.pool.get().await?;
 
         // Get the annotation to check ownership
@@ -362,16 +367,20 @@ impl CollaborationService {
         }
 
         // Delete associated comments first
-        diesel::delete(annotation_comments::table.filter(annotation_comments::annotation_id.eq(annotation_id)))
-            .execute(&mut conn)
-            .await
-            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        diesel::delete(
+            annotation_comments::table.filter(annotation_comments::annotation_id.eq(annotation_id)),
+        )
+        .execute(&mut conn)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         // Delete the annotation
-        let deleted = diesel::delete(chart_annotations::table.filter(chart_annotations::id.eq(annotation_id)))
-            .execute(&mut conn)
-            .await
-            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        let deleted = diesel::delete(
+            chart_annotations::table.filter(chart_annotations::id.eq(annotation_id)),
+        )
+        .execute(&mut conn)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(deleted > 0)
     }
@@ -388,9 +397,9 @@ mod tests {
     async fn test_collaboration_service_creation() {
         let container = TestContainer::new().await;
         let pool = container.pool();
-        
+
         let service = CollaborationService::new(pool.clone());
-        
+
         // Test that service can be created
         assert!(true);
     }

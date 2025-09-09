@@ -1,11 +1,14 @@
 use async_graphql::*;
-use chrono::{DateTime, NaiveDate, Utc};
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, NaiveDate, Utc};
+use diesel::SelectableHelper;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use diesel::SelectableHelper;
 
-use crate::models::{DataPoint, DataSource, EconomicSeries, SeriesSearchResult, SearchSuggestion, SearchStatistics, SuggestionType, SearchSortOrder, ChartAnnotation, AnnotationComment, ChartCollaborator, User};
+use crate::models::{
+    AnnotationComment, ChartAnnotation, ChartCollaborator, DataPoint, DataSource, EconomicSeries,
+    SearchSortOrder, SearchStatistics, SearchSuggestion, SeriesSearchResult, SuggestionType, User,
+};
 
 /// GraphQL representation of an economic series
 #[derive(Clone)]
@@ -31,68 +34,68 @@ impl EconomicSeriesType {
     async fn id(&self) -> &ID {
         &self.id
     }
-    
+
     async fn source_id(&self) -> &ID {
         &self.source_id
     }
-    
+
     async fn external_id(&self) -> &str {
         &self.external_id
     }
-    
+
     async fn title(&self) -> &str {
         &self.title
     }
-    
+
     async fn description(&self) -> &Option<String> {
         &self.description
     }
-    
+
     async fn units(&self) -> &Option<String> {
         &self.units
     }
-    
+
     async fn frequency(&self) -> &str {
         &self.frequency
     }
-    
+
     async fn seasonal_adjustment(&self) -> &Option<String> {
         &self.seasonal_adjustment
     }
-    
+
     async fn last_updated(&self) -> &Option<DateTime<Utc>> {
         &self.last_updated
     }
-    
+
     async fn start_date(&self) -> &Option<NaiveDate> {
         &self.start_date
     }
-    
+
     async fn end_date(&self) -> &Option<NaiveDate> {
         &self.end_date
     }
-    
+
     async fn is_active(&self) -> bool {
         self.is_active
     }
-    
+
     async fn created_at(&self) -> DateTime<Utc> {
         self.created_at
     }
-    
+
     async fn updated_at(&self) -> DateTime<Utc> {
         self.updated_at
     }
-    
+
     /// Fetch the data source using direct database query
     async fn source(&self, ctx: &Context<'_>) -> Result<Option<DataSourceType>> {
         let pool = ctx.data::<crate::database::DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&self.source_id)?;
-        
+
         use crate::schema::data_sources::dsl;
+        use diesel::{ExpressionMethods, OptionalExtension, QueryDsl};
         use diesel_async::RunQueryDsl;
-        use diesel::{QueryDsl, ExpressionMethods, OptionalExtension};
-        
+
         let mut conn = pool.get().await?;
         let source = dsl::data_sources
             .filter(dsl::id.eq(source_uuid))
@@ -100,10 +103,10 @@ impl EconomicSeriesType {
             .first::<crate::models::DataSource>(&mut conn)
             .await
             .optional()?;
-        
+
         Ok(source.map(|s| s.into()))
     }
-    
+
     /// Fetch recent data points using direct database query
     async fn recent_data_points(
         &self,
@@ -112,11 +115,11 @@ impl EconomicSeriesType {
     ) -> Result<Vec<DataPointType>> {
         let pool = ctx.data::<crate::database::DatabasePool>()?;
         let series_uuid = Uuid::parse_str(&self.id)?;
-        
+
         use crate::schema::data_points::dsl;
+        use diesel::{ExpressionMethods, QueryDsl};
         use diesel_async::RunQueryDsl;
-        use diesel::{QueryDsl, ExpressionMethods};
-        
+
         let mut conn = pool.get().await?;
         let data_points = dsl::data_points
             .filter(dsl::series_id.eq(series_uuid))
@@ -124,34 +127,31 @@ impl EconomicSeriesType {
             .limit(limit as i64)
             .load::<crate::models::DataPoint>(&mut conn)
             .await?;
-        
-        let limited_points = data_points
-            .into_iter()
-            .map(DataPointType::from)
-            .collect();
-        
+
+        let limited_points = data_points.into_iter().map(DataPointType::from).collect();
+
         Ok(limited_points)
     }
-    
+
     /// Get data point count using direct database query
     async fn data_point_count(&self, ctx: &Context<'_>) -> Result<i32> {
         let pool = ctx.data::<crate::database::DatabasePool>()?;
         let series_uuid = Uuid::parse_str(&self.id)?;
-        
+
         use crate::schema::data_points::dsl;
+        use diesel::{ExpressionMethods, QueryDsl};
         use diesel_async::RunQueryDsl;
-        use diesel::{QueryDsl, ExpressionMethods};
-        
+
         let mut conn = pool.get().await?;
         let count = dsl::data_points
             .filter(dsl::series_id.eq(series_uuid))
             .count()
             .get_result::<i64>(&mut conn)
             .await?;
-        
+
         Ok(count as i32)
     }
-    
+
     /// Fetch data points with filters using a custom DataLoader
     async fn data_points(
         &self,
@@ -160,47 +160,46 @@ impl EconomicSeriesType {
         transformation: Option<DataTransformationType>,
     ) -> Result<Vec<DataPointType>> {
         use crate::database::DatabasePool;
-        
+
         let pool = ctx.data::<DatabasePool>()?;
         let series_uuid = Uuid::parse_str(&self.id)?;
-        
+
         let filter = filter.unwrap_or_default();
-        
+
         // Query data points directly from database
         use crate::schema::data_points::dsl;
+        use diesel::{ExpressionMethods, QueryDsl};
         use diesel_async::RunQueryDsl;
-        use diesel::{QueryDsl, ExpressionMethods};
-        
+
         let mut conn = pool.get().await?;
         let mut query = dsl::data_points
             .filter(dsl::series_id.eq(series_uuid))
             .into_boxed();
-        
+
         if let Some(start_date) = filter.start_date {
             query = query.filter(dsl::date.ge(start_date));
         }
-        
+
         if let Some(end_date) = filter.end_date {
             query = query.filter(dsl::date.le(end_date));
         }
-        
+
         if filter.original_only.unwrap_or(false) {
             query = query.filter(dsl::is_original_release.eq(true));
         }
-        
+
         let data_points = query
             .order(dsl::date.asc())
             .load::<crate::models::DataPoint>(&mut conn)
             .await?;
-        
+
         // Apply transformation if requested
         if let Some(transformation) = transformation {
             // Transform the data points using the GraphQL transformation function
-            let transformed = crate::graphql::query::apply_data_transformation(
-                data_points,
-                transformation,
-            ).await?;
-            
+            let transformed =
+                crate::graphql::query::apply_data_transformation(data_points, transformation)
+                    .await?;
+
             // Convert transformed data points to GraphQL types
             Ok(transformed.into_iter().map(DataPointType::from).collect())
         } else {
@@ -298,35 +297,35 @@ impl DataSourceType {
     async fn id(&self) -> &ID {
         &self.id
     }
-    
+
     async fn name(&self) -> &str {
         &self.name
     }
-    
+
     async fn description(&self) -> &Option<String> {
         &self.description
     }
-    
+
     async fn base_url(&self) -> &str {
         &self.base_url
     }
-    
+
     async fn api_key_required(&self) -> bool {
         self.api_key_required
     }
-    
+
     async fn rate_limit_per_minute(&self) -> i32 {
         self.rate_limit_per_minute
     }
-    
+
     async fn created_at(&self) -> DateTime<Utc> {
         self.created_at
     }
-    
+
     async fn updated_at(&self) -> DateTime<Utc> {
         self.updated_at
     }
-    
+
     /// Fetch all series for this data source using DataLoader
     async fn series(
         &self,
@@ -336,11 +335,11 @@ impl DataSourceType {
     ) -> Result<SeriesConnection> {
         let pool = ctx.data::<crate::database::DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&self.id)?;
-        
+
         use crate::schema::economic_series::dsl;
+        use diesel::{ExpressionMethods, QueryDsl};
         use diesel_async::RunQueryDsl;
-        use diesel::{QueryDsl, ExpressionMethods};
-        
+
         let mut conn = pool.get().await?;
         let all_series = dsl::economic_series
             .filter(dsl::source_id.eq(source_uuid))
@@ -348,39 +347,50 @@ impl DataSourceType {
             .select(crate::models::EconomicSeries::as_select())
             .load::<crate::models::EconomicSeries>(&mut conn)
             .await?;
-        
+
         // Apply pagination (simplified - in production you'd want cursor-based pagination)
         let start_index = after
             .and_then(|cursor| cursor.parse::<usize>().ok())
             .unwrap_or(0);
-        
+
         let end_index = (start_index + first as usize).min(all_series.len());
         let series_page = all_series[start_index..end_index].to_vec();
-        
+
         let has_next_page = end_index < all_series.len();
         let has_previous_page = start_index > 0;
-        
+
         Ok(SeriesConnection {
-            nodes: series_page.into_iter().map(EconomicSeriesType::from).collect(),
+            nodes: series_page
+                .into_iter()
+                .map(EconomicSeriesType::from)
+                .collect(),
             total_count: all_series.len() as i32,
             page_info: PageInfo {
                 has_next_page,
                 has_previous_page,
-                start_cursor: if start_index > 0 { Some(start_index.to_string()) } else { None },
-                end_cursor: if has_next_page { Some(end_index.to_string()) } else { None },
+                start_cursor: if start_index > 0 {
+                    Some(start_index.to_string())
+                } else {
+                    None
+                },
+                end_cursor: if has_next_page {
+                    Some(end_index.to_string())
+                } else {
+                    None
+                },
             },
         })
     }
-    
+
     /// Get count of active series for this data source
     async fn series_count(&self, ctx: &Context<'_>) -> Result<i32> {
         let pool = ctx.data::<crate::database::DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&self.id)?;
-        
+
         use crate::schema::economic_series::dsl;
+        use diesel::{ExpressionMethods, QueryDsl};
         use diesel_async::RunQueryDsl;
-        use diesel::{QueryDsl, ExpressionMethods};
-        
+
         let mut conn = pool.get().await?;
         let count = dsl::economic_series
             .filter(dsl::source_id.eq(source_uuid))
@@ -388,7 +398,7 @@ impl DataSourceType {
             .count()
             .get_result::<i64>(&mut conn)
             .await?;
-        
+
         Ok(count as i32)
     }
 }
@@ -437,10 +447,18 @@ impl From<crate::models::DataTransformation> for DataTransformationType {
         match transformation {
             crate::models::DataTransformation::None => DataTransformationType::None,
             crate::models::DataTransformation::YearOverYear => DataTransformationType::YearOverYear,
-            crate::models::DataTransformation::QuarterOverQuarter => DataTransformationType::QuarterOverQuarter,
-            crate::models::DataTransformation::MonthOverMonth => DataTransformationType::MonthOverMonth,
-            crate::models::DataTransformation::PercentChange => DataTransformationType::PercentChange,
-            crate::models::DataTransformation::LogDifference => DataTransformationType::LogDifference,
+            crate::models::DataTransformation::QuarterOverQuarter => {
+                DataTransformationType::QuarterOverQuarter
+            }
+            crate::models::DataTransformation::MonthOverMonth => {
+                DataTransformationType::MonthOverMonth
+            }
+            crate::models::DataTransformation::PercentChange => {
+                DataTransformationType::PercentChange
+            }
+            crate::models::DataTransformation::LogDifference => {
+                DataTransformationType::LogDifference
+            }
         }
     }
 }
@@ -450,10 +468,18 @@ impl From<DataTransformationType> for crate::models::DataTransformation {
         match transformation {
             DataTransformationType::None => crate::models::DataTransformation::None,
             DataTransformationType::YearOverYear => crate::models::DataTransformation::YearOverYear,
-            DataTransformationType::QuarterOverQuarter => crate::models::DataTransformation::QuarterOverQuarter,
-            DataTransformationType::MonthOverMonth => crate::models::DataTransformation::MonthOverMonth,
-            DataTransformationType::PercentChange => crate::models::DataTransformation::PercentChange,
-            DataTransformationType::LogDifference => crate::models::DataTransformation::LogDifference,
+            DataTransformationType::QuarterOverQuarter => {
+                crate::models::DataTransformation::QuarterOverQuarter
+            }
+            DataTransformationType::MonthOverMonth => {
+                crate::models::DataTransformation::MonthOverMonth
+            }
+            DataTransformationType::PercentChange => {
+                crate::models::DataTransformation::PercentChange
+            }
+            DataTransformationType::LogDifference => {
+                crate::models::DataTransformation::LogDifference
+            }
         }
     }
 }
@@ -840,7 +866,9 @@ impl From<ChartCollaborator> for ChartCollaboratorType {
             user_id: ID::from(collaborator.user_id),
             invited_by: collaborator.invited_by.map(ID::from),
             role: collaborator.role,
-            permissions: collaborator.permissions.map(|p| serde_json::to_string(&p).unwrap_or_default()),
+            permissions: collaborator
+                .permissions
+                .map(|p| serde_json::to_string(&p).unwrap_or_default()),
             created_at: collaborator.created_at,
             last_accessed_at: collaborator.last_accessed_at,
         }

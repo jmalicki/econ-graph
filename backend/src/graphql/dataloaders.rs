@@ -26,10 +26,10 @@ mod tests {
         // Test DataLoaders creation
         // REQUIREMENT: Test DataLoader pattern for efficient database querying
         // PURPOSE: Verify that data loaders can be created successfully
-        
+
         let pool = get_test_pool().await;
         let _loaders = DataLoaders::new(pool);
-        
+
         // Basic creation test - more functionality will be added when DataLoader is re-enabled
     }
 }

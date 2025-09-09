@@ -2,9 +2,9 @@
 // PURPOSE: Test search functionality, spelling correction, and synonym support
 // These tests verify the comprehensive search capabilities of the economic data platform
 
-use std::sync::Arc;
 use crate::db_test;
-use crate::test_utils::{TestContainer, DatabaseTestExt};
+use crate::test_utils::{DatabaseTestExt, TestContainer};
+use std::sync::Arc;
 // SearchService import disabled - not needed for unit tests
 // use crate::services::search_service::SearchService;
 use crate::models::search::{SearchParams, SearchSortOrder};
@@ -21,7 +21,7 @@ mod simple_tests {
         // REQUIREMENT: Test search parameter validation
         // PURPOSE: Verify that search parameters are properly validated
         // This is a simple unit test that doesn't require database integration
-        
+
         let params = SearchParams {
             query: "test".to_string(),
             similarity_threshold: Some(0.3),
@@ -32,21 +32,21 @@ mod simple_tests {
             include_inactive: Some(false),
             sort_by: Some(SearchSortOrder::Relevance),
         };
-        
+
         assert_eq!(params.query, "test");
         assert_eq!(params.limit, Some(10));
         assert_eq!(params.offset, Some(0));
     }
-    
+
     #[test]
     fn test_search_sort_order() {
         // REQUIREMENT: Test search sort order enumeration
         // PURPOSE: Verify that sort order options work correctly
         // This tests the basic enum functionality
-        
+
         let relevance = SearchSortOrder::Relevance;
         let title = SearchSortOrder::Title;
-        
+
         assert_ne!(format!("{:?}", relevance), format!("{:?}", title));
     }
 }

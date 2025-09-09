@@ -33,8 +33,7 @@ async fn schedule_crawl_jobs(
 /// Run the queue processor
 // Temporarily disabled for lib.rs compilation
 #[allow(dead_code)]
-async fn run_queue_processor(
-    // state: AppState
+async fn run_queue_processor(// state: AppState
 ) -> AppResult<()> {
     info!("Queue processor would run here");
     Ok(())
@@ -43,8 +42,7 @@ async fn run_queue_processor(
 /// Check crawler health
 // Temporarily disabled for lib.rs compilation
 #[allow(dead_code)]
-async fn check_crawler_health(
-    // state: &AppState
+async fn check_crawler_health(// state: &AppState
 ) -> AppResult<()> {
     info!("Crawler health would be checked here");
     Ok(())

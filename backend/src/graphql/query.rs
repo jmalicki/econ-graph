@@ -1,14 +1,14 @@
 use async_graphql::*;
-use uuid::Uuid;
 use diesel::SelectableHelper;
+use uuid::Uuid;
 
-use std::sync::Arc;
 use crate::{
     database::DatabasePool,
-    services::{search_service::SearchService, series_service},
     graphql::types::*,
     models::search::SearchParams,
+    services::{search_service::SearchService, series_service},
 };
+use std::sync::Arc;
 
 /// Root query object
 pub struct Query;
@@ -19,13 +19,13 @@ impl Query {
     async fn series(&self, ctx: &Context<'_>, id: ID) -> Result<Option<EconomicSeriesType>> {
         let pool = ctx.data::<DatabasePool>()?;
         let series_uuid = Uuid::parse_str(&id)?;
-        
+
         match series_service::get_series_by_id(pool, series_uuid).await? {
             Some(series) => Ok(Some(series.into())),
             None => Ok(None),
         }
     }
-    
+
     /// List economic series with filtering and pagination
     async fn series_list(
         &self,
@@ -34,18 +34,19 @@ impl Query {
         pagination: Option<PaginationInput>,
     ) -> Result<SeriesConnection> {
         let pool = ctx.data::<DatabasePool>()?;
-        
+
         // Convert GraphQL inputs to service parameters
         let search_params = convert_series_filter_to_params(filter);
         let series = series_service::list_series(pool, search_params).await?;
-        
+
         // Apply pagination (simplified implementation)
         let pagination = pagination.unwrap_or_default();
         let first = pagination.first.unwrap_or(50).min(100) as usize;
-        let after_index = pagination.after
+        let after_index = pagination
+            .after
             .and_then(|cursor| cursor.parse::<usize>().ok())
             .unwrap_or(0);
-        
+
         let total_count = series.len();
         let end_index = (after_index + first).min(total_count);
         let page_series = if after_index < total_count {
@@ -53,29 +54,39 @@ impl Query {
         } else {
             Vec::new()
         };
-        
+
         Ok(SeriesConnection {
-            nodes: page_series.into_iter().map(EconomicSeriesType::from).collect(),
+            nodes: page_series
+                .into_iter()
+                .map(EconomicSeriesType::from)
+                .collect(),
             total_count: total_count as i32,
             page_info: PageInfo {
                 has_next_page: end_index < total_count,
                 has_previous_page: after_index > 0,
-                start_cursor: if after_index > 0 { Some(after_index.to_string()) } else { None },
-                end_cursor: if end_index < total_count { Some(end_index.to_string()) } else { None },
+                start_cursor: if after_index > 0 {
+                    Some(after_index.to_string())
+                } else {
+                    None
+                },
+                end_cursor: if end_index < total_count {
+                    Some(end_index.to_string())
+                } else {
+                    None
+                },
             },
         })
     }
-    
-    
+
     /// Get a specific data source by ID
     async fn data_source(&self, ctx: &Context<'_>, id: ID) -> Result<Option<DataSourceType>> {
         let pool = ctx.data::<DatabasePool>()?;
         let source_uuid = Uuid::parse_str(&id)?;
-        
+
         use crate::schema::data_sources::dsl;
+        use diesel::{ExpressionMethods, OptionalExtension, QueryDsl};
         use diesel_async::RunQueryDsl;
-        use diesel::{QueryDsl, ExpressionMethods, OptionalExtension};
-        
+
         let mut conn = pool.get().await?;
         let source = dsl::data_sources
             .filter(dsl::id.eq(source_uuid))
@@ -83,28 +94,28 @@ impl Query {
             .first::<crate::models::DataSource>(&mut conn)
             .await
             .optional()?;
-        
+
         Ok(source.map(|s| s.into()))
     }
-    
+
     /// List all data sources
     async fn data_sources(&self, ctx: &Context<'_>) -> Result<Vec<DataSourceType>> {
         let pool = ctx.data::<DatabasePool>()?;
-        
+
+        use crate::schema::data_sources;
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
-        use crate::schema::data_sources;
-        
+
         let mut conn = pool.get().await?;
         let sources = data_sources::table
             .order_by(data_sources::name.asc())
             .select(crate::models::DataSource::as_select())
             .load::<crate::models::DataSource>(&mut *conn)
             .await?;
-        
+
         Ok(sources.into_iter().map(DataSourceType::from).collect())
     }
-    
+
     /// Get data points for a specific series with filtering and transformation
     async fn series_data(
         &self,
@@ -117,7 +128,7 @@ impl Query {
     ) -> Result<DataPointConnection> {
         let pool = ctx.data::<DatabasePool>()?;
         let series_uuid = Uuid::parse_str(&series_id)?;
-        
+
         // Convert GraphQL inputs to service parameters
         let query_params = crate::models::DataQueryParams {
             series_id: series_uuid,
@@ -128,21 +139,22 @@ impl Query {
             limit: first.map(|f| f as i64),
             offset: after.and_then(|cursor| cursor.parse::<i64>().ok()),
         };
-        
+
         let data_points = series_service::get_series_data(pool, query_params).await?;
         let total_count = data_points.len();
-        
+
         // Apply transformation if requested
         let result_points = if let Some(transformation) = transformation {
             // Apply the requested transformation to the data points
-            apply_data_transformation(data_points, transformation).await?
+            apply_data_transformation(data_points, transformation)
+                .await?
                 .into_iter()
                 .map(DataPointType::from)
                 .collect()
         } else {
             data_points.into_iter().map(DataPointType::from).collect()
         };
-        
+
         Ok(DataPointConnection {
             nodes: result_points,
             total_count: total_count as i32,
@@ -154,23 +166,25 @@ impl Query {
             },
         })
     }
-    
+
     /// Get crawler and queue statistics for monitoring
     async fn crawler_status(&self, ctx: &Context<'_>) -> Result<CrawlerStatusType> {
         let pool = ctx.data::<DatabasePool>()?;
-        
+
         // Get queue statistics to determine crawler activity
         let queue_stats = crate::services::queue_service::get_queue_statistics(pool).await?;
-        
+
         // Get actual crawler status from service
-        let crawler_service_status = crate::services::crawler_service_simple::get_crawler_status().await?;
-        
+        let crawler_service_status =
+            crate::services::crawler_service_simple::get_crawler_status().await?;
+
         // Determine if crawler is actually running based on queue activity
-        let is_running = crawler_service_status.is_running && (queue_stats.processing_items > 0 || queue_stats.pending_items > 0);
-        
+        let is_running = crawler_service_status.is_running
+            && (queue_stats.processing_items > 0 || queue_stats.pending_items > 0);
+
         // Active workers is based on currently processing items
         let active_workers = queue_stats.processing_items.min(10) as i32; // Cap at 10 for display
-        
+
         // Last crawl time is based on most recent completed item
         let last_crawl = if queue_stats.completed_items > 0 {
             // If we have completed items, estimate last crawl as recent
@@ -178,7 +192,7 @@ impl Query {
         } else {
             crawler_service_status.last_crawl
         };
-        
+
         // Next scheduled crawl based on queue status
         let next_scheduled_crawl = if queue_stats.pending_items > 0 {
             // If there are pending items, next crawl is soon
@@ -187,7 +201,7 @@ impl Query {
             // Otherwise use the service's scheduled time
             crawler_service_status.next_scheduled_crawl
         };
-        
+
         Ok(CrawlerStatusType {
             is_running,
             active_workers,
@@ -195,13 +209,13 @@ impl Query {
             next_scheduled_crawl,
         })
     }
-    
+
     /// Get queue statistics
     async fn queue_statistics(&self, ctx: &Context<'_>) -> Result<QueueStatisticsType> {
         let pool = ctx.data::<DatabasePool>()?;
-        
+
         let stats = crate::services::queue_service::get_queue_statistics(pool).await?;
-        
+
         Ok(QueueStatisticsType {
             total_items: stats.total_items as i32,
             pending_items: stats.pending_items as i32,
@@ -213,11 +227,11 @@ impl Query {
             average_processing_time: stats.average_processing_time,
         })
     }
-    
+
     /// Search economic series using full-text search with spelling correction
     async fn search_series(
-        &self, 
-        ctx: &Context<'_>, 
+        &self,
+        ctx: &Context<'_>,
         query: String,
         source: Option<String>,
         frequency: Option<SeriesFrequencyType>,
@@ -226,11 +240,11 @@ impl Query {
     ) -> Result<SearchResult> {
         // REQUIREMENT: Full-text search with spelling correction and synonyms
         // PURPOSE: Provide comprehensive search capabilities for economic time series
-        
+
         let start_time = std::time::Instant::now();
         let pool = ctx.data::<DatabasePool>()?;
         let search_service = SearchService::new(Arc::new(pool.clone()));
-        
+
         // Convert GraphQL input to internal search parameters
         let search_params = crate::models::search::SearchParams {
             query: query.clone(),
@@ -242,11 +256,11 @@ impl Query {
             include_inactive: Some(false),
             sort_by: Some(crate::models::search::SearchSortOrder::Relevance),
         };
-        
+
         let results = search_service.search_series(&search_params).await?;
         let took_ms = start_time.elapsed().as_millis() as i32;
         let total_count = results.len() as i32;
-        
+
         Ok(SearchResult {
             series: results.into_iter().map(EconomicSeriesType::from).collect(),
             total_count,
@@ -254,14 +268,24 @@ impl Query {
             took_ms,
         })
     }
-    
+
     /// Get search suggestions for partial queries
-    async fn search_suggestions(&self, ctx: &Context<'_>, partial_query: String, limit: Option<i32>) -> Result<Vec<SearchSuggestionType>> {
+    async fn search_suggestions(
+        &self,
+        ctx: &Context<'_>,
+        partial_query: String,
+        limit: Option<i32>,
+    ) -> Result<Vec<SearchSuggestionType>> {
         let pool = ctx.data::<DatabasePool>()?;
         let search_service = SearchService::new(Arc::new(pool.clone()));
-        
-        let suggestions = search_service.get_suggestions(&partial_query, limit.unwrap_or(10)).await?;
-        Ok(suggestions.into_iter().map(|suggestion| suggestion.into()).collect())
+
+        let suggestions = search_service
+            .get_suggestions(&partial_query, limit.unwrap_or(10))
+            .await?;
+        Ok(suggestions
+            .into_iter()
+            .map(|suggestion| suggestion.into())
+            .collect())
     }
 
     /// Get annotations for a specific series
@@ -273,15 +297,20 @@ impl Query {
     ) -> Result<Vec<ChartAnnotationType>> {
         let pool = ctx.data::<DatabasePool>()?;
         let collaboration_service = crate::services::CollaborationService::new(pool.clone());
-        
+
         let user_uuid = if let Some(uid) = user_id {
             Some(uuid::Uuid::parse_str(&uid)?)
         } else {
             None
         };
-        
-        let annotations = collaboration_service.get_annotations_for_series(&series_id, user_uuid).await?;
-        Ok(annotations.into_iter().map(ChartAnnotationType::from).collect())
+
+        let annotations = collaboration_service
+            .get_annotations_for_series(&series_id, user_uuid)
+            .await?;
+        Ok(annotations
+            .into_iter()
+            .map(ChartAnnotationType::from)
+            .collect())
     }
 
     /// Get comments for a specific annotation
@@ -292,10 +321,15 @@ impl Query {
     ) -> Result<Vec<AnnotationCommentType>> {
         let pool = ctx.data::<DatabasePool>()?;
         let collaboration_service = crate::services::CollaborationService::new(pool.clone());
-        
+
         let annotation_uuid = uuid::Uuid::parse_str(&annotation_id)?;
-        let comments = collaboration_service.get_comments_for_annotation(annotation_uuid).await?;
-        Ok(comments.into_iter().map(AnnotationCommentType::from).collect())
+        let comments = collaboration_service
+            .get_comments_for_annotation(annotation_uuid)
+            .await?;
+        Ok(comments
+            .into_iter()
+            .map(AnnotationCommentType::from)
+            .collect())
     }
 
     /// Get collaborators for a specific chart
@@ -306,43 +340,44 @@ impl Query {
     ) -> Result<Vec<ChartCollaboratorType>> {
         let pool = ctx.data::<DatabasePool>()?;
         let collaboration_service = crate::services::CollaborationService::new(pool.clone());
-        
+
         let chart_uuid = uuid::Uuid::parse_str(&chart_id)?;
         let collaborators = collaboration_service.get_collaborators(chart_uuid).await?;
-        Ok(collaborators.into_iter().map(|(collaborator, _user)| ChartCollaboratorType::from(collaborator)).collect())
+        Ok(collaborators
+            .into_iter()
+            .map(|(collaborator, _user)| ChartCollaboratorType::from(collaborator))
+            .collect())
     }
 
     /// Get user information by ID
-    async fn user(
-        &self,
-        ctx: &Context<'_>,
-        user_id: ID,
-    ) -> Result<Option<UserType>> {
+    async fn user(&self, ctx: &Context<'_>, user_id: ID) -> Result<Option<UserType>> {
         let pool = ctx.data::<DatabasePool>()?;
-        
+
         let user_uuid = uuid::Uuid::parse_str(&user_id)?;
-        
+
+        use crate::schema::users;
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
-        use crate::schema::users;
-        
+
         let mut conn = pool.get().await?;
-        
+
         let user = users::table
             .filter(users::id.eq(user_uuid))
             .select(crate::models::User::as_select())
             .first::<crate::models::User>(&mut conn)
             .await
             .optional()?;
-            
+
         Ok(user.map(UserType::from))
     }
 }
 
 /// Convert GraphQL series filter to service parameters
-fn convert_series_filter_to_params(filter: Option<SeriesFilterInput>) -> crate::models::SeriesSearchParams {
+fn convert_series_filter_to_params(
+    filter: Option<SeriesFilterInput>,
+) -> crate::models::SeriesSearchParams {
     let filter = filter.unwrap_or_default();
-    
+
     crate::models::SeriesSearchParams {
         query: filter.search_query,
         source_id: filter.source_id.and_then(|id| Uuid::parse_str(&id).ok()),
@@ -382,7 +417,7 @@ pub async fn apply_data_transformation(
 ) -> Result<Vec<crate::models::DataPoint>> {
     use crate::models::data_point::DataTransformation;
     use bigdecimal::{BigDecimal, Zero};
-    
+
     // Convert GraphQL transformation type to model transformation type
     let transform_type = match transformation {
         DataTransformationType::None => DataTransformation::None,
@@ -392,17 +427,17 @@ pub async fn apply_data_transformation(
         DataTransformationType::PercentChange => DataTransformation::PercentChange,
         DataTransformationType::LogDifference => DataTransformation::LogDifference,
     };
-    
+
     if data_points.is_empty() {
         return Ok(data_points);
     }
-    
+
     // Sort data points by date to ensure correct chronological order
     let mut sorted_points = data_points;
     sorted_points.sort_by(|a, b| a.date.cmp(&b.date));
-    
+
     let mut transformed_points = Vec::new();
-    
+
     match transform_type {
         DataTransformation::YearOverYear => {
             // For YoY, we need to find the value from exactly one year ago
@@ -415,16 +450,16 @@ pub async fn apply_data_transformation(
                         days_diff >= 360 && days_diff <= 370 // Allow some flexibility for exact dates
                     })
                     .and_then(|p| p.value.as_ref().cloned());
-                
+
                 let transformed_value = point.calculate_yoy_change(previous_year_value);
-                
+
                 // Create new data point with transformed value
                 let mut transformed_point = point.clone();
                 transformed_point.value = transformed_value;
                 transformed_points.push(transformed_point);
             }
         }
-        
+
         DataTransformation::QuarterOverQuarter => {
             // For QoQ, compare with previous quarter (approximately 3 months)
             for (_i, point) in sorted_points.iter().enumerate() {
@@ -435,15 +470,15 @@ pub async fn apply_data_transformation(
                         days_diff >= 85 && days_diff <= 95 // ~3 months with flexibility
                     })
                     .and_then(|p| p.value.as_ref());
-                
+
                 let transformed_value = point.calculate_qoq_change(previous_quarter_value);
-                
+
                 let mut transformed_point = point.clone();
                 transformed_point.value = transformed_value;
                 transformed_points.push(transformed_point);
             }
         }
-        
+
         DataTransformation::MonthOverMonth => {
             // For MoM, compare with previous month
             for (_i, point) in sorted_points.iter().enumerate() {
@@ -454,15 +489,15 @@ pub async fn apply_data_transformation(
                         days_diff >= 28 && days_diff <= 32 // ~1 month with flexibility
                     })
                     .and_then(|p| p.value.as_ref());
-                
+
                 let transformed_value = point.calculate_mom_change(previous_month_value);
-                
+
                 let mut transformed_point = point.clone();
                 transformed_point.value = transformed_value;
                 transformed_points.push(transformed_point);
             }
         }
-        
+
         DataTransformation::PercentChange => {
             // For percent change, compare each point with the first point
             if let Some(base_point) = sorted_points.first() {
@@ -470,14 +505,17 @@ pub async fn apply_data_transformation(
                     for point in &sorted_points {
                         let transformed_value = if let Some(current_value) = &point.value {
                             if !base_value.is_zero() {
-                                Some(((current_value - base_value) / base_value) * BigDecimal::from(100))
+                                Some(
+                                    ((current_value - base_value) / base_value)
+                                        * BigDecimal::from(100),
+                                )
                             } else {
                                 None
                             }
                         } else {
                             None
                         };
-                        
+
                         let mut transformed_point = point.clone();
                         transformed_point.value = transformed_value;
                         transformed_points.push(transformed_point);
@@ -485,7 +523,7 @@ pub async fn apply_data_transformation(
                 }
             }
         }
-        
+
         DataTransformation::LogDifference => {
             // For log difference, calculate ln(current) - ln(previous)
             for (i, point) in sorted_points.iter().enumerate() {
@@ -507,19 +545,19 @@ pub async fn apply_data_transformation(
                 } else {
                     None // First point has no previous value
                 };
-                
+
                 let mut transformed_point = point.clone();
                 transformed_point.value = transformed_value;
                 transformed_points.push(transformed_point);
             }
         }
-        
+
         DataTransformation::None => {
             // No transformation, return original points
             return Ok(sorted_points);
         }
     }
-    
+
     Ok(transformed_points)
 }
 
@@ -532,16 +570,16 @@ mod tests {
         // REQUIREMENT: GraphQL API should provide flexible filtering options for economic series
         // PURPOSE: Verify that GraphQL filter inputs are correctly converted to service parameters
         // This ensures the GraphQL layer properly translates client requests to backend queries
-        
+
         let filter = SeriesFilterInput {
             source_id: Some(ID::from("550e8400-e29b-41d4-a716-446655440000")),
             frequency: Some(SeriesFrequencyType::Monthly),
             is_active: Some(true),
             search_query: Some("GDP".to_string()),
         };
-        
+
         let params = convert_series_filter_to_params(Some(filter));
-        
+
         // Verify search query is preserved - required for text search functionality
         assert_eq!(params.query, Some("GDP".to_string()));
         // Verify frequency filter is converted to string - required for database queries
@@ -549,20 +587,30 @@ mod tests {
         // Verify active filter is preserved - allows filtering inactive series
         assert_eq!(params.is_active, Some(true));
         // Verify source_id is parsed and included - enables filtering by data source
-        assert!(params.source_id.is_some(), "Source ID should be parsed from GraphQL ID");
+        assert!(
+            params.source_id.is_some(),
+            "Source ID should be parsed from GraphQL ID"
+        );
     }
-    
+
     #[test]
     fn test_default_pagination() {
         // REQUIREMENT: GraphQL API should provide reasonable pagination defaults
         // PURPOSE: Verify that pagination defaults protect against excessive data requests
         // This ensures good performance and prevents accidental large queries
-        
+
         let pagination = PaginationInput::default();
-        
+
         // Verify default page size is reasonable - prevents excessive data transfer
-        assert_eq!(pagination.first, Some(50), "Default page size should be reasonable for UI display");
+        assert_eq!(
+            pagination.first,
+            Some(50),
+            "Default page size should be reasonable for UI display"
+        );
         // Verify no initial cursor - starts from beginning of results
-        assert_eq!(pagination.after, None, "Default pagination should start from beginning");
+        assert_eq!(
+            pagination.after, None,
+            "Default pagination should start from beginning"
+        );
     }
 }

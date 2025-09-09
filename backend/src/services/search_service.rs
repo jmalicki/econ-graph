@@ -2,18 +2,18 @@
 // PURPOSE: Implement comprehensive search functionality with spelling correction and synonyms
 // This service provides advanced search capabilities for economic time series data
 
-use std::sync::Arc;
-use diesel::prelude::*;
-use diesel_async::{AsyncPgConnection, RunQueryDsl};
-use diesel_async::pooled_connection::bb8::Pool;
-use tracing::{info, warn, error};
-use crate::models::search::{
-    SearchParams, SeriesSearchResult, SearchSuggestion, SearchAnalytics, SearchStatistics,
-    SuggestionType, SearchSortOrder
-};
-use crate::error::{AppError, AppResult};
-use validator::Validate;
 use crate::database::DatabasePool;
+use crate::error::{AppError, AppResult};
+use crate::models::search::{
+    SearchAnalytics, SearchParams, SearchSortOrder, SearchStatistics, SearchSuggestion,
+    SeriesSearchResult, SuggestionType,
+};
+use diesel::prelude::*;
+use diesel_async::pooled_connection::bb8::Pool;
+use diesel_async::{AsyncPgConnection, RunQueryDsl};
+use std::sync::Arc;
+use tracing::{error, info, warn};
+use validator::Validate;
 
 /// Service for handling full-text search operations
 pub struct SearchService {
@@ -25,25 +25,28 @@ impl SearchService {
     pub fn new(pool: Arc<DatabasePool>) -> Self {
         Self { pool }
     }
-    
+
     /// Perform full-text search for economic series with spelling correction
-    pub async fn search_series(&self, params: &SearchParams) -> Result<Vec<SeriesSearchResult>, AppError> {
+    pub async fn search_series(
+        &self,
+        params: &SearchParams,
+    ) -> Result<Vec<SeriesSearchResult>, AppError> {
         // REQUIREMENT: Full-text search with spelling correction and synonyms
         // PURPOSE: Find economic series using advanced PostgreSQL search capabilities
-        
+
         let start_time = std::time::Instant::now();
-        
+
         // Validate search parameters
         params.validate().map_err(|e| {
             warn!("Invalid search parameters: {:?}", e);
             AppError::Validation(format!("Invalid search parameters: {}", e))
         })?;
-        
+
         let _conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
             AppError::ExternalApiError(format!("Connection error: {}", e))
         })?;
-        
+
         let search_query = params.query.clone();
         let similarity_threshold = params.get_similarity_threshold();
         let limit = params.get_limit();
@@ -51,7 +54,7 @@ impl SearchService {
         let source_filter = params.source_id;
         let frequency_filter = params.frequency.clone();
         let include_inactive = params.should_include_inactive();
-        
+
         let mut conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
             AppError::ExternalApiError(format!("Connection error: {}", e))
@@ -83,36 +86,44 @@ impl SearchService {
             error!("Search query execution failed: {}", e);
             AppError::ExternalApiError(format!("Query execution error: {}", e))
         })?;
-        
+
         let execution_time = start_time.elapsed();
-        
+
         // Convert database rows to search results
         let search_results: Vec<SeriesSearchResult> = results
             .into_iter()
             .map(|row| row.into_search_result())
             .collect();
-        
+
         // Log search analytics
-        info!("Search completed: query='{}', results={}, time={}ms", 
-              params.query, search_results.len(), execution_time.as_millis());
-        
+        info!(
+            "Search completed: query='{}', results={}, time={}ms",
+            params.query,
+            search_results.len(),
+            execution_time.as_millis()
+        );
+
         Ok(search_results)
     }
-    
+
     /// Get search suggestions for query completion and spelling correction
-    pub async fn get_suggestions(&self, partial_query: &str, limit: i32) -> Result<Vec<SearchSuggestion>, AppError> {
+    pub async fn get_suggestions(
+        &self,
+        partial_query: &str,
+        limit: i32,
+    ) -> Result<Vec<SearchSuggestion>, AppError> {
         if partial_query.trim().is_empty() || partial_query.len() < 2 {
             return Ok(vec![]);
         }
-        
+
         let mut conn = self.pool.get().await.map_err(|e| {
             error!("Failed to get database connection: {}", e);
             AppError::ExternalApiError(format!("Connection error: {}", e))
         })?;
-        
+
         let query = partial_query.to_lowercase().trim().to_string();
         let search_limit = limit.min(20);
-        
+
         let suggestions = diesel::sql_query(
             "SELECT DISTINCT title as word, 0.0 as rank, 'completion' as suggestion_type, 1 as match_count
              FROM economic_series
@@ -128,7 +139,7 @@ impl SearchService {
             error!("Suggestions query execution failed: {}", e);
             AppError::ExternalApiError(format!("Query execution error: {}", e))
         })?;
-        
+
         let search_suggestions: Vec<SearchSuggestion> = suggestions
             .into_iter()
             .take(limit as usize)
@@ -139,7 +150,7 @@ impl SearchService {
                 confidence: 0.8,
             })
             .collect();
-        
+
         Ok(search_suggestions)
     }
 }
@@ -208,7 +219,10 @@ struct SuggestionRow {
 }
 
 // Module-level function for compatibility
-pub async fn search_series(pool: &DatabasePool, params: &SearchParams) -> AppResult<Vec<SeriesSearchResult>> {
+pub async fn search_series(
+    pool: &DatabasePool,
+    params: &SearchParams,
+) -> AppResult<Vec<SeriesSearchResult>> {
     let search_service = SearchService::new(Arc::new(pool.clone()));
     search_service.search_series(params).await
 }

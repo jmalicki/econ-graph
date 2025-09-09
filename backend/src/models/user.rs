@@ -1,22 +1,23 @@
+use crate::database::DatabasePool;
+use crate::error::{AppError, AppResult};
 /**
  * REQUIREMENT: User authentication models for OAuth and collaboration
  * PURPOSE: Provide user account management and authentication for chart collaboration
  * This enables secure multi-user professional economic analysis features
  */
+use crate::schema::{
+    annotation_comments, chart_annotations, chart_collaborators, user_sessions, users,
+};
 
-use crate::schema::{users, user_sessions, chart_annotations, annotation_comments, chart_collaborators};
-use crate::database::DatabasePool;
-use crate::error::{AppError, AppResult};
-
-use chrono::{DateTime, Utc, NaiveDate};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, NaiveDate, Utc};
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use serde_json;
 use uuid::Uuid;
-use bcrypt::{hash, verify, DEFAULT_COST};
-use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
 // IP addresses stored as strings for Diesel compatibility
 
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -158,7 +159,9 @@ impl User {
             .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         if existing.is_some() {
-            return Err(AppError::ValidationError("Email already registered".to_string()));
+            return Err(AppError::ValidationError(
+                "Email already registered".to_string(),
+            ));
         }
 
         // Hash password
@@ -290,14 +293,17 @@ impl User {
             .map_err(|e| AppError::DatabaseError(e.to_string()))?
             .ok_or_else(|| AppError::AuthenticationError("Invalid credentials".to_string()))?;
 
-        let password_hash = user.password_hash
+        let password_hash = user
+            .password_hash
             .as_ref()
             .ok_or_else(|| AppError::AuthenticationError("Invalid credentials".to_string()))?;
 
         if !verify(&password, password_hash)
             .map_err(|e| AppError::InternalError(format!("Password verification failed: {}", e)))?
         {
-            return Err(AppError::AuthenticationError("Invalid credentials".to_string()));
+            return Err(AppError::AuthenticationError(
+                "Invalid credentials".to_string(),
+            ));
         }
 
         // Update last login
@@ -356,7 +362,10 @@ impl User {
             organization: self.organization.clone(),
             preferences: UserPreferences {
                 theme: self.theme.clone().unwrap_or_else(|| "light".to_string()),
-                default_chart_type: self.default_chart_type.clone().unwrap_or_else(|| "line".to_string()),
+                default_chart_type: self
+                    .default_chart_type
+                    .clone()
+                    .unwrap_or_else(|| "line".to_string()),
                 notifications: self.notifications_enabled.unwrap_or(true),
                 collaboration_enabled: self.collaboration_enabled.unwrap_or(true),
             },
@@ -399,7 +408,8 @@ impl UserSession {
             &Header::default(),
             &claims,
             &EncodingKey::from_secret(jwt_secret.as_ref()),
-        ).map_err(|e| AppError::InternalError(format!("JWT encoding failed: {}", e)))?;
+        )
+        .map_err(|e| AppError::InternalError(format!("JWT encoding failed: {}", e)))?;
 
         // Hash token for storage
         let token_hash = hash(&token, DEFAULT_COST)
@@ -408,8 +418,9 @@ impl UserSession {
         let new_session = NewUserSession {
             user_id,
             token_hash,
-            expires_at: DateTime::from_timestamp(exp as i64, 0)
-                .ok_or_else(|| AppError::InternalError("Invalid expiration timestamp".to_string()))?,
+            expires_at: DateTime::from_timestamp(exp as i64, 0).ok_or_else(|| {
+                AppError::InternalError("Invalid expiration timestamp".to_string())
+            })?,
             user_agent,
             ip_address,
         };
@@ -435,10 +446,12 @@ impl UserSession {
             token,
             &DecodingKey::from_secret(jwt_secret.as_ref()),
             &Validation::new(Algorithm::HS256),
-        ).map_err(|e| AppError::AuthenticationError(format!("Invalid token: {}", e)))?;
+        )
+        .map_err(|e| AppError::AuthenticationError(format!("Invalid token: {}", e)))?;
 
-        let user_id = Uuid::parse_str(&token_data.claims.sub)
-            .map_err(|e| AppError::AuthenticationError(format!("Invalid user ID in token: {}", e)))?;
+        let user_id = Uuid::parse_str(&token_data.claims.sub).map_err(|e| {
+            AppError::AuthenticationError(format!("Invalid user ID in token: {}", e))
+        })?;
 
         // Get user
         let user = User::get_by_id(pool, user_id).await?;

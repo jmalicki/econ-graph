@@ -1,12 +1,12 @@
-use warp::Filter;
-use async_graphql::Schema;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use async_graphql::Schema;
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
+use serde_json::json;
+use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::signal;
 use tracing::{info, warn};
-use std::convert::Infallible;
-use serde_json::json;
+use warp::Filter;
 
 mod config;
 mod database;
@@ -25,17 +25,25 @@ mod integration_tests;
 use config::Config;
 use database::{create_pool, DatabasePool};
 use error::{AppError, AppResult};
-use graphql::schema::{create_schema_with_data};
+use graphql::schema::create_schema_with_data;
 use services::crawler::start_crawler;
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: DatabasePool,
-    pub schema: async_graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
+    pub schema: async_graphql::Schema<
+        graphql::query::Query,
+        graphql::mutation::Mutation,
+        async_graphql::EmptySubscription,
+    >,
 }
 
 async fn graphql_handler(
-    schema: async_graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>,
+    schema: async_graphql::Schema<
+        graphql::query::Query,
+        graphql::mutation::Mutation,
+        async_graphql::EmptySubscription,
+    >,
     request: async_graphql::Request,
 ) -> Result<GraphQLResponse, Infallible> {
     Ok(GraphQLResponse::from(schema.execute(request).await))
@@ -43,7 +51,7 @@ async fn graphql_handler(
 
 async fn graphql_playground() -> Result<impl warp::Reply, Infallible> {
     Ok(warp::reply::html(playground_source(
-        GraphQLPlaygroundConfig::new("/graphql")
+        GraphQLPlaygroundConfig::new("/graphql"),
     )))
 }
 
@@ -111,8 +119,10 @@ async fn root_handler() -> Result<impl warp::Reply, Infallible> {
 </body>
 </html>
     "#;
-    
-    Ok(warp::reply::html(html.replace("{}", env!("CARGO_PKG_VERSION"))))
+
+    Ok(warp::reply::html(
+        html.replace("{}", env!("CARGO_PKG_VERSION")),
+    ))
 }
 
 #[tokio::main]
@@ -120,26 +130,28 @@ async fn main() -> AppResult<()> {
     // Initialize tracing
     tracing_subscriber::fmt::init();
 
-    info!("🚀 Starting EconGraph Backend Server v{}", env!("CARGO_PKG_VERSION"));
+    info!(
+        "🚀 Starting EconGraph Backend Server v{}",
+        env!("CARGO_PKG_VERSION")
+    );
 
     // Load configuration
-    let config = Config::from_env().map_err(|e| {
-        AppError::ConfigError(format!("Failed to load configuration: {}", e))
-    })?;
+    let config = Config::from_env()
+        .map_err(|e| AppError::ConfigError(format!("Failed to load configuration: {}", e)))?;
 
     info!("📊 Configuration loaded successfully");
 
     // Create database connection pool
-    let pool = create_pool(&config.database_url).await.map_err(|e| {
-        AppError::DatabaseError(format!("Failed to create database pool: {}", e))
-    })?;
+    let pool = create_pool(&config.database_url)
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to create database pool: {}", e)))?;
 
     info!("🗄️  Database connection pool created");
 
     // Run migrations
-    database::run_migrations(&config.database_url).await.map_err(|e| {
-        AppError::DatabaseError(format!("Failed to run migrations: {}", e))
-    })?;
+    database::run_migrations(&config.database_url)
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to run migrations: {}", e)))?;
 
     info!("🔄 Database migrations completed");
 
@@ -160,10 +172,18 @@ async fn main() -> AppResult<()> {
         .allow_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"]);
 
     // GraphQL endpoint
-    let graphql_filter = async_graphql_warp::graphql(schema.clone())
-        .and_then(|(schema, request): (async_graphql::Schema<graphql::query::Query, graphql::mutation::Mutation, async_graphql::EmptySubscription>, async_graphql::Request)| async move {
+    let graphql_filter = async_graphql_warp::graphql(schema.clone()).and_then(
+        |(schema, request): (
+            async_graphql::Schema<
+                graphql::query::Query,
+                graphql::mutation::Mutation,
+                async_graphql::EmptySubscription,
+            >,
+            async_graphql::Request,
+        )| async move {
             Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
-        });
+        },
+    );
 
     // GraphQL Playground
     let playground_filter = warp::path("playground")
@@ -171,14 +191,10 @@ async fn main() -> AppResult<()> {
         .and_then(graphql_playground);
 
     // Health check
-    let health_filter = warp::path("health")
-        .and(warp::get())
-        .and_then(health_check);
+    let health_filter = warp::path("health").and(warp::get()).and_then(health_check);
 
     // Root endpoint
-    let root_filter = warp::path::end()
-        .and(warp::get())
-        .and_then(root_handler);
+    let root_filter = warp::path::end().and(warp::get()).and_then(root_handler);
 
     // Combine all routes
     let routes = root_filter
@@ -190,15 +206,19 @@ async fn main() -> AppResult<()> {
 
     let port = config.server.port;
     info!("🌐 Server starting on http://0.0.0.0:{}", port);
-    info!("🎮 GraphQL Playground available at http://localhost:{}/playground", port);
-    info!("❤️  Health check available at http://localhost:{}/health", port);
+    info!(
+        "🎮 GraphQL Playground available at http://localhost:{}/playground",
+        port
+    );
+    info!(
+        "❤️  Health check available at http://localhost:{}/health",
+        port
+    );
 
     // Start the server
-    let (_, server) = warp::serve(routes)
-        .bind_with_graceful_shutdown(([0, 0, 0, 0], port), async {
-            signal::ctrl_c()
-                .await
-                .expect("Failed to listen for ctrl+c");
+    let (_, server) =
+        warp::serve(routes).bind_with_graceful_shutdown(([0, 0, 0, 0], port), async {
+            signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
             info!("🛑 Received shutdown signal, gracefully shutting down...");
         });
 

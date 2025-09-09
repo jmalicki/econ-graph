@@ -2,10 +2,10 @@
 // PURPOSE: Provide utilities for testing with real PostgreSQL containers
 // This enables full integration testing with actual database instances
 
-use std::sync::Arc;
 use diesel::{Connection, PgConnection, RunQueryDsl};
-use diesel_async::{AsyncPgConnection, pooled_connection::AsyncDieselConnectionManager};
 use diesel_async::pooled_connection::bb8::Pool;
+use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
+use std::sync::Arc;
 
 // Type alias for convenience
 pub type DatabasePool = Pool<AsyncPgConnection>;
@@ -18,9 +18,9 @@ pub async fn get_test_pool() -> DatabasePool {
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 // Deadpool-diesel replaced with bb8 and diesel-async
 // use deadpool_diesel::postgres::{Manager, Pool};
+use once_cell::sync::Lazy;
 use testcontainers::{runners::AsyncRunner, ContainerAsync, Image};
 use testcontainers_modules::postgres::Postgres;
-use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 
 // Config module not needed for basic tests
@@ -32,7 +32,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
 // No longer need global Docker client with newer testcontainers API
 
 /// Container lifecycle management to prevent multiple containers
-static CONTAINER_MUTEX: Lazy<Arc<Mutex<Option<TestContainer>>>> = 
+static CONTAINER_MUTEX: Lazy<Arc<Mutex<Option<TestContainer>>>> =
     Lazy::new(|| Arc::new(Mutex::new(None)));
 
 /// Test container wrapper
@@ -54,8 +54,11 @@ impl TestContainer {
             .with_password("test_password");
 
         let container = postgres.start().await.expect("Failed to start container");
-        let host_port = container.get_host_port_ipv4(5432).await.expect("Failed to get port");
-        
+        let host_port = container
+            .get_host_port_ipv4(5432)
+            .await
+            .expect("Failed to get port");
+
         let database_url = format!(
             "postgres://test_user:test_password@localhost:{}/test_econ_graph",
             host_port
@@ -63,10 +66,10 @@ impl TestContainer {
 
         // Wait for PostgreSQL to be ready
         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-        
+
         // Run migrations on the test database
         Self::run_migrations(&database_url).await;
-        
+
         // Create connection pool
         let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(&database_url);
         let pool = Pool::builder()
@@ -84,14 +87,14 @@ impl TestContainer {
 
     /// Run database migrations
     async fn run_migrations(database_url: &str) {
-        let mut conn = PgConnection::establish(database_url)
-            .expect("Failed to connect to test database");
-        
+        let mut conn =
+            PgConnection::establish(database_url).expect("Failed to connect to test database");
+
         // Enable required PostgreSQL extensions
         diesel::sql_query("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";")
             .execute(&mut conn)
             .expect("Failed to create pgcrypto extension");
-        
+
         conn.run_pending_migrations(MIGRATIONS)
             .expect("Failed to run migrations");
     }
@@ -109,45 +112,53 @@ impl TestContainer {
     /// Clean all tables for fresh test state
     pub async fn clean_database(&self) {
         let mut conn = self.pool.get().await.expect("Failed to get connection");
-        
+
         use diesel_async::RunQueryDsl;
         // REQUIREMENT: Clean database state between tests
         // Truncate all tables in reverse dependency order
         diesel_async::RunQueryDsl::execute(
-            diesel::sql_query("TRUNCATE TABLE data_points CASCADE"), 
-            &mut conn
-        ).await.expect("Failed to truncate data_points");
-        
+            diesel::sql_query("TRUNCATE TABLE data_points CASCADE"),
+            &mut conn,
+        )
+        .await
+        .expect("Failed to truncate data_points");
+
         diesel_async::RunQueryDsl::execute(
-            diesel::sql_query("TRUNCATE TABLE economic_series CASCADE"), 
-            &mut conn
-        ).await.expect("Failed to truncate economic_series");
-        
+            diesel::sql_query("TRUNCATE TABLE economic_series CASCADE"),
+            &mut conn,
+        )
+        .await
+        .expect("Failed to truncate economic_series");
+
         diesel_async::RunQueryDsl::execute(
-            diesel::sql_query("TRUNCATE TABLE data_sources CASCADE"), 
-            &mut conn
-        ).await.expect("Failed to truncate data_sources");
-        
+            diesel::sql_query("TRUNCATE TABLE data_sources CASCADE"),
+            &mut conn,
+        )
+        .await
+        .expect("Failed to truncate data_sources");
+
         diesel_async::RunQueryDsl::execute(
-            diesel::sql_query("TRUNCATE TABLE crawl_queue CASCADE"), 
-            &mut conn
-        ).await.expect("Failed to truncate crawl_queue");
-        
+            diesel::sql_query("TRUNCATE TABLE crawl_queue CASCADE"),
+            &mut conn,
+        )
+        .await
+        .expect("Failed to truncate crawl_queue");
+
         // Reset sequences (PostgreSQL auto-generates sequence names)
         // Note: Sequences are auto-generated with UUID primary keys, so this is not needed
         // diesel_async::RunQueryDsl::execute(
-        //     diesel::sql_query("ALTER SEQUENCE data_sources_id_seq RESTART WITH 1"), 
+        //     diesel::sql_query("ALTER SEQUENCE data_sources_id_seq RESTART WITH 1"),
         //     &mut conn
         // ).await.expect("Failed to reset sequence");
     }
 
     /// Insert test data for common test scenarios
     pub async fn seed_test_data(&self) {
-        use diesel_async::RunQueryDsl;
         use crate::schema::data_sources;
-        
+        use diesel_async::RunQueryDsl;
+
         let mut conn = self.pool.get().await.expect("Failed to get connection");
-        
+
         // Insert a test data source
         let test_source = crate::models::data_source::NewDataSource {
             name: "Test Data Source".to_string(),
@@ -156,10 +167,10 @@ impl TestContainer {
             api_key_required: false,
             rate_limit_per_minute: 100,
         };
-        
+
         diesel_async::RunQueryDsl::execute(
             diesel::insert_into(data_sources::table).values(&test_source),
-            &mut conn
+            &mut conn,
         )
         .await
         .expect("Failed to insert test data");
@@ -170,12 +181,12 @@ impl TestContainer {
 /// This ensures we reuse the same container across tests for performance
 pub async fn get_test_container() -> Arc<TestContainer> {
     let mut container_guard = CONTAINER_MUTEX.lock().await;
-    
+
     if container_guard.is_none() {
         let container = TestContainer::new().await;
         *container_guard = Some(container);
     }
-    
+
     // We need to return an Arc, but we can't clone the container
     // So we'll create a new one each time for now
     // In a real implementation, you might want to use Arc<TestContainer>
@@ -216,15 +227,15 @@ macro_rules! db_test {
             // Setup test container and clean state
             let container = $crate::test_utils::get_test_container().await;
             container.clean_database().await;
-            
+
             // Execute test body with container
             let result = std::panic::AssertUnwindSafe($test_body(container.clone()))
                 .catch_unwind()
                 .await;
-            
+
             // Clean up after test
             container.clean_database().await;
-            
+
             // Re-panic if test failed
             if let Err(panic) = result {
                 std::panic::resume_unwind(panic);
@@ -238,10 +249,10 @@ macro_rules! db_test {
 pub trait DatabaseTestExt {
     /// Execute a query and return the count of affected rows
     async fn execute_count(&self, query: &str) -> i64;
-    
+
     /// Check if a table exists
     async fn table_exists(&self, table_name: &str) -> bool;
-    
+
     /// Get table row count
     async fn table_row_count(&self, table_name: &str) -> i64;
 }
@@ -250,42 +261,37 @@ pub trait DatabaseTestExt {
 impl DatabaseTestExt for DatabasePool {
     async fn execute_count(&self, query: &str) -> i64 {
         let mut conn = self.get().await.expect("Failed to get connection");
-        
+
         use diesel_async::RunQueryDsl;
-        diesel_async::RunQueryDsl::execute(
-            diesel::sql_query(query),
-            &mut conn
-        )
-        .await
-        .map(|count| count as i64)
-        .expect("Failed to execute query")
+        diesel_async::RunQueryDsl::execute(diesel::sql_query(query), &mut conn)
+            .await
+            .map(|count| count as i64)
+            .expect("Failed to execute query")
     }
-    
+
     async fn table_exists(&self, table_name: &str) -> bool {
         // Simple implementation that doesn't require complex SQL queries
         // For testing purposes, we'll assume tables exist after migrations
         true
     }
-    
+
     async fn table_row_count(&self, table_name: &str) -> i64 {
         use diesel_async::RunQueryDsl;
-        
+
         let mut conn = self.get().await.expect("Failed to get connection");
         let query = format!("SELECT COUNT(*) FROM {}", table_name);
-        
+
         #[derive(diesel::QueryableByName)]
         struct CountResult {
             #[diesel(sql_type = diesel::sql_types::BigInt)]
             count: i64,
         }
-        
-        let result: CountResult = diesel_async::RunQueryDsl::get_result(
-            diesel::sql_query(query),
-            &mut conn
-        )
-        .await
-        .expect("Failed to get row count");
-            
+
+        let result: CountResult =
+            diesel_async::RunQueryDsl::get_result(diesel::sql_query(query), &mut conn)
+                .await
+                .expect("Failed to get row count");
+
         result.count
     }
 }
@@ -299,26 +305,30 @@ mod tests {
     async fn test_container_creation() {
         // REQUIREMENT: Verify testcontainer setup works correctly
         // PURPOSE: Ensure we can create and connect to PostgreSQL container
-        
+
         let container = TestContainer::new().await;
-        
-        // Test basic query  
+
+        // Test basic query
         use diesel_async::RunQueryDsl;
-        let mut conn = container.pool().get().await.expect("Failed to get connection");
-        
+        let mut conn = container
+            .pool()
+            .get()
+            .await
+            .expect("Failed to get connection");
+
         #[derive(diesel::QueryableByName)]
         struct TestResult {
             #[diesel(sql_type = diesel::sql_types::Integer)]
             test_value: i32,
         }
-        
+
         let result: TestResult = diesel_async::RunQueryDsl::get_result(
             diesel::sql_query("SELECT 1 as test_value"),
-            &mut conn
+            &mut conn,
         )
         .await
         .expect("Query failed");
-        
+
         assert_eq!(result.test_value, 1);
     }
 
@@ -327,17 +337,17 @@ mod tests {
     async fn test_database_cleaning() {
         // REQUIREMENT: Verify database cleaning works between tests
         // PURPOSE: Ensure tests have clean state and don't interfere with each other
-        
+
         let container = TestContainer::new().await;
         container.seed_test_data().await;
-        
+
         // Verify data exists
         let count_before = container.pool().table_row_count("data_sources").await;
         assert!(count_before > 0);
-        
+
         // Clean database
         container.clean_database().await;
-        
+
         // Verify data is gone
         let count_after = container.pool().table_row_count("data_sources").await;
         assert_eq!(count_after, 0);
@@ -348,18 +358,18 @@ mod tests {
     async fn test_migrations_applied() {
         // REQUIREMENT: Verify database migrations are properly applied
         // PURPOSE: Ensure test database has correct schema structure
-        
+
         let container = TestContainer::new().await;
-        
+
         // Check that all expected tables exist
         let tables = vec![
             "data_sources",
-            "economic_series", 
+            "economic_series",
             "data_points",
             "crawl_queue",
-            "__diesel_schema_migrations"
+            "__diesel_schema_migrations",
         ];
-        
+
         for table in tables {
             assert!(
                 container.pool().table_exists(table).await,

@@ -1,9 +1,9 @@
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, NaiveDate, Utc};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
-use bigdecimal::BigDecimal;
 
 use crate::schema::{
     countries, country_correlations, event_country_impacts, global_economic_events,

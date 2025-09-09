@@ -2,10 +2,10 @@
 // PURPOSE: Test data source operations with real PostgreSQL database
 // This ensures the data source model works correctly with all expected operations
 
-use std::sync::Arc;
 use crate::db_test;
-use crate::test_utils::{TestContainer, DatabaseTestExt};
 use crate::models::data_source::{DataSource, NewDataSource, UpdateDataSource};
+use crate::test_utils::{DatabaseTestExt, TestContainer};
+use std::sync::Arc;
 
 // Simple unit tests that don't require complex database integration
 #[cfg(test)]
@@ -17,7 +17,7 @@ mod simple_tests {
         // REQUIREMENT: Test data source struct creation
         // PURPOSE: Verify that data sources can be created with correct field types
         // This tests the basic struct functionality without database interaction
-        
+
         let source = NewDataSource {
             name: "Test Source".to_string(),
             description: Some("A test data source".to_string()),
@@ -25,19 +25,19 @@ mod simple_tests {
             api_key_required: false,
             rate_limit_per_minute: 100,
         };
-        
+
         assert_eq!(source.name, "Test Source");
         assert_eq!(source.base_url, "https://api.example.com");
         assert_eq!(source.rate_limit_per_minute, 100);
         assert!(!source.api_key_required);
     }
-    
+
     #[test]
     fn test_update_data_source_creation() {
         // REQUIREMENT: Test data source update struct creation
         // PURPOSE: Verify that data source updates can be created with correct field types
         // This tests the basic struct functionality without database interaction
-        
+
         let update = UpdateDataSource {
             name: Some("Updated Source".to_string()),
             description: Some("Updated description".to_string()),
@@ -46,7 +46,7 @@ mod simple_tests {
             rate_limit_per_minute: Some(200),
             updated_at: chrono::Utc::now(),
         };
-        
+
         assert_eq!(update.name, Some("Updated Source".to_string()));
         assert_eq!(update.rate_limit_per_minute, Some(200));
         assert_eq!(update.api_key_required, Some(true));

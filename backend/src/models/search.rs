@@ -2,9 +2,9 @@
 // PURPOSE: Provide comprehensive search capabilities with spelling correction and synonyms
 // This module handles advanced search functionality for economic time series data
 
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::NaiveDateTime;
 use validator::Validate;
 
 /// Search result for economic series with ranking and similarity scores
@@ -31,30 +31,38 @@ pub struct SeriesSearchResult {
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct SearchParams {
     /// Search query text
-    #[validate(length(min = 1, max = 500, message = "Search query must be between 1 and 500 characters"))]
+    #[validate(length(
+        min = 1,
+        max = 500,
+        message = "Search query must be between 1 and 500 characters"
+    ))]
     pub query: String,
-    
+
     /// Minimum similarity threshold for fuzzy matching (0.0 to 1.0)
-    #[validate(range(min = 0.0, max = 1.0, message = "Similarity threshold must be between 0.0 and 1.0"))]
+    #[validate(range(
+        min = 0.0,
+        max = 1.0,
+        message = "Similarity threshold must be between 0.0 and 1.0"
+    ))]
     pub similarity_threshold: Option<f32>,
-    
+
     /// Maximum number of results to return
     #[validate(range(min = 1, max = 1000, message = "Limit must be between 1 and 1000"))]
     pub limit: Option<i32>,
-    
+
     /// Offset for pagination
     #[validate(range(min = 0, message = "Offset must be non-negative"))]
     pub offset: Option<i32>,
-    
+
     /// Filter by data source ID
     pub source_id: Option<Uuid>,
-    
+
     /// Filter by series frequency
     pub frequency: Option<String>,
-    
+
     /// Include inactive series in results
     pub include_inactive: Option<bool>,
-    
+
     /// Sort order for results
     pub sort_by: Option<SearchSortOrder>,
 }
@@ -142,7 +150,7 @@ impl SearchParams {
             ..Default::default()
         }
     }
-    
+
     /// Create search parameters with custom similarity threshold
     pub fn with_similarity(query: &str, threshold: f32) -> Self {
         Self {
@@ -151,7 +159,7 @@ impl SearchParams {
             ..Default::default()
         }
     }
-    
+
     /// Create search parameters for a specific data source
     pub fn for_source(query: &str, _source_id: i32) -> Self {
         Self {
@@ -160,27 +168,27 @@ impl SearchParams {
             ..Default::default()
         }
     }
-    
+
     /// Get the effective similarity threshold
     pub fn get_similarity_threshold(&self) -> f32 {
         self.similarity_threshold.unwrap_or(0.3)
     }
-    
+
     /// Get the effective limit
     pub fn get_limit(&self) -> i32 {
         self.limit.unwrap_or(50).min(1000) // Cap at 1000 for performance
     }
-    
+
     /// Get the effective offset
     pub fn get_offset(&self) -> i32 {
         self.offset.unwrap_or(0).max(0) // Ensure non-negative
     }
-    
+
     /// Check if inactive series should be included
     pub fn should_include_inactive(&self) -> bool {
         self.include_inactive.unwrap_or(false)
     }
-    
+
     /// Get the sort order
     pub fn get_sort_order(&self) -> &SearchSortOrder {
         self.sort_by.as_ref().unwrap_or(&SearchSortOrder::Relevance)
@@ -196,7 +204,7 @@ mod _inline_tests {
         // REQUIREMENT: Validate search parameter constraints
         // PURPOSE: Ensure search parameters meet system requirements
         // This prevents invalid queries that could impact performance
-        
+
         let valid_params = SearchParams {
             query: "GDP growth".to_string(),
             similarity_threshold: Some(0.5),
@@ -204,105 +212,120 @@ mod _inline_tests {
             offset: Some(0),
             ..Default::default()
         };
-        
+
         // Valid parameters should pass validation
-        assert!(valid_params.validate().is_ok(), "Valid parameters should pass validation");
+        assert!(
+            valid_params.validate().is_ok(),
+            "Valid parameters should pass validation"
+        );
     }
-    
+
     #[test]
     fn test_search_params_invalid_query() {
         // REQUIREMENT: Reject empty or overly long search queries
         // PURPOSE: Prevent invalid search operations
-        
+
         let empty_query = SearchParams {
             query: "".to_string(),
             ..Default::default()
         };
-        
+
         // Empty query should fail validation
-        assert!(empty_query.validate().is_err(), "Empty query should fail validation");
-        
+        assert!(
+            empty_query.validate().is_err(),
+            "Empty query should fail validation"
+        );
+
         let long_query = SearchParams {
             query: "a".repeat(501), // Exceeds 500 character limit
             ..Default::default()
         };
-        
+
         // Overly long query should fail validation
-        assert!(long_query.validate().is_err(), "Overly long query should fail validation");
+        assert!(
+            long_query.validate().is_err(),
+            "Overly long query should fail validation"
+        );
     }
-    
+
     #[test]
     fn test_search_params_invalid_similarity_threshold() {
         // REQUIREMENT: Validate similarity threshold range
         // PURPOSE: Ensure similarity thresholds are within valid bounds
-        
+
         let invalid_threshold = SearchParams {
             query: "test".to_string(),
             similarity_threshold: Some(1.5), // Above 1.0
             ..Default::default()
         };
-        
+
         // Invalid threshold should fail validation
-        assert!(invalid_threshold.validate().is_err(), "Invalid similarity threshold should fail validation");
-        
+        assert!(
+            invalid_threshold.validate().is_err(),
+            "Invalid similarity threshold should fail validation"
+        );
+
         let negative_threshold = SearchParams {
             query: "test".to_string(),
             similarity_threshold: Some(-0.1), // Below 0.0
             ..Default::default()
         };
-        
+
         // Negative threshold should fail validation
-        assert!(negative_threshold.validate().is_err(), "Negative similarity threshold should fail validation");
+        assert!(
+            negative_threshold.validate().is_err(),
+            "Negative similarity threshold should fail validation"
+        );
     }
-    
+
     #[test]
     fn test_search_params_helper_methods() {
         // REQUIREMENT: Test search parameter helper methods
         // PURPOSE: Verify utility methods work correctly
-        
+
         let params = SearchParams::simple("unemployment rate");
         assert_eq!(params.query, "unemployment rate");
         assert_eq!(params.get_similarity_threshold(), 0.3);
         assert_eq!(params.get_limit(), 50);
         assert_eq!(params.get_offset(), 0);
         assert!(!params.should_include_inactive());
-        
+
         let custom_params = SearchParams::with_similarity("GDP", 0.7);
         assert_eq!(custom_params.get_similarity_threshold(), 0.7);
-        
+
         let source_params = SearchParams::for_source("inflation", 1);
         assert_eq!(source_params.source_id, None); // Updated for UUID
     }
-    
+
     #[test]
     fn test_search_params_limits() {
         // REQUIREMENT: Test parameter limits and bounds checking
         // PURPOSE: Ensure system protection against excessive resource usage
-        
+
         let high_limit = SearchParams {
             query: "test".to_string(),
             limit: Some(5000), // Exceeds max
             ..Default::default()
         };
-        
+
         // Should cap at maximum allowed
         assert_eq!(high_limit.get_limit(), 1000);
-        
+
         let negative_offset = SearchParams {
             query: "test".to_string(),
             offset: Some(-10),
             ..Default::default()
         };
-        
+
         // Should normalize to 0
         assert_eq!(negative_offset.get_offset(), 0);
     }
-    
+
     #[test]
     fn test_search_result_structure() {
         // REQUIREMENT: Verify search result structure
         // PURPOSE: Ensure search results contain all required fields
-        
+
         let result = SeriesSearchResult {
             id: Uuid::new_v4(),
             title: "Real GDP".to_string(),
@@ -318,7 +341,7 @@ mod _inline_tests {
             rank: 0.85,
             similarity_score: 0.92,
         };
-        
+
         // Verify all fields are accessible
         assert!(!result.title.is_empty());
         assert!(result.rank > 0.0);
