@@ -7,7 +7,6 @@ require('./test-utils/polyfills');
 
 import '@testing-library/jest-dom';
 import 'whatwg-fetch'; // Polyfill for fetch in test environment
-
 // Mock GraphQL client directly instead of using MSW
 import { mockSeriesData, mockDataSources, mockSearchResults, mockSuggestions } from './test-utils/mocks/data';
 

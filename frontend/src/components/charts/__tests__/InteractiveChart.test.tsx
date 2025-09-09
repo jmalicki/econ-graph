@@ -3,8 +3,7 @@
 // This ensures the chart component works correctly with various data scenarios
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { TestProviders } from '../../../test-utils/test-providers';
 import InteractiveChart from '../InteractiveChart';
 import { createMockDataPoints } from '../../../test-utils/mocks/data';
@@ -108,7 +107,6 @@ describe('InteractiveChart', () => {
     // PURPOSE: Verify that users can filter chart data by date range
     // This supports focused analysis of specific time periods
     
-    const user = userEvent.setup();
     renderInteractiveChart();
     
     // Find date range controls (they're mocked as test-id elements)
@@ -129,7 +127,6 @@ describe('InteractiveChart', () => {
     // PURPOSE: Verify that users can switch between different data transformations
     // This supports various analytical perspectives (levels, YoY, etc.)
     
-    const user = userEvent.setup();
     renderInteractiveChart();
     
     // Find transformation selector by role
@@ -269,7 +266,6 @@ describe('InteractiveChart', () => {
     // PURPOSE: Verify that users can export chart data for external analysis
     // This supports data portability and further analysis
     
-    const user = userEvent.setup();
     renderInteractiveChart();
     
     // Verify chart controls are available for data export

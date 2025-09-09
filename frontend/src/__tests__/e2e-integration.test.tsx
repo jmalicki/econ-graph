@@ -3,7 +3,7 @@
 // PURPOSE: Verify that React components are structured correctly for GraphQL integration
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { TestProviders } from '../test-utils/test-providers';
 
 // Mock components for e2e testing (since we're testing integration concepts)
@@ -17,7 +17,7 @@ const Dashboard = () => (
 const SeriesExplorer = () => (
   <div>
     <h1>Series Explorer</h1>
-    <input type="text" placeholder="Search economic series..." role="textbox" />
+    <input type="text" placeholder="Search economic series..." />
     <button type="button">Search</button>
   </div>
 );

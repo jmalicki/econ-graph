@@ -133,7 +133,7 @@ const GlobalEconomicNetworkMap: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
   const [selectedCountries, setSelectedCountries] = useState<CountryData[]>(sampleCountries.slice(0, 5)); // Start with first 5
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading] = useState<boolean>(false);
 
   // Get unique regions for filtering
   const regions = Array.from(new Set(sampleCountries.map(c => c.region))).sort();
@@ -143,13 +143,13 @@ const GlobalEconomicNetworkMap: React.FC = () => {
     ? sampleCountries 
     : sampleCountries.filter(c => c.region === selectedRegion);
 
-  // Group countries by region for the dropdown
-  const countriesByRegion = sampleCountries.reduce((acc, country) => {
-    const region = country.region || 'Other';
-    if (!acc[region]) acc[region] = [];
-    acc[region].push(country);
-    return acc;
-  }, {} as Record<string, CountryData[]>);
+  // Group countries by region for the dropdown (currently unused but kept for future features)
+  // const countriesByRegion = sampleCountries.reduce((acc, country) => {
+  //   const region = country.region || 'Other';
+  //   if (!acc[region]) acc[region] = [];
+  //   acc[region].push(country);
+  //   return acc;
+  // }, {} as Record<string, CountryData[]>);
 
   // Initialize the map
   useEffect(() => {

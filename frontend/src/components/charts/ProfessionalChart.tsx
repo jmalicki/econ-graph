@@ -453,7 +453,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
         } : undefined,
       },
     };
-  }, [primarySeries, secondarySeries, economicEvents, technicalIndicators, taSettings, annotations]);
+  }, [primarySeries, secondarySeries, economicEvents, technicalIndicators, taSettings]);
 
   const handleTASettingChange = useCallback((
     indicator: keyof TechnicalAnalysisSettings,
