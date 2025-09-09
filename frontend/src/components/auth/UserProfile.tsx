@@ -21,7 +21,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Divider,
   Alert,
   Card,
   CardContent,
@@ -29,9 +28,7 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
-  ListItemSecondaryAction,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -41,7 +38,6 @@ import {
   Email as EmailIcon,
   Business as BusinessIcon,
   Palette as PaletteIcon,
-  Notifications as NotificationsIcon,
   Security as SecurityIcon,
   ExitToApp as SignOutIcon,
   Delete as DeleteIcon,

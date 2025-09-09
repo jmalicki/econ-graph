@@ -1,15 +1,14 @@
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::{DateTime, Datelike, NaiveDate, Utc};
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
 use crate::models::{
     CrawlQueueItem, DataPoint, DataSource, EconomicSeries, NewCrawlQueueItem, NewDataPoint,
-    NewDataSource, NewEconomicSeries, QueuePriority,
+    NewEconomicSeries, QueuePriority,
 };
 
 /// FRED API response for series metadata

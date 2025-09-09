@@ -4,10 +4,9 @@
  * This provides Bloomberg Terminal-style collaboration for economic research
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Button,
@@ -35,16 +34,11 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
   Delete as DeleteIcon,
-  Share as ShareIcon,
   Comment as CommentIcon,
-  Timeline as TimelineIcon,
-  Person as PersonIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   PushPin as PinIcon,
-  Flag as FlagIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 
@@ -129,7 +123,6 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
   onToggle,
 }) => {
   const [newAnnotationDialog, setNewAnnotationDialog] = useState(false);
-  const [editingAnnotation, setEditingAnnotation] = useState<ChartAnnotation | null>(null);
   const [selectedAnnotation, setSelectedAnnotation] = useState<ChartAnnotation | null>(null);
   const [newComment, setNewComment] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'mine' | 'pinned'>('all');

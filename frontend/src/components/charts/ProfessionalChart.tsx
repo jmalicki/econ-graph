@@ -4,39 +4,27 @@
  * This provides sophisticated economic analysis tools for professional users
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Box,
   Paper,
   Typography,
-  FormControl,
-  Select,
-  MenuItem,
   Checkbox,
   FormControlLabel,
-  Button,
   Chip,
   Grid,
-  Slider,
-  TextField,
   IconButton,
   Tooltip,
-  Alert,
   Accordion,
   AccordionSummary,
   AccordionDetails,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
-  Timeline as TimelineIcon,
-  ShowChart as ShowChartIcon,
   ExpandMore as ExpandMoreIcon,
   Add as AddIcon,
-  Remove as RemoveIcon,
-  Settings as SettingsIcon,
   Fullscreen as FullscreenIcon,
   GetApp as ExportIcon,
-  Note as AnnotationsIcon,
 } from '@mui/icons-material';
 import {
   Chart as ChartJS,
@@ -50,7 +38,6 @@ import {
   Filler,
   ChartOptions,
   ChartData,
-  ScriptableContext,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import annotationPlugin from 'chartjs-plugin-annotation';
@@ -69,7 +56,6 @@ import {
   BollingerBands,
   RSIPoint,
   CyclePoint,
-  EconomicEvent,
 } from '../../utils/technicalAnalysis';
 
 // Register Chart.js components
@@ -148,7 +134,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
 
   const [showEvents, setShowEvents] = useState(showEconomicEvents);
   const [showCorrelation, setShowCorrelation] = useState(false);
-  const [annotations, setAnnotations] = useState<ChartAnnotation[]>([]);
+  const [annotations] = useState<ChartAnnotation[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Calculate technical indicators

@@ -83,16 +83,22 @@ mod tests {
         let mut conn = pool.get().await.expect("Should get connection");
 
         // Verify foreign key relationships using raw SQL
+        #[derive(diesel::QueryableByName)]
+        struct CountResult {
+            #[diesel(sql_type = diesel::sql_types::BigInt)]
+            count: i64,
+        }
+        
         let relationship_count: i64 = diesel::sql_query(
-            "SELECT COUNT(*) FROM economic_series es 
+            "SELECT COUNT(*) as count FROM economic_series es 
              INNER JOIN data_sources ds ON es.source_id = ds.id
              INNER JOIN data_points dp ON dp.series_id = es.id
              WHERE ds.name = 'Test Integration Source'",
         )
-        .get_result::<(i64,)>(&mut conn)
+        .get_result::<CountResult>(&mut conn)
         .await
         .expect("Should execute relationship query")
-        .0;
+        .count;
 
         assert_eq!(
             relationship_count, 12,

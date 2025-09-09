@@ -155,7 +155,6 @@ import {
 } from '@mui/material';
 import {
   Groups as CollaborationIcon,
-  Share as ShareIcon,
   Comment as CommentIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';

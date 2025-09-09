@@ -4,10 +4,9 @@
  * This provides Bloomberg Terminal-level collaboration for institutional users
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Button,
@@ -37,22 +36,18 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
   Delete as DeleteIcon,
   Share as ShareIcon,
   Comment as CommentIcon,
-  Timeline as TimelineIcon,
-  Person as PersonIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   PushPin as PinIcon,
-  Flag as FlagIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useCollaboration } from '../../hooks/useCollaboration';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChartAnnotationType, UserType } from '../../utils/graphql';
+import { ChartAnnotationType } from '../../utils/graphql';
 
 interface ChartCollaborationConnectedProps {
   seriesId: string;
@@ -89,7 +84,6 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
   const { user: currentUser } = useAuth();
   const {
     annotations,
-    comments,
     collaborators,
     users,
     loading,

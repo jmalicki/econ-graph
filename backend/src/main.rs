@@ -162,7 +162,7 @@ async fn main() -> AppResult<()> {
     // Start background crawler (if enabled in config)
     // For now, crawler is always enabled - in production this could be configurable
     info!("🕷️  Starting background crawler...");
-    start_crawler().await;
+    let _ = start_crawler().await;
     info!("✅ Background crawler started");
 
     // Create Warp filters

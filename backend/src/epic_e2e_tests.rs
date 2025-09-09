@@ -37,7 +37,7 @@ impl Default for EpicE2ETestConfig {
 
 /// Epic E2E Test Suite - The Ultimate System Demonstration
 #[cfg(test)]
-mod epic_e2e_tests {
+mod tests {
     use super::*;
     use serial_test::serial;
     use testcontainers::runners::AsyncRunner;

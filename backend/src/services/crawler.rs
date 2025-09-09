@@ -4,8 +4,7 @@ use tokio_cron_scheduler::{Job, JobScheduler};
 use tracing::{error, info, warn};
 
 use crate::{
-    error::{AppError, AppResult},
-    services::{crawler_service, queue_service},
+    error::AppResult,
     // AppState, // Commented out for lib.rs compilation
 };
 

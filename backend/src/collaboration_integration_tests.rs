@@ -5,7 +5,7 @@
  */
 
 #[cfg(test)]
-mod collaboration_integration_tests {
+mod tests {
     use crate::{
         database::{create_pool, DatabasePool},
         error::AppResult,
@@ -435,15 +435,13 @@ mod collaboration_integration_tests {
         let manager_permission = collaborators
             .iter()
             .find(|(c, _)| c.user_id == manager.id)
-            .map(|(c, _)| c.role.as_ref())
-            .flatten();
+            .and_then(|(c, _)| c.role.as_ref());
         assert_eq!(manager_permission, Some(&"edit".to_string()));
 
         let researcher_permission = collaborators
             .iter()
             .find(|(c, _)| c.user_id == researcher.id)
-            .map(|(c, _)| c.role.as_ref())
-            .flatten();
+            .and_then(|(c, _)| c.role.as_ref());
         assert_eq!(researcher_permission, Some(&"comment".to_string()));
 
         println!("✅ End-to-end collaboration workflow test completed successfully");
