@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
+use bigdecimal::BigDecimal;
 
 use crate::schema::{
     countries, country_correlations, event_country_impacts, global_economic_events,
@@ -22,10 +23,10 @@ pub struct Country {
     pub sub_region: Option<String>,
     pub income_group: Option<String>,
     pub population: Option<i64>,
-    pub gdp_usd: Option<rust_decimal::Decimal>,
-    pub gdp_per_capita_usd: Option<rust_decimal::Decimal>,
-    pub latitude: Option<rust_decimal::Decimal>,
-    pub longitude: Option<rust_decimal::Decimal>,
+    pub gdp_usd: Option<BigDecimal>,
+    pub gdp_per_capita_usd: Option<BigDecimal>,
+    pub latitude: Option<BigDecimal>,
+    pub longitude: Option<BigDecimal>,
     pub currency_code: Option<String>,
     pub is_active: bool,
     pub created_at: DateTime<Utc>,
@@ -49,10 +50,10 @@ pub struct NewCountry {
     #[validate(length(max = 50))]
     pub income_group: Option<String>,
     pub population: Option<i64>,
-    pub gdp_usd: Option<rust_decimal::Decimal>,
-    pub gdp_per_capita_usd: Option<rust_decimal::Decimal>,
-    pub latitude: Option<rust_decimal::Decimal>,
-    pub longitude: Option<rust_decimal::Decimal>,
+    pub gdp_usd: Option<BigDecimal>,
+    pub gdp_per_capita_usd: Option<BigDecimal>,
+    pub latitude: Option<BigDecimal>,
+    pub longitude: Option<BigDecimal>,
     #[validate(length(max = 3))]
     pub currency_code: Option<String>,
     pub is_active: Option<bool>,
@@ -102,7 +103,7 @@ pub struct GlobalIndicatorData {
     pub id: Uuid,
     pub indicator_id: Uuid,
     pub date: NaiveDate,
-    pub value: Option<rust_decimal::Decimal>,
+    pub value: Option<BigDecimal>,
     pub is_preliminary: bool,
     pub data_source: String,
     pub created_at: DateTime<Utc>,
@@ -114,7 +115,7 @@ pub struct GlobalIndicatorData {
 pub struct NewGlobalIndicatorData {
     pub indicator_id: Uuid,
     pub date: NaiveDate,
-    pub value: Option<rust_decimal::Decimal>,
+    pub value: Option<BigDecimal>,
     pub is_preliminary: Option<bool>,
     #[validate(length(min = 1, max = 50))]
     pub data_source: String,
@@ -129,11 +130,11 @@ pub struct CountryCorrelation {
     pub country_a_id: Uuid,
     pub country_b_id: Uuid,
     pub indicator_category: String,
-    pub correlation_coefficient: rust_decimal::Decimal,
+    pub correlation_coefficient: BigDecimal,
     pub time_period_start: NaiveDate,
     pub time_period_end: NaiveDate,
     pub sample_size: i32,
-    pub p_value: Option<rust_decimal::Decimal>,
+    pub p_value: Option<BigDecimal>,
     pub is_significant: bool,
     pub calculated_at: DateTime<Utc>,
 }
@@ -146,12 +147,12 @@ pub struct NewCountryCorrelation {
     pub country_b_id: Uuid,
     #[validate(length(min = 1, max = 100))]
     pub indicator_category: String,
-    pub correlation_coefficient: rust_decimal::Decimal,
+    pub correlation_coefficient: BigDecimal,
     pub time_period_start: NaiveDate,
     pub time_period_end: NaiveDate,
     #[validate(range(min = 2))]
     pub sample_size: i32,
-    pub p_value: Option<rust_decimal::Decimal>,
+    pub p_value: Option<BigDecimal>,
     pub is_significant: Option<bool>,
 }
 
@@ -165,10 +166,10 @@ pub struct TradeRelationship {
     pub importer_country_id: Uuid,
     pub trade_flow_type: String,
     pub year: i32,
-    pub export_value_usd: Option<rust_decimal::Decimal>,
-    pub import_value_usd: Option<rust_decimal::Decimal>,
-    pub trade_balance_usd: Option<rust_decimal::Decimal>,
-    pub trade_intensity: Option<rust_decimal::Decimal>,
+    pub export_value_usd: Option<BigDecimal>,
+    pub import_value_usd: Option<BigDecimal>,
+    pub trade_balance_usd: Option<BigDecimal>,
+    pub trade_intensity: Option<BigDecimal>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -182,10 +183,10 @@ pub struct NewTradeRelationship {
     pub trade_flow_type: String,
     #[validate(range(min = 1990, max = 2030))]
     pub year: i32,
-    pub export_value_usd: Option<rust_decimal::Decimal>,
-    pub import_value_usd: Option<rust_decimal::Decimal>,
-    pub trade_balance_usd: Option<rust_decimal::Decimal>,
-    pub trade_intensity: Option<rust_decimal::Decimal>,
+    pub export_value_usd: Option<BigDecimal>,
+    pub import_value_usd: Option<BigDecimal>,
+    pub trade_balance_usd: Option<BigDecimal>,
+    pub trade_intensity: Option<BigDecimal>,
 }
 
 /// Global economic event
@@ -202,7 +203,7 @@ pub struct GlobalEconomicEvent {
     pub end_date: Option<NaiveDate>,
     pub primary_country_id: Option<Uuid>,
     pub affected_regions: Option<Vec<Option<String>>>,
-    pub economic_impact_score: Option<rust_decimal::Decimal>,
+    pub economic_impact_score: Option<BigDecimal>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -222,8 +223,7 @@ pub struct NewGlobalEconomicEvent {
     pub end_date: Option<NaiveDate>,
     pub primary_country_id: Option<Uuid>,
     pub affected_regions: Option<Vec<Option<String>>>,
-    #[validate(range(min = 0, max = 100))]
-    pub economic_impact_score: Option<rust_decimal::Decimal>,
+    pub economic_impact_score: Option<BigDecimal>,
 }
 
 /// Country impact from a global event
@@ -235,10 +235,10 @@ pub struct EventCountryImpact {
     pub event_id: Uuid,
     pub country_id: Uuid,
     pub impact_type: String,
-    pub impact_magnitude: Option<rust_decimal::Decimal>,
+    pub impact_magnitude: Option<BigDecimal>,
     pub impact_duration_days: Option<i32>,
     pub recovery_time_days: Option<i32>,
-    pub confidence_score: Option<rust_decimal::Decimal>,
+    pub confidence_score: Option<BigDecimal>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -250,13 +250,12 @@ pub struct NewEventCountryImpact {
     pub country_id: Uuid,
     #[validate(length(min = 1, max = 50))]
     pub impact_type: String,
-    pub impact_magnitude: Option<rust_decimal::Decimal>,
+    pub impact_magnitude: Option<BigDecimal>,
     #[validate(range(min = 1))]
     pub impact_duration_days: Option<i32>,
     #[validate(range(min = 1))]
     pub recovery_time_days: Option<i32>,
-    #[validate(range(min = 0, max = 1))]
-    pub confidence_score: Option<rust_decimal::Decimal>,
+    pub confidence_score: Option<BigDecimal>,
 }
 
 /// Leading indicator relationship between countries
@@ -269,8 +268,8 @@ pub struct LeadingIndicator {
     pub following_country_id: Uuid,
     pub indicator_category: String,
     pub lead_time_months: i32,
-    pub correlation_strength: rust_decimal::Decimal,
-    pub predictive_accuracy: Option<rust_decimal::Decimal>,
+    pub correlation_strength: BigDecimal,
+    pub predictive_accuracy: Option<BigDecimal>,
     pub time_period_start: NaiveDate,
     pub time_period_end: NaiveDate,
     pub calculated_at: DateTime<Utc>,
@@ -286,9 +285,8 @@ pub struct NewLeadingIndicator {
     pub indicator_category: String,
     #[validate(range(min = 1, max = 24))]
     pub lead_time_months: i32,
-    pub correlation_strength: rust_decimal::Decimal,
-    #[validate(range(min = 0, max = 1))]
-    pub predictive_accuracy: Option<rust_decimal::Decimal>,
+    pub correlation_strength: BigDecimal,
+    pub predictive_accuracy: Option<BigDecimal>,
     pub time_period_start: NaiveDate,
     pub time_period_end: NaiveDate,
 }
@@ -297,10 +295,10 @@ pub struct NewLeadingIndicator {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CountryWithEconomicData {
     pub country: Country,
-    pub latest_gdp: Option<rust_decimal::Decimal>,
-    pub latest_gdp_growth: Option<rust_decimal::Decimal>,
-    pub latest_inflation: Option<rust_decimal::Decimal>,
-    pub latest_unemployment: Option<rust_decimal::Decimal>,
+    pub latest_gdp: Option<BigDecimal>,
+    pub latest_gdp_growth: Option<BigDecimal>,
+    pub latest_inflation: Option<BigDecimal>,
+    pub latest_unemployment: Option<BigDecimal>,
     pub trade_partners: Vec<TradePartner>,
     pub economic_health_score: Option<f64>,
 }
@@ -309,7 +307,7 @@ pub struct CountryWithEconomicData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TradePartner {
     pub country: Country,
-    pub trade_value_usd: rust_decimal::Decimal,
+    pub trade_value_usd: BigDecimal,
     pub trade_intensity: f64,
     pub relationship_type: String, // "Export", "Import", "Bilateral"
 }
@@ -339,7 +337,7 @@ pub struct GlobalEventWithImpacts {
     pub event: GlobalEconomicEvent,
     pub country_impacts: Vec<CountryImpactDetail>,
     pub affected_country_count: i64,
-    pub total_economic_impact: Option<rust_decimal::Decimal>,
+    pub total_economic_impact: Option<BigDecimal>,
 }
 
 /// Detailed country impact information

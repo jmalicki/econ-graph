@@ -5,6 +5,7 @@ use crate::models::{
     GlobalEconomicEvent, GlobalEventWithImpacts, NewCountryCorrelation, TradePartner,
     CorrelationConnection, IndicatorCategory
 };
+use bigdecimal::{BigDecimal, ToPrimitive};
 use crate::schema::{
     countries, country_correlations, global_economic_indicators, global_indicator_data,
     trade_relationships, global_economic_events, event_country_impacts
@@ -275,7 +276,7 @@ impl GlobalAnalysisService {
         }
         
         if let Some(min_score) = min_impact_score {
-            query = query.filter(economic_impact_score.ge(Decimal::from_f64_retain(min_score).unwrap_or_default()));
+            query = query.filter(economic_impact_score.ge(BigDecimal::from(min_score)));
         }
 
         let events = query

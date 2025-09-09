@@ -16,10 +16,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Cache Rust dependencies
       uses: actions/cache@v3
@@ -104,10 +101,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -200,10 +194,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Install cargo-license
       run: cargo install cargo-license
@@ -260,7 +251,7 @@ jobs:
     - name: Build backend image for scanning
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./backend
         file: ./backend/Dockerfile
         load: true
         tags: econ-graph-backend:scan

@@ -26,7 +26,7 @@ describe('Dashboard', () => {
     
     // Verify main dashboard elements
     expect(screen.getByRole('heading', { name: /economic dashboard/i })).toBeInTheDocument();
-    expect(screen.getByText(/key economic indicators and recent data releases/i)).toBeInTheDocument();
+    expect(screen.getByText(/key economic indicators with professional collaboration features/i)).toBeInTheDocument();
     expect(screen.getByText(/key indicators/i)).toBeInTheDocument();
   });
 

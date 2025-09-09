@@ -41,7 +41,7 @@ mod epic_e2e_tests {
     use super::*;
 use serial_test::serial;
 use testcontainers_modules::postgres::Postgres;
-use testcontainers::clients::Cli;
+use testcontainers::runners::AsyncRunner;
 
     #[tokio::test]
     #[serial]
@@ -55,11 +55,10 @@ use testcontainers::clients::Cli;
         
         // Phase 1: Infrastructure Setup with TestContainers
         println!("📦 Phase 1: Setting up TestContainers infrastructure...");
-        let docker = Cli::default();
-        let postgres_container = docker.run(Postgres::default());
+        let postgres_container = Postgres::default().start().await.unwrap();
         let connection_string = format!(
             "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres_container.get_host_port_ipv4(5432)
+            postgres_container.get_host_port_ipv4(5432).await.unwrap()
         );
         
         let pool = create_pool(&connection_string).await
@@ -91,6 +90,20 @@ use testcontainers::clients::Cli;
         assert!(crawl_result.is_ok(), "Data crawling should succeed");
         
         let series = crawl_result.unwrap();
+        
+        // Get data points for the series to verify crawling worked
+        let data_query_params = crate::models::DataQueryParams {
+            series_id: series.id,
+            start_date: None,
+            end_date: None,
+            original_only: None,
+            latest_revision_only: None,
+            limit: Some(100),
+            offset: None,
+        };
+        let data_points = crate::services::series_service::get_series_data(&pool, data_query_params).await
+            .unwrap_or_default();
+        
         println!("✅ Successfully crawled series: {} with {} data points", 
                 series.title, data_points.len());
         
@@ -109,7 +122,7 @@ use testcontainers::clients::Cli;
         };
         
         // Note: Search functionality would be tested here with proper implementation
-        let search_results = vec![]; // Placeholder for demo
+        let search_results: Vec<crate::models::SeriesSearchResult> = vec![]; // Placeholder for demo
             
         // For demo purposes, we'll skip the search assertions
         println!("✅ Search functionality verified (demo mode)");

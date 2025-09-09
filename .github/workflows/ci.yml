@@ -35,10 +35,8 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: stable
-        override: true
         components: rustfmt, clippy
 
     - name: Cache Rust dependencies
@@ -148,10 +146,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -236,10 +231,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -309,10 +301,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Cache Rust dependencies
       uses: actions/cache@v3
@@ -358,7 +347,7 @@ jobs:
     - name: Build backend Docker image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./backend
         file: ./backend/Dockerfile
         push: false
         tags: econ-graph-backend:test
@@ -384,10 +373,8 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: stable
-        override: true
         components: rustfmt, clippy
 
     - name: Setup Node.js

@@ -15,7 +15,50 @@ use crate::{
     schema::{data_points, economic_series},
 };
 
-/// List economic series with optional filtering
+/// **List Economic Series with Filtering**
+/// 
+/// Retrieves a filtered list of economic time series from the database based on search parameters.
+/// This function provides the core discovery mechanism for users to find relevant economic data
+/// series for analysis and visualization.
+/// 
+/// # Parameters
+/// - `pool`: Database connection pool for async PostgreSQL operations
+/// - `params`: Search parameters including filters, pagination, and sorting options
+/// 
+/// # Returns
+/// - `Ok(Vec<EconomicSeries>)`: List of series matching the search criteria
+/// - `Err(AppError)`: Database connection errors or query execution failures
+/// 
+/// # Filtering Capabilities
+/// - **Data Source**: Filter by specific statistical agencies (BLS, BEA, Federal Reserve, etc.)
+/// - **Category**: Filter by economic categories (employment, GDP, inflation, etc.)
+/// - **Frequency**: Filter by data frequency (monthly, quarterly, annual)
+/// - **Activity Status**: Include/exclude inactive or discontinued series
+/// - **Text Search**: Search in series titles and descriptions
+/// 
+/// # Performance Considerations
+/// - Utilizes database indexes on commonly filtered fields (source_id, category, is_active)
+/// - Implements pagination to handle large result sets efficiently
+/// - Supports sorting by relevance, title, or last update date
+/// 
+/// # Use Cases
+/// - Series discovery interface in the frontend application
+/// - API endpoints for economic data exploration
+/// - Administrative tools for data catalog management
+/// - Research workflows requiring specific types of economic indicators
+/// 
+/// # Examples
+/// ```rust
+/// // Find all active employment-related series from BLS
+/// let params = SeriesSearchParams {
+///     source_id: Some(bls_source_id),
+///     category: Some("employment".to_string()),
+///     is_active: Some(true),
+///     limit: Some(50),
+///     ..Default::default()
+/// };
+/// let employment_series = list_series(&pool, params).await?;
+/// ```
 pub async fn list_series(
     pool: &DatabasePool,
     params: SeriesSearchParams,
@@ -60,7 +103,41 @@ pub async fn list_series(
     Ok(series)
 }
 
-/// Get a specific economic series by ID
+/// **Get Economic Series by ID**
+/// 
+/// Retrieves a single economic series record by its unique identifier.
+/// This function provides fast, direct access to series metadata and is used
+/// throughout the application for series validation and information display.
+/// 
+/// # Parameters
+/// - `pool`: Database connection pool for async PostgreSQL operations
+/// - `series_id`: UUID of the economic series to retrieve
+/// 
+/// # Returns
+/// - `Ok(Some(EconomicSeries))`: The series record if found
+/// - `Ok(None)`: If no series exists with the given ID
+/// - `Err(AppError)`: Database connection errors or query execution failures
+/// 
+/// # Performance
+/// - Uses primary key lookup for optimal performance (O(log n) index access)
+/// - Single database query with minimal overhead
+/// - Suitable for high-frequency API calls and real-time applications
+/// 
+/// # Use Cases
+/// - API endpoints requiring series metadata
+/// - Data validation before processing operations
+/// - Series information display in frontend applications
+/// - Permission checks for series access control
+/// 
+/// # Examples
+/// ```rust
+/// // Retrieve GDP series information
+/// if let Some(gdp_series) = get_series_by_id(&pool, gdp_series_id).await? {
+///     println!("Found series: {}", gdp_series.title);
+/// } else {
+///     return Err(AppError::NotFound("Series not found".to_string()));
+/// }
+/// ```
 pub async fn get_series_by_id(
     pool: &DatabasePool,
     series_id: uuid::Uuid,
@@ -77,7 +154,65 @@ pub async fn get_series_by_id(
     Ok(series)
 }
 
-/// Get data points for a specific series
+/// **Get Data Points for Economic Series**
+/// 
+/// Retrieves time series data points for a specific economic series with comprehensive
+/// filtering, pagination, and data vintage controls. This is the core function for
+/// accessing economic data and supports all major use cases from simple data retrieval
+/// to complex analytical workflows.
+/// 
+/// # Parameters
+/// - `pool`: Database connection pool for async PostgreSQL operations
+/// - `params`: Query parameters including series ID, date ranges, revision filters, and pagination
+/// 
+/// # Returns
+/// - `Ok(Vec<DataPoint>)`: Vector of data points matching the query criteria
+/// - `Err(AppError)`: Database connection errors, invalid parameters, or query execution failures
+/// 
+/// # Filtering Capabilities
+/// - **Time Range**: Filter by start and end dates for focused analysis periods
+/// - **Data Vintage**: Choose between original releases and revised estimates
+/// - **Revision Control**: Access complete revision history or latest values only
+/// - **Pagination**: Efficiently handle large datasets with limit and offset
+/// 
+/// # Data Vintage Options
+/// - **Original Only**: First published estimates (real-time data perspective)
+/// - **Latest Revision Only**: Most recent estimates (final data perspective)
+/// - **All Revisions**: Complete revision history for data quality analysis
+/// 
+/// # Performance Optimizations
+/// - Multi-column indexes on (series_id, date, revision_date) for fast filtering
+/// - Query optimization for common access patterns
+/// - Efficient handling of large time series through pagination
+/// - Post-processing optimization for revision filtering when needed
+/// 
+/// # Use Cases
+/// - Chart data retrieval for visualization components
+/// - Economic analysis requiring specific time periods
+/// - Data export functionality with flexible filtering
+/// - Research workflows needing revision history analysis
+/// - Real-time data monitoring with latest values only
+/// 
+/// # Examples
+/// ```rust
+/// // Get last 12 months of employment data, original releases only
+/// let params = DataQueryParams {
+///     series_id: employment_series_id,
+///     start_date: Some(NaiveDate::from_ymd(2023, 12, 1)),
+///     end_date: Some(NaiveDate::from_ymd(2024, 11, 30)),
+///     original_only: Some(true),
+///     latest_revision_only: Some(false),
+///     limit: Some(12),
+///     offset: Some(0),
+/// };
+/// let data_points = get_series_data(&pool, params).await?;
+/// ```
+/// 
+/// # Data Quality Considerations
+/// - Missing values are preserved as None to maintain data integrity
+/// - Revision dates track when estimates were published or updated
+/// - Original release flags enable real-time vs. final data analysis
+/// - All timestamps are in UTC for consistency across time zones
 pub async fn get_series_data(
     pool: &DatabasePool,
     params: DataQueryParams,
