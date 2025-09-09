@@ -362,24 +362,37 @@ echo "🎵 Audio: Full 20-minute British investor narration"
 echo "⏱️  Duration: 20 minutes (1200 seconds)"
 echo ""
 
-# Record with precise cropping for browser window only - 20 minutes
-ffmpeg -f avfoundation -i "1" -i "demo-tools/generated-audio/investor_narration_20min.aiff" \
+# Start live audio playback FIRST
+echo "🎵 Starting live audio narration..."
+afplay demo-tools/generated-audio/investor_narration_20min.aiff &
+AUDIO_PID=$!
+
+sleep 2
+
+# Record screen only (audio will be captured from system audio)
+echo "📹 Starting screen recording with live audio..."
+ffmpeg -f avfoundation -i "1:0" \
        -filter_complex "[0:v]crop=1500:920:150:80[browser]" \
-       -map "[browser]" -map 1:a \
+       -map "[browser]" -map 0:a \
        -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 128k \
        -t 1200 -y demo-videos/econ-graph-comprehensive-20min-browser-demo.mp4 &
 
 FFMPEG_PID=$!
-sleep 5
+sleep 3
 
-# Run the comprehensive interaction script
+# Run the comprehensive interaction script synchronized with audio
 echo "🎭 Running comprehensive 20-minute browser interactions..."
+echo "🎵 Audio playing live - synchronized demonstration"
 echo "📊 Demonstrating ALL features: Search, Charts, Transformations, Collaboration, Global Analysis"
 osascript /tmp/comprehensive_demo_interaction.scpt &
 
 # Wait for recording to complete
 echo "⏳ Recording in progress... (20 minutes)"
+echo "🎵 You should hear the British narration playing live!"
 wait $FFMPEG_PID
+
+# Stop audio if still playing
+kill $AUDIO_PID 2>/dev/null || true
 
 # Clean up
 rm -f /tmp/comprehensive_demo_interaction.scpt
