@@ -603,33 +603,33 @@ export interface UserType {
 
 // Collaboration input types
 export interface CreateAnnotationInput {
-  userId: string;
-  seriesId: string;
-  annotationDate: string;
-  annotationValue?: number;
+  user_id: string;
+  series_id: string;
+  annotation_date: string;
+  annotation_value?: number;
   title: string;
   content: string;
-  annotationType: string;
+  annotation_type: string;
   color?: string;
-  isPublic?: boolean;
+  is_public?: boolean;
 }
 
 export interface AddCommentInput {
-  userId: string;
-  annotationId: string;
+  user_id: string;
+  annotation_id: string;
   content: string;
 }
 
 export interface ShareChartInput {
-  ownerUserId: string;
-  targetUserId: string;
-  chartId: string;
-  permissionLevel: string;
+  owner_user_id: string;
+  target_user_id: string;
+  chart_id: string;
+  permission_level: string;
 }
 
 export interface DeleteAnnotationInput {
-  userId: string;
-  annotationId: string;
+  user_id: string;
+  annotation_id: string;
 }
 
 // Response types

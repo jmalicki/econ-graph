@@ -183,7 +183,7 @@ export function useCollaboration(options: UseCollaborationOptions = {}) {
 
   // Create annotation
   const createAnnotation = useCallback(
-    async (input: Omit<CreateAnnotationInput, 'userId'>) => {
+    async (input: Omit<CreateAnnotationInput, 'user_id'>) => {
       if (!currentUser) {
         throw new Error('User must be authenticated to create annotations');
       }
@@ -196,7 +196,7 @@ export function useCollaboration(options: UseCollaborationOptions = {}) {
           variables: {
             input: {
               ...input,
-              userId: currentUser.id,
+              user_id: currentUser.id,
             },
           },
         });
@@ -231,8 +231,8 @@ export function useCollaboration(options: UseCollaborationOptions = {}) {
           query: MUTATIONS.ADD_COMMENT,
           variables: {
             input: {
-              userId: currentUser.id,
-              annotationId,
+              user_id: currentUser.id,
+              annotation_id: annotationId,
               content,
             },
           },
@@ -254,7 +254,7 @@ export function useCollaboration(options: UseCollaborationOptions = {}) {
 
   // Share chart
   const shareChart = useCallback(
-    async (input: Omit<ShareChartInput, 'ownerUserId'>) => {
+    async (input: Omit<ShareChartInput, 'owner_user_id'>) => {
       if (!currentUser) {
         throw new Error('User must be authenticated to share charts');
       }
@@ -265,7 +265,7 @@ export function useCollaboration(options: UseCollaborationOptions = {}) {
           variables: {
             input: {
               ...input,
-              ownerUserId: currentUser.id,
+              owner_user_id: currentUser.id,
             },
           },
         });
@@ -298,8 +298,8 @@ export function useCollaboration(options: UseCollaborationOptions = {}) {
           query: MUTATIONS.DELETE_ANNOTATION,
           variables: {
             input: {
-              userId: currentUser.id,
-              annotationId,
+              user_id: currentUser.id,
+              annotation_id: annotationId,
             },
           },
         });

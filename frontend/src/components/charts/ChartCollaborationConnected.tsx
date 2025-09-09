@@ -173,16 +173,16 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
 
     try {
       await createAnnotation({
-        seriesId,
-        annotationDate: annotationForm.annotationDate,
-        annotationValue: annotationForm.annotationValue
+        series_id: seriesId,
+        annotation_date: annotationForm.annotationDate,
+        annotation_value: annotationForm.annotationValue
           ? parseFloat(annotationForm.annotationValue)
           : undefined,
         title: annotationForm.title,
         content: annotationForm.content,
-        annotationType: annotationForm.annotationType,
+        annotation_type: annotationForm.annotationType,
         color: annotationForm.color,
-        isPublic: annotationForm.isPublic,
+        is_public: annotationForm.isPublic,
       });
 
       setNewAnnotationDialog(false);
@@ -213,9 +213,9 @@ const ChartCollaborationConnected: React.FC<ChartCollaborationConnectedProps> = 
 
     try {
       await shareChart({
-        targetUserId: shareForm.targetUserId,
-        chartId,
-        permissionLevel: shareForm.permissionLevel,
+        target_user_id: shareForm.targetUserId,
+        chart_id: chartId,
+        permission_level: shareForm.permissionLevel,
       });
 
       setShareDialog(false);
