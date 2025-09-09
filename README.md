@@ -11,18 +11,29 @@
 
 > **🚀 COMPLETELY AUTOMATED: Professional investor demo with live preview - just sit back and watch!**
 
-### 🏆 **NEW: Fully Automated 20-Minute Investor Video with LIVE PREVIEW**
-[![EconGraph Automated Investor Demo](https://img.shields.io/badge/🎬%20AUTOMATED%20VIDEO%20DEMO-Live%20Preview%20%7C%20Just%20Watch!-red?style=for-the-badge&logo=video&logoColor=white)](./demo-tools/create-automated-20min-investor-video.sh)
+### 🏆 **ACTUAL VIDEO: Live EconGraph Software Demonstration**
+[![EconGraph Live Demo Video](https://img.shields.io/badge/▶️%20WATCH%20LIVE%20DEMO-Actual%20Software%20Running-red?style=for-the-badge&logo=video&logoColor=white)](./demo-videos/econ-graph-live-demo.mp4)
 
-**[🎯 RUN AUTOMATED VIDEO NOW - NO WORK REQUIRED!](./demo-tools/create-automated-20min-investor-video.sh)**
+**[▶️ WATCH THE ACTUAL VIDEO - REAL SOFTWARE DEMO](./demo-videos/econ-graph-live-demo.mp4)**
+
+### 🎬 **Automated Video Creation System**
+[![EconGraph Automated System](https://img.shields.io/badge/🤖%20CREATE%20MORE%20VIDEOS-Automated%20System-blue?style=for-the-badge&logo=video&logoColor=white)](./demo-tools/create-automated-20min-investor-video.sh)
+
+**[🎯 Create Additional Videos - Automated System](./demo-tools/create-automated-20min-investor-video.sh)**
 
 > **🤖 FULLY AUTOMATED SYSTEM: Complete 20-minute investor demo that runs itself! Features professional British narration, automated UI interactions, live preview in QuickTime, and comprehensive business presentation. Just run the script and watch - perfect for investors, board meetings, and customer demos.**
 
-### ✨ **What You Get Automatically:**
+### ✨ **Actual Video Content:**
+- **📹 Real Software**: 60-second screen recording of actual EconGraph application running
+- **🎵 Professional Narration**: British-accented investor pitch with business insights
+- **💻 Live UI**: Actual React frontend with Material-UI components in action
+- **⚡ Working Backend**: Rust + GraphQL + PostgreSQL stack demonstrated
+- **📊 Interactive Features**: Real charts, search functionality, and navigation
+- **🏢 Business Value**: Market opportunity, ROI analysis, and investment case
+
+### 🎬 **Automated Creation System Features:**
 - **📹 Live Preview**: Watch recording happen in real-time in QuickTime
-- **🎵 Professional Narration**: 7.7-minute British-accented investor pitch  
 - **🤖 Automated UI**: Fully scripted React app interactions with visual feedback
-- **💼 Business Focus**: Market analysis ($8.2B opportunity), technical depth, ROI
 - **👁️ Visual Overlays**: Live status updates and progress tracking during demo
 - **🚀 Zero Setup**: Automatic backend/frontend startup and browser automation
 
