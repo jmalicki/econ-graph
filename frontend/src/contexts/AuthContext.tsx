@@ -60,6 +60,12 @@ declare global {
 
 const initFacebookSDK = () => {
   return new Promise<void>((resolve, reject) => {
+    // Check if Facebook App ID is configured
+    if (!FACEBOOK_APP_ID || FACEBOOK_APP_ID.trim() === '') {
+      reject(new Error('Facebook App ID not configured'));
+      return;
+    }
+
     // Set a timeout for Facebook SDK initialization
     const timeout = setTimeout(() => {
       reject(new Error('Facebook SDK initialization timeout'));
@@ -250,6 +256,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithFacebook = useCallback(async () => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+
+      // Check if Facebook App ID is configured
+      if (
+        !FACEBOOK_APP_ID ||
+        FACEBOOK_APP_ID.trim() === '' ||
+        FACEBOOK_APP_ID === 'demo-facebook-app-id'
+      ) {
+        // Demo mode - simulate Facebook authentication
+        console.log('Facebook authentication in demo mode');
+
+        // Simulate a delay for realistic UX
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Create demo Facebook user data
+        const demoUserInfo = {
+          id: 'demo-facebook-user-123',
+          email: 'demo.facebook@econgraph.com',
+          name: 'Demo Facebook User',
+          picture: {
+            data: {
+              url: 'https://via.placeholder.com/100',
+            },
+          },
+        };
+
+        // Send demo Facebook data to backend
+        const response = await fetch(`${API_BASE_URL}/auth/facebook`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            facebook_id: demoUserInfo.id,
+            user_info: {
+              id: demoUserInfo.id,
+              email: demoUserInfo.email,
+              name: demoUserInfo.name,
+              avatar: demoUserInfo.picture?.data?.url,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Facebook authentication failed');
+        }
+
+        const authData = await response.json();
+
+        // Store auth token
+        localStorage.setItem('auth_token', authData.token);
+
+        setAuthState({
+          user: authData.user,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
 
       // Check if Facebook SDK is available
       if (!window.FB) {

@@ -85,7 +85,12 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ open, onClose, onSuccess }) =
   // Check if Facebook SDK is available
   useEffect(() => {
     const checkFacebookSDK = () => {
-      setIsFacebookAvailable(!!(window as any).FB);
+      // Check if Facebook App ID is configured (including demo mode)
+      const facebookAppId = process.env.REACT_APP_FACEBOOK_APP_ID;
+      const hasAppId = !!(facebookAppId && facebookAppId.trim() !== '');
+
+      // Facebook is available if we have an App ID (including demo mode)
+      setIsFacebookAvailable(hasAppId);
     };
 
     // Check immediately

@@ -24,6 +24,7 @@ docker build \
   --build-arg REACT_APP_API_URL="" \
   --build-arg REACT_APP_GRAPHQL_URL="/graphql" \
   --build-arg REACT_APP_WS_URL="ws://localhost/graphql" \
+  --build-arg REACT_APP_FACEBOOK_APP_ID="demo-facebook-app-id" \
   --build-arg NODE_ENV="production" \
   -t econ-graph-frontend:latest .
 echo "✅ Frontend image built successfully"

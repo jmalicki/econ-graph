@@ -14,6 +14,7 @@ data:
   REACT_APP_API_URL: ""
   REACT_APP_GRAPHQL_URL: "/graphql"
   REACT_APP_WS_URL: "ws://localhost/graphql"
+  REACT_APP_FACEBOOK_APP_ID: "demo-facebook-app-id"
 
   # Environment
   NODE_ENV: "development"
