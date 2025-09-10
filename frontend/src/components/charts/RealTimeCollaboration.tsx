@@ -15,7 +15,6 @@ import {
   Avatar,
   AvatarGroup,
   Chip,
-  Paper,
   List,
   ListItem,
   ListItemText,
@@ -27,7 +26,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Badge,
   Tooltip,
   Snackbar,
   Alert,
@@ -40,12 +38,9 @@ import {
 import {
   PersonAdd as PersonAddIcon,
   Comment as CommentIcon,
-  Visibility as VisibilityIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Share as ShareIcon,
   Settings as SettingsIcon,
-  NotificationImportant as AlertIcon,
   CheckCircle as CheckIcon,
   RadioButtonUnchecked as UnresolvedIcon,
   Mouse as CursorIcon,
@@ -124,7 +119,7 @@ const RealTimeCollaboration: React.FC<RealTimeCollaborationProps> = ({
   onInviteUser,
 }) => {
   // WebSocket connection
-  const [websocket, setWebsocket] = React.useState<WebSocket | null>(null);
+  const [websocket] = React.useState<WebSocket | null>(null); // setWebsocket for future implementation
   const [connectionStatus, setConnectionStatus] = React.useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
 
   // Collaboration state
@@ -252,7 +247,8 @@ const RealTimeCollaboration: React.FC<RealTimeCollaborationProps> = ({
   }, [isEnabled, chartId, websocket]);
 
   // Handle annotation creation
-  const handleAddAnnotation = (position: { x: number; y: number }) => {
+  // Annotation handling for future implementation
+  const _handleAddAnnotation = (_position: { x: number; y: number }) => {
     if (!isAnnotationMode) return;
 
     const newAnnotation: AnnotationData = {
@@ -279,7 +275,8 @@ const RealTimeCollaboration: React.FC<RealTimeCollaborationProps> = ({
   };
 
   // Handle annotation update
-  const handleUpdateAnnotation = (annotationId: string, content: string) => {
+  // Annotation update for future implementation  
+  const _handleUpdateAnnotation = (_annotationId: string, _content: string) => {
     setAnnotations(prev =>
       prev.map(ann =>
         ann.id === annotationId ? { ...ann, content, updatedAt: new Date() } : ann

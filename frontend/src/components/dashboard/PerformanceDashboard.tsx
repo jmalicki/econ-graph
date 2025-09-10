@@ -13,7 +13,6 @@ import {
   CardContent,
   LinearProgress,
   Chip,
-  Alert,
   List,
   ListItem,
   ListItemText,
@@ -34,7 +33,6 @@ import {
   Warning as WarningIcon,
   CheckCircle as HealthyIcon,
   Error as ErrorIcon,
-  Timeline as MetricsIcon,
 } from '@mui/icons-material';
 
 interface PerformanceDashboardProps {
@@ -84,7 +82,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     uptime: 99.94,
   });
 
-  const [alerts, setAlerts] = React.useState<PerformanceAlert[]>([
+  const [alerts] = React.useState<PerformanceAlert[]>([ // setAlerts for future implementation
     {
       type: 'slow_response',
       message: 'Slow response detected on /api/series endpoint (156ms)',

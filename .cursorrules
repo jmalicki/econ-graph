@@ -28,10 +28,16 @@
 
 ### Testing Requirements  
 - **Always add tests when creating new components or pages**
+- **Always write comprehensive tests for features you implement** - cover happy path, edge cases, and error scenarios
+- **Always write tests for bugs you discover** - create a failing test first, then fix the bug to make it pass
 - **Tests must catch missing components and blank page issues**
 - **Authentication-dependent features must have auth flow tests**
 - **All routes must be tested to ensure they render correctly**
 - **Tests should prevent runtime errors from reaching production**
+- **Test coverage should be comprehensive** - aim for 80%+ coverage on critical paths
+- **Write tests that would have caught the current issue** when fixing bugs
+- **Mock external dependencies appropriately** to focus tests on the component being tested
+- **Test user interactions and workflows** not just component rendering
 
 ### Development Workflow
 1. Write/modify code

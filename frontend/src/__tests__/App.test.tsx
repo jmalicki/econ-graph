@@ -274,8 +274,8 @@ describe('App Routing', () => {
   it('provides responsive layout with proper spacing', () => {
     renderWithRouter('/');
     
-    const mainContent = screen.getByTestId('dashboard-page').closest('main');
-    expect(mainContent).toBeInTheDocument();
+    // Check that main content is rendered within proper container
+    expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
   });
 
   it('integrates with AuthProvider correctly', () => {

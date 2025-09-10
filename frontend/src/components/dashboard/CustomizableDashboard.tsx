@@ -11,7 +11,6 @@ import {
   Grid,
   Card,
   CardContent,
-  CardActions,
   Button,
   IconButton,
   Dialog,
@@ -25,16 +24,8 @@ import {
   MenuItem,
   Chip,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Switch,
-  FormControlLabel,
-  Tooltip,
   Menu,
   Divider,
-  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -50,7 +41,6 @@ import {
   Speed as MetricsIcon,
   Settings as SettingsIcon,
   Save as SaveIcon,
-  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 
 interface CustomizableDashboardProps {
@@ -233,7 +223,8 @@ const CustomizableDashboard: React.FC<CustomizableDashboardProps> = ({
   };
 
   // Toggle widget visibility
-  const handleToggleWidget = (widgetId: string) => {
+  // Widget toggle for future implementation
+  const _handleToggleWidget = (_widgetId: string) => {
     setDashboard(prev => ({
       ...prev,
       widgets: prev.widgets.map(w => 

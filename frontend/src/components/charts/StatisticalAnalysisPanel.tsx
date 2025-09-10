@@ -30,9 +30,6 @@ import {
   Select,
   MenuItem,
   TextField,
-  Divider,
-  Tooltip,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -46,7 +43,6 @@ import {
   TrendingFlat as TrendingFlatIcon,
   Download as DownloadIcon,
   Save as SaveIcon,
-  Info as InfoIcon,
   Calculate as CalculateIcon,
 } from '@mui/icons-material';
 
@@ -103,7 +99,7 @@ const StatisticalAnalysisPanel: React.FC<StatisticalAnalysisPanelProps> = ({
   onSave,
 }) => {
   // State management
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading] = React.useState(false); // setIsLoading for future implementation
   const [activeAnalysis, setActiveAnalysis] = React.useState<'correlation' | 'regression' | 'trends' | 'summary'>('correlation');
   const [correlationResults, setCorrelationResults] = React.useState<CorrelationResult[]>([]);
   const [regressionResults, setRegressionResults] = React.useState<RegressionResult[]>([]);
