@@ -320,15 +320,22 @@ describe('End-to-End User Workflows', () => {
 
       // Search happens on input change, wait for search to complete
 
-      // Should show no results or appropriate message
+      // Should show no results message with helpful suggestions
       await waitFor(() => {
-        expect(screen.getByText(/no results found/i) || screen.getByText(/no series found/i)).toBeInTheDocument();
+        expect(screen.getByText('No results found')).toBeInTheDocument();
       });
+      
+      // Should show helpful suggestions
+      expect(screen.getByText(/Try different keywords, check spelling/i)).toBeInTheDocument();
 
       // Try a valid search to recover
       await user.clear(searchInput);
       await user.type(searchInput, 'GDP');
-      await user.click(searchButton);
+      
+      // Should show search results
+      await waitFor(() => {
+        expect(screen.getByText('GDP Growth Rate')).toBeInTheDocument();
+      });
 
       await waitFor(() => {
         expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();

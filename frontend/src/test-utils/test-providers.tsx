@@ -35,10 +35,29 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
       },
     });
 
-  // Create a simple test theme
+  // Create a complete test theme with all required properties
   const testTheme = createTheme({
     palette: {
       mode: 'light',
+      primary: { 
+        main: '#1976d2',
+        light: '#42a5f5',
+        dark: '#1565c0',
+      },
+      secondary: { 
+        main: '#dc004e',
+        light: '#f48fb1',
+        dark: '#c51162',
+      },
+    },
+    breakpoints: {
+      values: {
+        xs: 0,
+        sm: 600,
+        md: 900,
+        lg: 1200,
+        xl: 1536,
+      },
     },
   });
 
