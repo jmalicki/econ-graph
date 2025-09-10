@@ -178,15 +178,17 @@ impl AuthService {
             AuthProvider::Email => "email",
         };
 
-        // Use the actual database User model methods
-        crate::models::user::User::create_or_get_oauth(
+        // Use the actual database User model methods and convert to auth User
+        let db_user = crate::models::user::User::create_or_get_oauth(
             &self.db_pool,
             provider_str.to_string(),
             provider_id,
             email,
             name,
             avatar,
-        ).await
+        ).await?;
+
+        Ok(db_user.to_auth_user())
     }
 
     /// Create user with email/password using actual database
@@ -196,8 +198,9 @@ impl AuthService {
         password: String,
         name: String,
     ) -> AppResult<User> {
-        // Use the actual database User model method
-        crate::models::user::User::create_with_email(&self.db_pool, email, password, name).await
+        // Use the actual database User model method and convert to auth User
+        let db_user = crate::models::user::User::create_with_email(&self.db_pool, email, password, name).await?;
+        Ok(db_user.to_auth_user())
     }
 
     /// Authenticate user with email/password using actual database
@@ -206,14 +209,15 @@ impl AuthService {
         email: String,
         password: String,
     ) -> AppResult<User> {
-        // Use the actual database User model method for authentication
-        crate::models::user::User::authenticate(&self.db_pool, email, password).await
+        // Use the actual database User model method for authentication and convert to auth User
+        let db_user = crate::models::user::User::authenticate(&self.db_pool, email, password).await?;
+        Ok(db_user.to_auth_user())
     }
 
     /// Get user by ID using actual database lookup
     pub async fn get_user_by_id(&self, user_id: Uuid) -> AppResult<Option<User>> {
         match crate::models::user::User::get_by_id(&self.db_pool, user_id).await {
-            Ok(user) => Ok(Some(user)),
+            Ok(db_user) => Ok(Some(db_user.to_auth_user())),
             Err(AppError::DatabaseError(_)) => Ok(None), // User not found
             Err(e) => Err(e), // Other errors
         }
@@ -237,13 +241,14 @@ impl AuthService {
             last_login_at: Some(Utc::now()),
         };
 
-        // Use the actual database User model method
-        crate::models::user::User::update_profile(&self.db_pool, user_id, db_updates).await
+        // Use the actual database User model method and convert to auth User
+        let db_user = crate::models::user::User::update_profile(&self.db_pool, user_id, db_updates).await?;
+        Ok(db_user.to_auth_user())
     }
 
     /// Refresh user data
     pub async fn refresh_user(&self, user_id: Uuid) -> AppResult<User> {
-        // In a real implementation, this would fetch fresh user data from database
+        // Fetch fresh user data from database
         self.get_user_by_id(user_id)
             .await?
             .ok_or_else(|| AppError::AuthenticationError("User not found".to_string()))
