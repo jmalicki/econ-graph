@@ -75,8 +75,6 @@ const mockAnnotations: ChartAnnotation[] = [
       id: '1',
       name: 'Test User',
       avatar: '',
-      isOnline: true,
-      role: 'owner',
     },
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-15T10:00:00Z',
