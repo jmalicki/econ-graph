@@ -200,70 +200,14 @@ impl AuthService {
         crate::models::user::User::create_with_email(&self.db_pool, email, password, name).await
     }
 
-    /// Authenticate user with email/password
+    /// Authenticate user with email/password using actual database
     pub async fn authenticate_email_user(
         &self,
         email: String,
         password: String,
     ) -> AppResult<User> {
-        // In a real implementation, this would:
-        // 1. Find user by email in database
-        // 2. Verify password hash
-        // 3. Update last_login_at
-        // 4. Return user
-
-        // Create deterministic user ID based on email
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        use std::hash::{Hash, Hasher};
-        email.hash(&mut hasher);
-        let hash = hasher.finish();
-        let user_id = Uuid::from_u128(hash as u128);
-        let provider_id = user_id.to_string();
-
-        // For now, create a mock user for demonstration
-        if email == "demo@econgraph.com" && password == "demo123456" {
-            let user = User {
-                id: user_id,
-                email,
-                name: "Demo User".to_string(),
-                avatar: None,
-                provider: AuthProvider::Email,
-                provider_id,
-                role: UserRole::Analyst,
-                organization: Some("Demo Organization".to_string()),
-                preferences: UserPreferences::default(),
-                created_at: Utc::now(),
-                last_login_at: Utc::now(),
-                is_active: true,
-            };
-            Ok(user)
-        } else {
-            // For test purposes, only allow authentication for specific test emails
-            // In a real implementation, this would validate the password hash against stored hash
-            // and return the stored user data. For mock purposes, we need to return consistent data.
-            if email == "signinuser@econgraph.com" {
-                let user = User {
-                    id: user_id,
-                    email: email.clone(),
-                    name: "Signin User".to_string(),
-                    avatar: None,
-                    provider: AuthProvider::Email,
-                    provider_id,
-                    role: UserRole::default(),
-                    organization: None,
-                    preferences: UserPreferences::default(),
-                    created_at: Utc::now(),
-                    last_login_at: Utc::now(),
-                    is_active: true,
-                };
-                Ok(user)
-            } else {
-                // Return error for unknown users
-                Err(AppError::AuthenticationError(
-                    "Invalid email or password".to_string(),
-                ))
-            }
-        }
+        // Use the actual database User model method for authentication
+        crate::models::user::User::authenticate(&self.db_pool, email, password).await
     }
 
     /// Get user by ID using actual database lookup
@@ -275,30 +219,26 @@ impl AuthService {
         }
     }
 
-    /// Update user profile
+    /// Update user profile using actual database
     pub async fn update_user_profile(
         &self,
         user_id: Uuid,
         updates: ProfileUpdateRequest,
     ) -> AppResult<User> {
-        // In a real implementation, this would update the database
-        // For now, create a mock updated user
-        let user = User {
-            id: user_id,
-            email: "updated@econgraph.com".to_string(),
-            name: updates.name.unwrap_or_else(|| "Updated User".to_string()),
-            avatar: updates.avatar,
-            provider: AuthProvider::Email,
-            provider_id: user_id.to_string(),
-            role: UserRole::Analyst,
+        // Convert ProfileUpdateRequest to UpdateUser for database
+        let db_updates = crate::models::user::UpdateUser {
+            name: updates.name,
+            avatar_url: updates.avatar,
             organization: updates.organization,
-            preferences: updates.preferences.unwrap_or_default(),
-            created_at: Utc::now() - Duration::days(30),
-            last_login_at: Utc::now(),
-            is_active: true,
+            theme: updates.preferences.as_ref().map(|p| p.theme.clone()),
+            default_chart_type: updates.preferences.as_ref().map(|p| p.default_chart_type.clone()),
+            notifications_enabled: updates.preferences.as_ref().map(|p| p.notifications),
+            collaboration_enabled: updates.preferences.as_ref().map(|p| p.collaboration_enabled),
+            last_login_at: Some(Utc::now()),
         };
 
-        Ok(user)
+        // Use the actual database User model method
+        crate::models::user::User::update_profile(&self.db_pool, user_id, db_updates).await
     }
 
     /// Refresh user data
