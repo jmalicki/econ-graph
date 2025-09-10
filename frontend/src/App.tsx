@@ -13,6 +13,14 @@ import About from './pages/About';
 import ProfessionalAnalysis from './pages/ProfessionalAnalysis';
 import GlobalAnalysis from './pages/GlobalAnalysis';
 
+// Enterprise Features
+import MultiSeriesComparison from './components/charts/MultiSeriesComparison';
+import StatisticalAnalysisPanel from './components/charts/StatisticalAnalysisPanel';
+import RealTimeCollaboration from './components/charts/RealTimeCollaboration';
+import AdvancedExportSharing from './components/charts/AdvancedExportSharing';
+import PerformanceDashboard from './components/dashboard/PerformanceDashboard';
+import CustomizableDashboard from './components/dashboard/CustomizableDashboard';
+
 /**
  * REQUIREMENT: Modern application that is easier to use than FRED
  * PURPOSE: Main application component that provides routing and layout structure
@@ -53,6 +61,61 @@ function App() {
               <Route path='/about' element={<About />} />
               <Route path='/analysis/:id?' element={<ProfessionalAnalysis />} />
               <Route path='/global' element={<GlobalAnalysis />} />
+              
+              {/* Enterprise Features - Bloomberg Terminal-Level Tools */}
+              <Route 
+                path='/comparison' 
+                element={
+                  <MultiSeriesComparison 
+                    seriesIds={['gdp-real', 'unemployment-rate']}
+                    onSeriesAdd={() => {}}
+                    onSeriesRemove={() => {}}
+                    onTransformationChange={() => {}}
+                  />
+                } 
+              />
+              <Route 
+                path='/statistical-analysis' 
+                element={
+                  <StatisticalAnalysisPanel 
+                    seriesIds={['gdp-real', 'unemployment-rate']}
+                    onExport={() => {}}
+                    onSave={() => {}}
+                  />
+                } 
+              />
+              <Route 
+                path='/collaboration' 
+                element={
+                  <RealTimeCollaboration 
+                    chartId='main-chart'
+                    currentUserId='demo-user'
+                    onAnnotationAdd={() => {}}
+                    onInviteUser={() => {}}
+                  />
+                } 
+              />
+              <Route 
+                path='/export-sharing' 
+                element={
+                  <AdvancedExportSharing 
+                    seriesIds={['gdp-real', 'unemployment-rate']}
+                    onExportComplete={() => {}}
+                    onShareComplete={() => {}}
+                  />
+                } 
+              />
+              <Route path='/performance' element={<PerformanceDashboard />} />
+              <Route 
+                path='/custom-dashboard' 
+                element={
+                  <CustomizableDashboard 
+                    userId='demo-user'
+                    onSaveDashboard={() => {}}
+                    onLoadDashboard={() => {}}
+                  />
+                } 
+              />
             </Routes>
           </Container>
         </Box>

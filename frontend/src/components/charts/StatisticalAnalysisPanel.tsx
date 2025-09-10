@@ -205,7 +205,7 @@ const StatisticalAnalysisPanel: React.FC<StatisticalAnalysisPanelProps> = ({
   // Format correlation coefficient with color coding
   const formatCorrelation = (coefficient: number) => {
     const absCoeff = Math.abs(coefficient);
-    const color = absCoeff > 0.8 ? 'success' : absCoeff > 0.5 ? 'warning' : 'error';
+    const color: 'success' | 'warning' | 'error' = absCoeff > 0.8 ? 'success' : absCoeff > 0.5 ? 'warning' : 'error';
     const strength = absCoeff > 0.8 ? 'Strong' : absCoeff > 0.5 ? 'Moderate' : 'Weak';
     
     return { coefficient, color, strength };
@@ -335,7 +335,7 @@ const StatisticalAnalysisPanel: React.FC<StatisticalAnalysisPanelProps> = ({
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="body2" fontFamily="monospace">
+                            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                               {result.pValue < 0.001 ? '<0.001' : result.pValue.toFixed(4)}
                             </Typography>
                           </TableCell>
@@ -423,13 +423,13 @@ const StatisticalAnalysisPanel: React.FC<StatisticalAnalysisPanelProps> = ({
                           <Grid container spacing={2} sx={{ mb: 1 }}>
                             <Grid item xs={6}>
                               <Typography variant="caption">Slope (β₁)</Typography>
-                              <Typography variant="body2" fontFamily="monospace">
+                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                                 {result.slope.toFixed(4)}
                               </Typography>
                             </Grid>
                             <Grid item xs={6}>
                               <Typography variant="caption">Intercept (β₀)</Typography>
-                              <Typography variant="body2" fontFamily="monospace">
+                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                                 {result.intercept.toFixed(4)}
                               </Typography>
                             </Grid>
@@ -443,7 +443,7 @@ const StatisticalAnalysisPanel: React.FC<StatisticalAnalysisPanelProps> = ({
                             </Grid>
                             <Grid item xs={6}>
                               <Typography variant="caption">Std Error</Typography>
-                              <Typography variant="body2" fontFamily="monospace">
+                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                                 {result.standardError.toFixed(4)}
                               </Typography>
                             </Grid>
@@ -498,7 +498,7 @@ const StatisticalAnalysisPanel: React.FC<StatisticalAnalysisPanelProps> = ({
                         </Grid>
                         <Grid item xs={6}>
                           <Typography variant="caption">Slope</Typography>
-                          <Typography variant="body2" fontFamily="monospace">
+                          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                             {result.slope.toFixed(6)}
                           </Typography>
                         </Grid>
@@ -549,11 +549,11 @@ const StatisticalAnalysisPanel: React.FC<StatisticalAnalysisPanelProps> = ({
                         </Typography>
                       </TableCell>
                       <TableCell>{summary.count}</TableCell>
-                      <TableCell fontFamily="monospace">{summary.mean.toLocaleString()}</TableCell>
-                      <TableCell fontFamily="monospace">{summary.median.toLocaleString()}</TableCell>
-                      <TableCell fontFamily="monospace">{summary.standardDeviation.toFixed(2)}</TableCell>
-                      <TableCell fontFamily="monospace">{summary.min.toLocaleString()}</TableCell>
-                      <TableCell fontFamily="monospace">{summary.max.toLocaleString()}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace' }}>{summary.mean.toLocaleString()}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace' }}>{summary.median.toLocaleString()}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace' }}>{summary.standardDeviation.toFixed(2)}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace' }}>{summary.min.toLocaleString()}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace' }}>{summary.max.toLocaleString()}</TableCell>
                       <TableCell>
                         <Chip
                           label={summary.skewness.toFixed(3)}

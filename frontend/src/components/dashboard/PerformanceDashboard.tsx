@@ -330,7 +330,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                 {slowestEndpoints.map((endpoint, index) => (
                   <TableRow key={index} data-testid={`endpoint-row-${index}`}>
                     <TableCell>
-                      <Typography variant="body2" fontFamily="monospace">
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                         {endpoint.endpoint}
                       </Typography>
                     </TableCell>

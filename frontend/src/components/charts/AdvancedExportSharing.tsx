@@ -48,13 +48,6 @@ import {
   TableChart as ExcelIcon,
   DataArray as CsvIcon,
   Image as ImageIcon,
-  Link as LinkIcon,
-  Security as PasswordIcon,
-  Visibility as ViewIcon,
-  Schedule as ScheduleIcon,
-  Branding as BrandingIcon,
-  Palette as ThemeIcon,
-  Settings as SettingsIcon,
 } from '@mui/icons-material';
 
 interface AdvancedExportSharingProps {

@@ -26,6 +26,9 @@ import {
   Refresh as RefreshIcon,
   OpenInNew as OpenInNewIcon,
   Groups as CollaborationIcon,
+  Analytics as AnalyticsIcon,
+  Groups as GroupsIcon,
+  FileDownload as FileDownloadIcon,
 } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
@@ -344,6 +347,58 @@ const Dashboard: React.FC = () => {
               <Button variant='outlined' fullWidth onClick={() => navigate('/sources')}>
                 Browse Data Sources
               </Button>
+            </Box>
+
+            {/* Enterprise Tools */}
+            <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+              <Typography variant='subtitle2' gutterBottom sx={{ fontWeight: 600 }}>
+                🚀 Enterprise Tools
+              </Typography>
+              <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
+                Bloomberg Terminal-level features
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Button
+                  variant='outlined'
+                  size='small'
+                  fullWidth
+                  startIcon={<TrendingUpIcon />}
+                  onClick={() => navigate('/comparison')}
+                >
+                  Multi-Series Charts
+                </Button>
+                
+                <Button
+                  variant='outlined'
+                  size='small'
+                  fullWidth
+                  startIcon={<AnalyticsIcon />}
+                  onClick={() => navigate('/statistical-analysis')}
+                >
+                  Statistical Analysis
+                </Button>
+                
+                <Button
+                  variant='outlined'
+                  size='small'
+                  fullWidth
+                  startIcon={<GroupsIcon />}
+                  onClick={() => navigate('/collaboration')}
+                >
+                  Real-time Collaboration
+                </Button>
+                
+                <Button
+                  variant='outlined'
+                  size='small'
+                  fullWidth
+                  startIcon={<FileDownloadIcon />}
+                  onClick={() => navigate('/export-sharing')}
+                >
+                  Export & Share
+                </Button>
+              </Box>
             </Box>
 
             {/* System Status */}

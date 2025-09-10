@@ -21,6 +21,11 @@ import {
   TrendingUp as TrendingUpIcon,
   // Assessment as AssessmentIcon, // Unused but kept for future features
   Public as GlobalIcon,
+  Analytics as AnalyticsIcon,
+  Group as GroupIcon,
+  Share as ShareIcon,
+  Speed as SpeedIcon,
+  DashboardCustomize as DashboardCustomizeIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -73,6 +78,45 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       path: '/sources',
       icon: <DataSourceIcon />,
       description: 'FRED, BLS, and other sources',
+    },
+  ];
+
+  const enterpriseItems: NavigationItem[] = [
+    {
+      text: 'Multi-Series Comparison',
+      path: '/comparison',
+      icon: <TrendingUpIcon />,
+      description: 'Bloomberg Terminal-style chart overlays',
+    },
+    {
+      text: 'Statistical Analysis',
+      path: '/statistical-analysis', 
+      icon: <AnalyticsIcon />,
+      description: 'Professional correlation & regression tools',
+    },
+    {
+      text: 'Real-time Collaboration',
+      path: '/collaboration',
+      icon: <GroupIcon />,
+      description: 'Google Docs-style live collaboration',
+    },
+    {
+      text: 'Export & Sharing',
+      path: '/export-sharing',
+      icon: <ShareIcon />,
+      description: 'Professional PDF & Excel reports',
+    },
+    {
+      text: 'Performance Monitor',
+      path: '/performance',
+      icon: <SpeedIcon />,
+      description: 'Real-time system performance',
+    },
+    {
+      text: 'Custom Dashboard', 
+      path: '/custom-dashboard',
+      icon: <DashboardCustomizeIcon />,
+      description: 'Grafana-style customizable widgets',
     },
   ];
 
@@ -169,6 +213,14 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {/* Navigation items */}
       <List sx={{ pt: 2 }}>
         {renderNavigationItems(navigationItems)}
+        
+        {/* Enterprise Tools Section */}
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="caption" sx={{ px: 2, color: 'text.secondary', fontWeight: 600 }}>
+          ENTERPRISE TOOLS
+        </Typography>
+        {renderNavigationItems(enterpriseItems)}
+        
         {renderNavigationItems(secondaryItems, true)}
       </List>
 
