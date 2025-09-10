@@ -9,6 +9,7 @@ pub mod queue_service;
 pub mod search_service;
 pub mod series_service;
 pub mod statistical_analysis;
+pub mod websocket_collaboration;
 
 // #[cfg(test)]
 // mod __tests__;
@@ -22,3 +23,4 @@ pub use queue_service::*;
 pub use search_service::*;
 pub use series_service::*;
 pub use statistical_analysis::*;
+pub use websocket_collaboration::*;
