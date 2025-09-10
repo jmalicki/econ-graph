@@ -11,6 +11,21 @@
 - **For unfixable ESLint errors, address the root cause** rather than using disable comments
 - **ESLint warnings should be addressed** but may be temporarily acceptable if they don't affect functionality
 
+### Rust Code Quality
+- **NEVER allow Rust format issues** - always run `cargo fmt` immediately after any Rust changes
+- **ALWAYS fix Clippy warnings** - run `cargo clippy` and address all issues before completing tasks
+- **Rust compilation errors are NEVER acceptable** - fix immediately
+- **Follow Rust naming conventions and best practices** consistently
+- **Use `cargo check` frequently** during development to catch issues early
+
+### Merge Conflict Resolution
+- **NEVER allow merge conflicts to persist** - fix them immediately when they occur
+- **ALWAYS resolve conflicts properly** by understanding both sides of the change
+- **NEVER commit merge conflict markers** (`<<<<<<<`, `=======`, `>>>>>>>`)
+- **After resolving conflicts, always test** to ensure functionality still works
+- **Use `git status` to verify** no unresolved conflicts remain before committing
+- **When in doubt, ask for clarification** rather than making assumptions about which changes to keep
+
 ### Testing Requirements  
 - **Always add tests when creating new components or pages**
 - **Tests must catch missing components and blank page issues**
