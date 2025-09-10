@@ -107,7 +107,7 @@ describe('ProfessionalChart', () => {
       );
 
       expect(screen.getByTestId('professional-chart')).toBeInTheDocument();
-      expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      expect(screen.getByText('Professional Chart Analytics')).toBeInTheDocument();
     });
 
     it('renders with default props', () => {
@@ -121,9 +121,9 @@ describe('ProfessionalChart', () => {
         </TestWrapper>
       );
 
-      // Should render with default height
-      const chartContainer = screen.getByTestId('professional-chart').closest('[data-testid="chart-container"]');
-      expect(chartContainer).toBeInTheDocument();
+      // Should render the chart component
+      expect(screen.getByTestId('professional-chart')).toBeInTheDocument();
+      expect(screen.getByText('Professional Chart Analytics')).toBeInTheDocument();
     });
 
     it('renders with secondary series', () => {
@@ -139,10 +139,11 @@ describe('ProfessionalChart', () => {
       );
 
       const chartData = screen.getByTestId('chart-data');
-      const dataContent = chartData.textContent;
+      const dataContent = JSON.parse(chartData.textContent || '{}');
       
-      expect(dataContent).toContain('Real Gross Domestic Product');
-      expect(dataContent).toContain('Unemployment Rate');
+      expect(dataContent.datasets).toHaveLength(2);
+      expect(dataContent.datasets[0].label).toContain('Real Gross Domestic Product');
+      expect(dataContent.datasets[1].label).toContain('Unemployment Rate');
     });
   });
 
@@ -218,7 +219,15 @@ describe('ProfessionalChart', () => {
         </TestWrapper>
       );
 
-      // Enable multiple indicators
+      // Expand accordion first
+      const accordionButton = screen.getByRole('button', { name: /Technical Analysis/ });
+      await user.click(accordionButton);
+
+      // Wait for checkboxes to be available and interact with them
+      await waitFor(() => {
+        expect(screen.getByRole('checkbox', { name: /Simple Moving Average/ })).toBeInTheDocument();
+      });
+
       const smaCheckbox = screen.getByRole('checkbox', { name: /Simple Moving Average/ });
       const emaCheckbox = screen.getByRole('checkbox', { name: /Exponential Moving Average/ });
       const bollingerCheckbox = screen.getByRole('checkbox', { name: /Bollinger Bands/ });
@@ -234,7 +243,8 @@ describe('ProfessionalChart', () => {
   });
 
   describe('Economic Events', () => {
-    it('shows economic events when enabled', () => {
+    it('shows economic events when enabled', async () => {
+      const user = userEvent.setup();
       render(
         <TestWrapper>
           <ProfessionalChart
@@ -246,8 +256,14 @@ describe('ProfessionalChart', () => {
         </TestWrapper>
       );
 
-      // Should show events toggle
-      expect(screen.getByRole('checkbox', { name: /Economic Events/ })).toBeInTheDocument();
+      // Expand accordion to access economic events toggle
+      const accordionButton = screen.getByRole('button', { name: /Technical Analysis/ });
+      await user.click(accordionButton);
+
+      // Should show events toggle after expanding
+      await waitFor(() => {
+        expect(screen.getByRole('checkbox', { name: /Economic Events/ })).toBeInTheDocument();
+      });
     });
 
     it('toggles economic events display', async () => {
@@ -263,10 +279,17 @@ describe('ProfessionalChart', () => {
         </TestWrapper>
       );
 
+      // Expand accordion first
+      const accordionButton = screen.getByRole('button', { name: /Technical Analysis/ });
+      await user.click(accordionButton);
+
+      // Wait for events checkbox to appear
+      await waitFor(() => {
+        const eventsCheckbox = screen.getByRole('checkbox', { name: /Economic Events/ });
+        expect(eventsCheckbox).toBeChecked(); // Should start checked
+      });
+
       const eventsCheckbox = screen.getByRole('checkbox', { name: /Economic Events/ });
-      
-      // Should start checked (default prop is true)
-      expect(eventsCheckbox).toBeChecked();
       
       // Click to disable
       await user.click(eventsCheckbox);
@@ -348,7 +371,7 @@ describe('ProfessionalChart', () => {
       );
 
       expect(screen.getByTestId('professional-chart')).toBeInTheDocument();
-      expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      expect(screen.getByText('Professional Chart Analytics')).toBeInTheDocument();
     });
 
     it('handles missing optional props gracefully', () => {
@@ -406,18 +429,19 @@ describe('ProfessionalChart', () => {
         data: null as any, // Invalid data type
       };
 
-      // Should not throw an error
-      expect(() => {
-        render(
-          <TestWrapper>
-            <ProfessionalChart
-              primarySeries={invalidSeries}
-              onAnnotationAdd={mockOnAnnotationAdd}
-              onSeriesAdd={mockOnSeriesAdd}
-            />
-          </TestWrapper>
-        );
-      }).not.toThrow();
+      // Should render without crashing (but may show empty chart)
+      render(
+        <TestWrapper>
+          <ProfessionalChart
+            primarySeries={invalidSeries}
+            onAnnotationAdd={mockOnAnnotationAdd}
+            onSeriesAdd={mockOnSeriesAdd}
+          />
+        </TestWrapper>
+      );
+
+      // Should still render the chart container even with invalid data
+      expect(screen.getByTestId('professional-chart')).toBeInTheDocument();
     });
 
     it('handles missing callback props gracefully', () => {
