@@ -128,7 +128,8 @@ const MultiSeriesComparison: React.FC<MultiSeriesComparisonProps> = ({
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState('');
   const [chartType, setChartType] = React.useState<'line' | 'area' | 'column'>('line');
-  const [zoomLevel, setZoomLevel] = React.useState(1);
+  // Zoom functionality for future implementation
+  // const [zoomLevel, setZoomLevel] = React.useState(1);
   const [showStatistics, setShowStatistics] = React.useState(false);
 
   // Mock series data - in real app this would come from GraphQL
@@ -212,8 +213,9 @@ const MultiSeriesComparison: React.FC<MultiSeriesComparisonProps> = ({
 
   // Calculate correlation between two series
   const calculateCorrelation = (series1: SeriesData, series2: SeriesData): number => {
-    const values1 = series1.dataPoints.map(p => p.value);
-    const values2 = series2.dataPoints.map(p => p.value);
+    // Correlation calculation for future implementation
+    // const values1 = series1.dataPoints.map(p => p.value);
+    // const values2 = series2.dataPoints.map(p => p.value);
     
     // Simple correlation calculation for demo
     return -0.85; // Mock correlation for GDP vs unemployment

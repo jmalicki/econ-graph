@@ -1,0 +1,44 @@
+# Cursor AI Development Rules
+
+## Code Quality Standards
+
+### ESLint Error Handling
+- **ALWAYS fix ESLint errors immediately when they appear**
+- **NEVER ignore or skip ESLint errors** - they must be resolved before completing any task
+- **NEVER leave unused imports, variables, or functions** - clean them up automatically
+- **Always run `npm run lint` after making changes** to verify no new errors were introduced
+- **Use `npm run lint:fix` when available** to automatically fix fixable ESLint issues
+- **For unfixable ESLint errors, address the root cause** rather than using disable comments
+- **ESLint warnings should be addressed** but may be temporarily acceptable if they don't affect functionality
+
+### Testing Requirements  
+- **Always add tests when creating new components or pages**
+- **Tests must catch missing components and blank page issues**
+- **Authentication-dependent features must have auth flow tests**
+- **All routes must be tested to ensure they render correctly**
+- **Tests should prevent runtime errors from reaching production**
+
+### Development Workflow
+1. Write/modify code
+2. Run ESLint and fix ALL errors
+3. Run tests and ensure they pass
+4. Commit changes only after ESLint and tests are clean
+5. Monitor CI and fix any failures immediately
+
+### Component Development
+- **Always import only what you use** - remove unused imports immediately
+- **Clean up unused variables and functions** as you work
+- **Ensure all props and state are used** or remove them
+- **Mock complex dependencies in tests** to focus on component logic
+
+### Error Prevention
+- **Test authentication flows** to prevent blank pages for logged-in users
+- **Verify all routes render content** and don't show blank screens  
+- **Mock missing components in tests** to catch import/dependency issues
+- **Add comprehensive test coverage** for critical user paths
+
+## Memory: User Preferences
+- User prefers doing things correctly and properly, even if it requires additional setup
+- User expects zero failing tests and comprehensive test coverage
+- User wants all ESLint errors fixed automatically without being asked
+- User values professional-quality code with proper error handling
