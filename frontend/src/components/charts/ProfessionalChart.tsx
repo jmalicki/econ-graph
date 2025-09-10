@@ -461,7 +461,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
             : undefined,
       },
     };
-  }, [primarySeries, secondarySeries, economicEvents, technicalIndicators, taSettings]);
+  }, [primarySeries, secondarySeries, economicEvents, technicalIndicators, taSettings, customAnnotations]);
 
   const handleTASettingChange = useCallback(
     (indicator: keyof TechnicalAnalysisSettings, setting: string, value: any) => {
