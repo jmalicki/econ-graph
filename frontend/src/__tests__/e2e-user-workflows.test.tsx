@@ -17,7 +17,7 @@ jest.mock('../components/layout/Sidebar', () => {
       <div data-testid="sidebar">
         <nav>
           <a href="/dashboard">Dashboard</a>
-          <a href="/explore">Explore Series</a>
+          <a href="/explore">Explore</a>
           <a href="/datasources">Data Sources</a>
           <a href="/about">About</a>
         </nav>
@@ -111,21 +111,6 @@ jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
 }));
 
-// Mock the Sidebar component to avoid theme.breakpoints issues
-jest.mock('../components/layout/Sidebar', () => {
-  return function MockSidebar({ open, onClose }: any) {
-    return (
-      <div data-testid="sidebar">
-        <nav>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/explore">Explore</a>
-          <a href="/data-sources">Data Sources</a>
-          <a href="/about">About</a>
-        </nav>
-      </div>
-    );
-  };
-});
 
 function renderApp() {
   return render(
@@ -147,13 +132,13 @@ describe('End-to-End User Workflows', () => {
       // Start at dashboard
       renderApp();
 
-      // 1. Navigate to Series Explorer from Dashboard
+      // 1. Navigate to Explore from Dashboard
       await waitFor(() => {
-        expect(screen.getByText('Featured Economic Indicators')).toBeInTheDocument();
+        expect(screen.getByText('Professional Analysis')).toBeInTheDocument();
       });
 
-      // Click on Series Explorer in navigation (assuming it's in the sidebar)
-      const seriesExplorerLink = screen.getByText('Series Explorer');
+      // Click on Explore All Series in the dashboard  
+      const seriesExplorerLink = screen.getByText('Explore All Series');
       await user.click(seriesExplorerLink);
 
       // 2. Search for GDP data
@@ -205,8 +190,8 @@ describe('End-to-End User Workflows', () => {
 
       renderApp();
 
-      // Navigate to Series Explorer
-      const seriesExplorerLink = screen.getByText('Series Explorer');
+      // Navigate to Explore
+      const seriesExplorerLink = screen.getByText('Explore');
       await user.click(seriesExplorerLink);
 
       // Search for unemployment data
@@ -263,7 +248,7 @@ describe('End-to-End User Workflows', () => {
       // Should show login dialog or redirect to login
       await waitFor(() => {
         // In a real app, this would show login form or redirect
-        expect(screen.getByText('Featured Economic Indicators')).toBeInTheDocument();
+        expect(screen.getByText('Professional Analysis')).toBeInTheDocument();
       });
 
       // Simulate successful login (in real app, this would be triggered by auth)
@@ -281,7 +266,7 @@ describe('End-to-End User Workflows', () => {
 
       // Start at dashboard
       await waitFor(() => {
-        expect(screen.getByText('Featured Economic Indicators')).toBeInTheDocument();
+        expect(screen.getByText('Professional Analysis')).toBeInTheDocument();
       });
 
       // Navigate to About page
@@ -305,7 +290,7 @@ describe('End-to-End User Workflows', () => {
       await user.click(dashboardLink);
 
       await waitFor(() => {
-        expect(screen.getByText('Featured Economic Indicators')).toBeInTheDocument();
+        expect(screen.getByText('Professional Analysis')).toBeInTheDocument();
       });
 
       console.log('✅ Navigation workflow test passed');
@@ -318,16 +303,22 @@ describe('End-to-End User Workflows', () => {
 
       renderApp();
 
-      // Navigate to Series Explorer
-      const seriesExplorerLink = screen.getByText('Series Explorer');
-      await user.click(seriesExplorerLink);
+      // Navigate to Explore by opening sidebar and clicking Explore
+      const menuButton = screen.getByLabelText('open drawer');
+      await user.click(menuButton);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('sidebar')).toBeInTheDocument();
+      });
+      
+      const exploreLink = screen.getByText('Explore');
+      await user.click(exploreLink);
 
-      // Search for non-existent series
-      const searchInput = screen.getByPlaceholderText('Search for economic series...');
+      // Search for non-existent series (use actual placeholder text from DOM)
+      const searchInput = screen.getByPlaceholderText('Search economic series...');
       await user.type(searchInput, 'nonexistent-series-xyz');
 
-      const searchButton = screen.getByRole('button', { name: /search/i });
-      await user.click(searchButton);
+      // Search happens on input change, wait for search to complete
 
       // Should show no results or appropriate message
       await waitFor(() => {
@@ -364,7 +355,7 @@ describe('End-to-End User Workflows', () => {
 
       // Should still be able to navigate and use the app
       await waitFor(() => {
-        expect(screen.getByText('Featured Economic Indicators')).toBeInTheDocument();
+        expect(screen.getByText('Professional Analysis')).toBeInTheDocument();
       });
 
       // Test mobile navigation (hamburger menu)
@@ -372,7 +363,7 @@ describe('End-to-End User Workflows', () => {
       await user.click(menuButton);
 
       // Should show mobile menu
-      expect(screen.getByText('Series Explorer')).toBeInTheDocument();
+      expect(screen.getByText('Explore')).toBeInTheDocument();
 
       console.log('✅ Responsive design workflow test passed');
     });
@@ -386,14 +377,14 @@ describe('End-to-End User Workflows', () => {
       const startTime = performance.now();
 
       // Rapidly navigate between pages
-      const pages = ['Series Explorer', 'About', 'Data Sources', 'Dashboard'];
+      const pages = ['Explore', 'About', 'Data Sources', 'Dashboard'];
 
       for (const page of pages) {
         const pageLink = screen.getByText(page);
         await user.click(pageLink);
 
         await waitFor(() => {
-          expect(screen.getByText(page === 'Dashboard' ? 'Featured Economic Indicators' : page)).toBeInTheDocument();
+          expect(screen.getByText(page === 'Dashboard' ? 'Professional Analysis' : page)).toBeInTheDocument();
         });
       }
 
