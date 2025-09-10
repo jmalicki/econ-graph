@@ -305,6 +305,11 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock useMediaQuery hook to prevent theme.breakpoints errors
+jest.mock('@mui/material/useMediaQuery', () => {
+  return jest.fn(() => false);
+});
+
 // Mock localStorage for components that use it
 const localStorageMock = {
   getItem: jest.fn(),
