@@ -246,7 +246,7 @@ jest.mock('./hooks/useSeriesData', () => ({
 // Mock Chart.js and related modules for component tests (they require canvas and have ESM issues)
 jest.mock('chartjs-adapter-date-fns', () => ({}));
 
-// Mock useTheme hook to provide a proper theme with breakpoints
+// Mock useTheme hook to provide a proper theme with breakpoints and transitions
 jest.mock('@mui/material/styles', () => ({
   ...jest.requireActual('@mui/material/styles'),
   useTheme: jest.fn(() => ({
@@ -265,6 +265,24 @@ jest.mock('@mui/material/styles', () => ({
       fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     },
     spacing: jest.fn((factor) => `${8 * factor}px`),
+    transitions: {
+      duration: {
+        shortest: 150,
+        shorter: 200,
+        short: 250,
+        standard: 300,
+        complex: 375,
+        enteringScreen: 225,
+        leavingScreen: 195,
+      },
+      easing: {
+        easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
+        easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+        sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+      },
+      create: jest.fn(() => 'all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms'),
+    },
   })),
 }));
 

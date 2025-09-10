@@ -35,7 +35,7 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
       },
     });
 
-  // Create a complete test theme with all required properties
+  // Create a complete test theme with all required properties including transitions
   const testTheme = createTheme({
     palette: {
       mode: 'light',
@@ -58,6 +58,24 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
         lg: 1200,
         xl: 1536,
       },
+    },
+    transitions: {
+      duration: {
+        shortest: 150,
+        shorter: 200,
+        short: 250,
+        standard: 300,
+        complex: 375,
+        enteringScreen: 225,
+        leavingScreen: 195,
+      },
+      easing: {
+        easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
+        easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+        sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+      },
+      create: () => 'all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
     },
   });
 
