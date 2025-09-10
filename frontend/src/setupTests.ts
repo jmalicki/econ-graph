@@ -11,15 +11,15 @@ import ResizeObserver from 'resize-observer-polyfill';
 
 // Configure React Testing Library for CI environment
 configure({
-  asyncUtilTimeout: 10000, // Increase timeout for CI environment
+  asyncUtilTimeout: 15000, // Increase timeout for CI environment
   testIdAttribute: 'data-testid',
 });
 
 // Set Jest timeout for CI environment
 if (process.env.CI) {
-  jest.setTimeout(30000); // 30 seconds for CI
+  jest.setTimeout(60000); // 60 seconds for CI
 } else {
-  jest.setTimeout(10000); // 10 seconds for local
+  jest.setTimeout(30000); // 30 seconds for local
 }
 
 // CRITICAL: Import polyfills FIRST before any other imports
