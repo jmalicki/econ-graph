@@ -10,6 +10,22 @@ import userEvent from '@testing-library/user-event';
 import { TestProviders } from '../test-utils/test-providers';
 import App from '../App';
 
+// Mock the Sidebar component to prevent MediaQuery issues
+jest.mock('../components/layout/Sidebar', () => {
+  return function MockSidebar({ open, onClose }: any) {
+    return (
+      <div data-testid="sidebar">
+        <nav>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/explore">Explore Series</a>
+          <a href="/datasources">Data Sources</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    );
+  };
+});
+
 // Mock the InteractiveChartWithCollaboration component
 jest.mock('../components/charts/InteractiveChartWithCollaboration', () => {
   return function MockInteractiveChartWithCollaboration({ seriesData, onDataTransform }: any) {
@@ -94,6 +110,22 @@ jest.mock('../contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: () => mockAuthContext,
 }));
+
+// Mock the Sidebar component to avoid theme.breakpoints issues
+jest.mock('../components/layout/Sidebar', () => {
+  return function MockSidebar({ open, onClose }: any) {
+    return (
+      <div data-testid="sidebar">
+        <nav>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/explore">Explore</a>
+          <a href="/data-sources">Data Sources</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    );
+  };
+});
 
 function renderApp() {
   return render(

@@ -234,6 +234,28 @@ jest.mock('./hooks/useSeriesData', () => ({
 // Mock Chart.js and related modules for component tests (they require canvas and have ESM issues)
 jest.mock('chartjs-adapter-date-fns', () => ({}));
 
+// Mock useTheme hook to provide a proper theme with breakpoints
+jest.mock('@mui/material/styles', () => ({
+  ...jest.requireActual('@mui/material/styles'),
+  useTheme: jest.fn(() => ({
+    breakpoints: {
+      down: jest.fn(() => '(max-width:600px)'),
+      up: jest.fn(() => '(min-width:600px)'),
+      between: jest.fn(() => '(min-width:600px) and (max-width:960px)'),
+      only: jest.fn(() => '(min-width:600px) and (max-width:960px)'),
+    },
+    palette: {
+      mode: 'light',
+      primary: { main: '#1976d2' },
+      secondary: { main: '#dc004e' },
+    },
+    typography: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    },
+    spacing: jest.fn((factor) => `${8 * factor}px`),
+  })),
+}));
+
 // Mock MUI date pickers to avoid version compatibility issues
 jest.mock('@mui/x-date-pickers/LocalizationProvider', () => ({
   LocalizationProvider: ({ children }: any) => children,
@@ -305,7 +327,24 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock useMediaQuery hook to prevent breakpoints issues
+// Mock useMediaQuery and useTheme hooks to prevent breakpoints issues
+jest.mock('@mui/material', () => ({
+  ...jest.requireActual('@mui/material'),
+  useMediaQuery: jest.fn(() => false), // Always return false for mobile detection
+  useTheme: jest.fn(() => ({
+    breakpoints: {
+      down: jest.fn(() => '(max-width:599.95px)'),
+      up: jest.fn(() => '(min-width:600px)'),
+    },
+    palette: {
+      mode: 'light',
+      primary: { main: '#1976d2' },
+      secondary: { main: '#dc004e' },
+    },
+  })),
+}));
+
+// Also mock the system-level useMediaQuery (used by Sidebar component)
 jest.mock('@mui/system', () => ({
   ...jest.requireActual('@mui/system'),
   useMediaQuery: jest.fn(() => false), // Always return false for mobile detection
