@@ -184,7 +184,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
 
   // Get economic events for the date range
   const economicEvents = useMemo(() => {
-    if (!showEvents || primarySeries.data.length === 0) return [];
+    if (!showEvents || !primarySeries.data || !Array.isArray(primarySeries.data) || primarySeries.data.length === 0) return [];
 
     const startDate = primarySeries.data[0].date;
     const endDate = primarySeries.data[primarySeries.data.length - 1].date;
@@ -205,6 +205,11 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
 
   // Prepare chart data
   const chartData: ChartData<'line'> = useMemo(() => {
+    // Ensure primary series data exists and is valid
+    if (!primarySeries.data || !Array.isArray(primarySeries.data) || primarySeries.data.length === 0) {
+      return { labels: [], datasets: [] };
+    }
+
     const labels = primarySeries.data.map(point => point.date);
     const datasets: any[] = [];
 
@@ -222,22 +227,26 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
       yAxisID: 'y',
     });
 
-    // Secondary series
-    secondarySeries.forEach((series, index) => {
-      datasets.push({
-        label: series.title,
-        data: series.data.map(point => point.value),
-        borderColor: series.color,
-        backgroundColor: `${series.color}20`,
-        borderWidth: 2,
-        fill: false,
-        tension: 0.1,
-        pointRadius: 1,
-        pointHoverRadius: 4,
-        yAxisID: index === 0 ? 'y1' : 'y',
-        borderDash: index % 2 === 1 ? [5, 5] : undefined,
+    // Secondary series - ensure it exists and is an array
+    if (secondarySeries && Array.isArray(secondarySeries)) {
+      secondarySeries.forEach((series, index) => {
+        if (series.data && Array.isArray(series.data)) {
+          datasets.push({
+            label: series.title,
+            data: series.data.map(point => point.value),
+            borderColor: series.color,
+            backgroundColor: `${series.color}20`,
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1,
+            pointRadius: 1,
+            pointHoverRadius: 4,
+            yAxisID: index === 0 ? 'y1' : 'y',
+            borderDash: index % 2 === 1 ? [5, 5] : undefined,
+          });
+        }
       });
-    });
+    }
 
     // Technical indicators
     Object.entries(technicalIndicators).forEach(([key, data]) => {
@@ -364,23 +373,24 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
     if (Array.isArray(customAnnotations) && customAnnotations.length > 0) {
       customAnnotations.forEach((annotation: any, index: number) => {
         annotations[`custom${index}`] = {
-        type: annotation.type,
-        xMin: annotation.date,
-        xMax: annotation.date,
-        yMin: annotation.value,
-        yMax: annotation.value,
-        borderColor: annotation.color,
-        backgroundColor: `${annotation.color}40`,
-        borderWidth: 2,
-        label: {
-          display: true,
-          content: annotation.title,
-          position: 'top',
-          backgroundColor: annotation.color,
-          color: 'white',
-        },
-      };
-    });
+          type: annotation.type,
+          xMin: annotation.date,
+          xMax: annotation.date,
+          yMin: annotation.value,
+          yMax: annotation.value,
+          borderColor: annotation.color,
+          backgroundColor: `${annotation.color}40`,
+          borderWidth: 2,
+          label: {
+            display: true,
+            content: annotation.title,
+            position: 'top',
+            backgroundColor: annotation.color,
+            color: 'white',
+          },
+        };
+      });
+    }
 
     return {
       responsive: true,
