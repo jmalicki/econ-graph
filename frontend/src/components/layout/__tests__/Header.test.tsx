@@ -234,7 +234,7 @@ describe('Header', () => {
     const user = userEvent.setup();
     renderWithProviders(<Header onMenuClick={mockOnMenuClick} />);
     
-    const menuButton = screen.getByLabelText('menu');
+    const menuButton = screen.getByLabelText('open drawer');
     await user.click(menuButton);
     
     expect(mockOnMenuClick).toHaveBeenCalled();
@@ -330,7 +330,7 @@ describe('Header', () => {
     renderWithProviders(<Header onMenuClick={mockOnMenuClick} />);
     
     // Check for aria labels
-    expect(screen.getByLabelText('menu')).toBeInTheDocument();
+    expect(screen.getByLabelText('open drawer')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /test user/i })).toBeInTheDocument();
   });
 });
