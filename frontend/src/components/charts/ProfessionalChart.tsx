@@ -184,7 +184,13 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
 
   // Get economic events for the date range
   const economicEvents = useMemo(() => {
-    if (!showEvents || !primarySeries.data || !Array.isArray(primarySeries.data) || primarySeries.data.length === 0) return [];
+    if (
+      !showEvents ||
+      !primarySeries.data ||
+      !Array.isArray(primarySeries.data) ||
+      primarySeries.data.length === 0
+    )
+      return [];
 
     const startDate = primarySeries.data[0].date;
     const endDate = primarySeries.data[primarySeries.data.length - 1].date;
@@ -206,7 +212,11 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
   // Prepare chart data
   const chartData: ChartData<'line'> = useMemo(() => {
     // Ensure primary series data exists and is valid
-    if (!primarySeries.data || !Array.isArray(primarySeries.data) || primarySeries.data.length === 0) {
+    if (
+      !primarySeries.data ||
+      !Array.isArray(primarySeries.data) ||
+      primarySeries.data.length === 0
+    ) {
       return { labels: [], datasets: [] };
     }
 
@@ -472,7 +482,14 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
             : undefined,
       },
     };
-  }, [primarySeries, secondarySeries, economicEvents, technicalIndicators, taSettings, customAnnotations]);
+  }, [
+    primarySeries,
+    secondarySeries,
+    economicEvents,
+    technicalIndicators,
+    taSettings,
+    customAnnotations,
+  ]);
 
   const handleTASettingChange = useCallback(
     (indicator: keyof TechnicalAnalysisSettings, setting: string, value: any) => {

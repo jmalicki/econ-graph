@@ -174,7 +174,7 @@ impl AuthService {
     ) -> AppResult<User> {
         let provider_str = match provider {
             AuthProvider::Google => "google",
-            AuthProvider::Facebook => "facebook", 
+            AuthProvider::Facebook => "facebook",
             AuthProvider::Email => "email",
         };
 
@@ -186,7 +186,8 @@ impl AuthService {
             email,
             name,
             avatar,
-        ).await?;
+        )
+        .await?;
 
         Ok(db_user.to_auth_user())
     }
@@ -199,7 +200,9 @@ impl AuthService {
         name: String,
     ) -> AppResult<User> {
         // Use the actual database User model method and convert to auth User
-        let db_user = crate::models::user::User::create_with_email(&self.db_pool, email, password, name).await?;
+        let db_user =
+            crate::models::user::User::create_with_email(&self.db_pool, email, password, name)
+                .await?;
         Ok(db_user.to_auth_user())
     }
 
@@ -210,7 +213,8 @@ impl AuthService {
         password: String,
     ) -> AppResult<User> {
         // Use the actual database User model method for authentication and convert to auth User
-        let db_user = crate::models::user::User::authenticate(&self.db_pool, email, password).await?;
+        let db_user =
+            crate::models::user::User::authenticate(&self.db_pool, email, password).await?;
         Ok(db_user.to_auth_user())
     }
 
@@ -219,7 +223,7 @@ impl AuthService {
         match crate::models::user::User::get_by_id(&self.db_pool, user_id).await {
             Ok(db_user) => Ok(Some(db_user.to_auth_user())),
             Err(AppError::DatabaseError(_)) => Ok(None), // User not found
-            Err(e) => Err(e), // Other errors
+            Err(e) => Err(e),                            // Other errors
         }
     }
 
@@ -235,14 +239,21 @@ impl AuthService {
             avatar_url: updates.avatar,
             organization: updates.organization,
             theme: updates.preferences.as_ref().map(|p| p.theme.clone()),
-            default_chart_type: updates.preferences.as_ref().map(|p| p.default_chart_type.clone()),
+            default_chart_type: updates
+                .preferences
+                .as_ref()
+                .map(|p| p.default_chart_type.clone()),
             notifications_enabled: updates.preferences.as_ref().map(|p| p.notifications),
-            collaboration_enabled: updates.preferences.as_ref().map(|p| p.collaboration_enabled),
+            collaboration_enabled: updates
+                .preferences
+                .as_ref()
+                .map(|p| p.collaboration_enabled),
             last_login_at: Some(Utc::now()),
         };
 
         // Use the actual database User model method and convert to auth User
-        let db_user = crate::models::user::User::update_profile(&self.db_pool, user_id, db_updates).await?;
+        let db_user =
+            crate::models::user::User::update_profile(&self.db_pool, user_id, db_updates).await?;
         Ok(db_user.to_auth_user())
     }
 

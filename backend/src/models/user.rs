@@ -377,7 +377,7 @@ impl User {
     /// Convert database User to auth User model
     pub fn to_auth_user(&self) -> crate::auth::models::User {
         use crate::auth::models::*;
-        
+
         let provider = match self.provider.as_str() {
             "google" => AuthProvider::Google,
             "facebook" => AuthProvider::Facebook,
@@ -403,7 +403,10 @@ impl User {
             organization: self.organization.clone(),
             preferences: UserPreferences {
                 theme: self.theme.clone().unwrap_or_else(|| "light".to_string()),
-                default_chart_type: self.default_chart_type.clone().unwrap_or_else(|| "line".to_string()),
+                default_chart_type: self
+                    .default_chart_type
+                    .clone()
+                    .unwrap_or_else(|| "line".to_string()),
                 notifications: self.notifications_enabled.unwrap_or(true),
                 collaboration_enabled: self.collaboration_enabled.unwrap_or(true),
             },

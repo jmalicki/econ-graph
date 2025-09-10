@@ -5,11 +5,10 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import ProfessionalChart, { SeriesData } from '../ProfessionalChart';
-import { ChartAnnotation } from '../ChartCollaboration';
 
 // Mock Chart.js
 jest.mock('react-chartjs-2', () => ({
@@ -62,28 +61,6 @@ const mockSecondarySeries: SeriesData[] = [
   },
 ];
 
-const mockAnnotations: ChartAnnotation[] = [
-  {
-    id: '1',
-    date: '2020-03-01',
-    value: 18000,
-    title: 'COVID-19 Impact',
-    description: 'Economic disruption begins',
-    color: '#f44336',
-    type: 'line',
-    author: {
-      id: '1',
-      name: 'Test User',
-      avatar: '',
-    },
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-    isVisible: true,
-    isPinned: true,
-    tags: ['pandemic', 'crisis'],
-    comments: [],
-  },
-];
 
 describe('ProfessionalChart', () => {
   const mockOnAnnotationAdd = jest.fn();
@@ -139,7 +116,7 @@ describe('ProfessionalChart', () => {
 
       const chartData = screen.getByTestId('chart-data');
       const dataContent = JSON.parse(chartData.textContent || '{}');
-      
+
       expect(dataContent.datasets).toHaveLength(2);
       expect(dataContent.datasets[0].label).toContain('Real Gross Domestic Product');
       expect(dataContent.datasets[1].label).toContain('Unemployment Rate');
@@ -162,16 +139,16 @@ describe('ProfessionalChart', () => {
 
       // Should show technical analysis accordion
       expect(screen.getByText(/Technical Analysis/)).toBeInTheDocument();
-      
+
       // Expand the accordion to access controls
       const accordionButton = screen.getByRole('button', { name: /Technical Analysis/ });
       await user.click(accordionButton);
-      
+
       // Wait for accordion to expand and show controls
       await waitFor(() => {
         expect(screen.getByText(/Simple Moving Average/)).toBeInTheDocument();
       });
-      
+
       expect(screen.getByText(/Bollinger Bands/)).toBeInTheDocument();
     });
 
@@ -197,9 +174,9 @@ describe('ProfessionalChart', () => {
         const smaCheckbox = screen.getByRole('checkbox', { name: /Simple Moving Average/ });
         expect(smaCheckbox).not.toBeChecked();
       });
-      
+
       const smaCheckbox = screen.getByRole('checkbox', { name: /Simple Moving Average/ });
-      
+
       // Click to enable
       await user.click(smaCheckbox);
       expect(smaCheckbox).toBeChecked();
@@ -230,11 +207,11 @@ describe('ProfessionalChart', () => {
       const smaCheckbox = screen.getByRole('checkbox', { name: /Simple Moving Average/ });
       const emaCheckbox = screen.getByRole('checkbox', { name: /Exponential Moving Average/ });
       const bollingerCheckbox = screen.getByRole('checkbox', { name: /Bollinger Bands/ });
-      
+
       await user.click(smaCheckbox);
       await user.click(emaCheckbox);
       await user.click(bollingerCheckbox);
-      
+
       expect(smaCheckbox).toBeChecked();
       expect(emaCheckbox).toBeChecked();
       expect(bollingerCheckbox).toBeChecked();
@@ -289,7 +266,7 @@ describe('ProfessionalChart', () => {
       });
 
       const eventsCheckbox = screen.getByRole('checkbox', { name: /Economic Events/ });
-      
+
       // Click to disable
       await user.click(eventsCheckbox);
       expect(eventsCheckbox).not.toBeChecked();
@@ -328,7 +305,7 @@ describe('ProfessionalChart', () => {
 
       const addSeriesButton = screen.getByLabelText(/Add Series/);
       await user.click(addSeriesButton);
-      
+
       expect(mockOnSeriesAdd).toHaveBeenCalledTimes(1);
     });
 
@@ -346,7 +323,7 @@ describe('ProfessionalChart', () => {
 
       const fullscreenButton = screen.getByLabelText(/Fullscreen/);
       await user.click(fullscreenButton);
-      
+
       // Verify fullscreen state change (check for any visual changes)
       expect(fullscreenButton).toBeInTheDocument();
     });
@@ -468,7 +445,7 @@ describe('ProfessionalChart', () => {
       };
 
       const startTime = performance.now();
-      
+
       render(
         <TestWrapper>
           <ProfessionalChart
@@ -521,11 +498,11 @@ describe('ProfessionalChart', () => {
 
       // Test tab navigation through controls
       await user.tab();
-      
+
       // Should be able to navigate to focusable elements
       const buttons = screen.getAllByRole('button');
       expect(buttons.length).toBeGreaterThan(0);
-      
+
       // Test Enter key activation
       if (buttons[0]) {
         buttons[0].focus();
@@ -550,7 +527,7 @@ describe('ProfessionalChart', () => {
 
       const chartData = screen.getByTestId('chart-data');
       const dataContent = JSON.parse(chartData.textContent || '{}');
-      
+
       expect(dataContent.datasets).toBeDefined();
       expect(dataContent.datasets).toHaveLength(1);
       expect(dataContent.datasets[0].label).toBe('Real Gross Domestic Product');
@@ -570,7 +547,7 @@ describe('ProfessionalChart', () => {
 
       const chartData = screen.getByTestId('chart-data');
       const dataContent = JSON.parse(chartData.textContent || '{}');
-      
+
       expect(dataContent.datasets).toHaveLength(2);
       expect(dataContent.datasets[1].label).toBe('Unemployment Rate');
     });
@@ -589,7 +566,7 @@ describe('ProfessionalChart', () => {
 
       const chartOptions = screen.getByTestId('chart-options');
       const optionsContent = JSON.parse(chartOptions.textContent || '{}');
-      
+
       expect(optionsContent.responsive).toBe(true);
       expect(optionsContent.maintainAspectRatio).toBe(false);
     });

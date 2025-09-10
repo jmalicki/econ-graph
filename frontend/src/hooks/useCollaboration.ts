@@ -122,10 +122,10 @@ export function useCollaboration(options: UseCollaborationOptions = {}) {
   const loadCollaborators = useCallback(
     async (targetChartId?: string) => {
       const resolvedChartId = targetChartId || chartId;
-      
+
       // Validate UUID format before making GraphQL call
       if (!resolvedChartId) return;
-      
+
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(resolvedChartId)) {
         console.warn('Invalid chartId format:', resolvedChartId, 'Skipping collaborators load');

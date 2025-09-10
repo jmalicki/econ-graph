@@ -229,7 +229,7 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
         open={isOpen}
         onClose={onToggle}
         variant='persistent'
-        aria-labelledby="collaboration-panel-title"
+        aria-labelledby='collaboration-panel-title'
         sx={{
           width: 400,
           flexShrink: 0,
@@ -244,7 +244,7 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
         <Box sx={{ p: 2 }}>
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Typography id="collaboration-panel-title" variant='h6' sx={{ flexGrow: 1 }}>
+            <Typography id='collaboration-panel-title' variant='h6' sx={{ flexGrow: 1 }}>
               Chart Collaboration
             </Typography>
             <Badge badgeContent={totalComments} color='primary'>
@@ -438,15 +438,18 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
         onClose={() => setNewAnnotationDialog(false)}
         maxWidth='sm'
         fullWidth
-        aria-labelledby="annotation-dialog-title"
-        aria-describedby="annotation-dialog-description"
+        aria-labelledby='annotation-dialog-title'
+        aria-describedby='annotation-dialog-description'
         disableEnforceFocus={false}
         disableAutoFocus={false}
         disableRestoreFocus={false}
       >
-        <DialogTitle id="annotation-dialog-title">Add Chart Annotation</DialogTitle>
+        <DialogTitle id='annotation-dialog-title'>Add Chart Annotation</DialogTitle>
         <DialogContent>
-          <Typography id="annotation-dialog-description" sx={{ sr: 'only', position: 'absolute', left: -10000 }}>
+          <Typography
+            id='annotation-dialog-description'
+            sx={{ sr: 'only', position: 'absolute', left: -10000 }}
+          >
             Create a new chart annotation with title, description, and visual styling options
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
@@ -548,20 +551,20 @@ const ChartCollaboration: React.FC<ChartCollaborationProps> = ({
         onClose={() => setSelectedAnnotation(null)}
         maxWidth='md'
         fullWidth
-        aria-labelledby="comments-dialog-title"
-        aria-describedby="comments-dialog-description"
+        aria-labelledby='comments-dialog-title'
+        aria-describedby='comments-dialog-description'
         disableEnforceFocus={false}
         disableAutoFocus={false}
         disableRestoreFocus={false}
       >
-        <DialogTitle id="comments-dialog-title">{selectedAnnotation?.title} - Comments</DialogTitle>
+        <DialogTitle id='comments-dialog-title'>{selectedAnnotation?.title} - Comments</DialogTitle>
         <DialogContent>
           {selectedAnnotation && (
             <Box>
-              <Typography 
-                id="comments-dialog-description"
-                variant='body2' 
-                color='text.secondary' 
+              <Typography
+                id='comments-dialog-description'
+                variant='body2'
+                color='text.secondary'
                 sx={{ mb: 2 }}
               >
                 {selectedAnnotation.description}

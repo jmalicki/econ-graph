@@ -106,7 +106,7 @@ function renderApp() {
 describe('End-to-End User Workflows', () => {
   // Increase timeout for all tests in this suite
   jest.setTimeout(30000);
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

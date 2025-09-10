@@ -166,18 +166,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
 
   return (
     <>
-      <Dialog 
-        open={open} 
-        onClose={onClose} 
-        maxWidth='md' 
+      <Dialog
+        open={open}
+        onClose={onClose}
+        maxWidth='md'
         fullWidth
-        aria-labelledby="user-profile-title"
-        aria-describedby="user-profile-description"
+        aria-labelledby='user-profile-title'
+        aria-describedby='user-profile-description'
         disableEnforceFocus={false}
         disableAutoFocus={false}
         disableRestoreFocus={false}
       >
-        <DialogTitle id="user-profile-title">
+        <DialogTitle id='user-profile-title'>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Avatar src={user.avatar} sx={{ width: 56, height: 56 }}>
               {user.name[0]}
@@ -403,21 +403,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
       </Dialog>
 
       {/* Delete Account Confirmation */}
-      <Dialog 
-        open={showDeleteConfirm} 
+      <Dialog
+        open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
+        aria-labelledby='delete-dialog-title'
+        aria-describedby='delete-dialog-description'
         disableEnforceFocus={false}
         disableAutoFocus={false}
         disableRestoreFocus={false}
       >
-        <DialogTitle id="delete-dialog-title" color='error'>Delete Account</DialogTitle>
+        <DialogTitle id='delete-dialog-title' color='error'>
+          Delete Account
+        </DialogTitle>
         <DialogContent>
           <Alert severity='error' sx={{ mb: 2 }}>
             This action cannot be undone!
           </Alert>
-          <Typography id="delete-dialog-description">
+          <Typography id='delete-dialog-description'>
             Are you sure you want to delete your account? This will permanently remove:
           </Typography>
           <Box component='ul' sx={{ mt: 1 }}>
