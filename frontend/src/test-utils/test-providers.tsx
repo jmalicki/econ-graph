@@ -35,6 +35,24 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
       },
     });
 
+  // Define transition values first
+  const transitionDurations = {
+    shortest: 150,
+    shorter: 200,
+    short: 250,
+    standard: 300,
+    complex: 375,
+    enteringScreen: 225,
+    leavingScreen: 195,
+  };
+
+  const transitionEasings = {
+    easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
+    easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+    sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+  };
+
   // Create a complete test theme with all required properties including transitions
   const testTheme = createTheme({
     palette: {
@@ -60,22 +78,14 @@ export function TestProviders({ children, queryClient }: TestProvidersProps) {
       },
     },
     transitions: {
-      duration: {
-        shortest: 150,
-        shorter: 200,
-        short: 250,
-        standard: 300,
-        complex: 375,
-        enteringScreen: 225,
-        leavingScreen: 195,
+      duration: transitionDurations,
+      easing: transitionEasings,
+      create: (props = ['all'], options = {}) => {
+        const { duration = 'standard', easing = 'easeInOut', delay = 0 } = options;
+        const durationValue = typeof duration === 'string' ? transitionDurations[duration] || 300 : duration;
+        const easingValue = typeof easing === 'string' ? transitionEasings[easing] || 'cubic-bezier(0.4, 0, 0.2, 1)' : easing;
+        return `${Array.isArray(props) ? props.join(',') : props} ${durationValue}ms ${easingValue} ${delay}ms`;
       },
-      easing: {
-        easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
-        easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
-        easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
-        sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
-      },
-      create: () => 'all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
     },
   });
 

@@ -39,12 +39,23 @@
 - **Mock external dependencies appropriately** to focus tests on the component being tested
 - **Test user interactions and workflows** not just component rendering
 
+### CI/CD Monitoring
+- **ALWAYS run `gh run view` to check the most recent CI run status**
+- **NEVER stop iterating if you see an ❌ (X) in CI runs** - continue fixing until all checks show ✅ (checkmarks)
+- **Monitor CI after every push** and immediately address any failures
+- **Use `gh run list` to see recent runs** and `gh run view <run-id>` for specific failure details
+- **CI failures are NEVER acceptable** - treat them as blocking issues that must be resolved immediately
+- **If CI is failing, that takes priority over all other tasks**
+
 ### Development Workflow
 1. Write/modify code
 2. Run ESLint and fix ALL errors
 3. Run tests and ensure they pass
 4. Commit changes only after ESLint and tests are clean
-5. Monitor CI and fix any failures immediately
+5. Push changes and immediately check CI status with `gh run view`
+6. If CI shows any ❌, immediately investigate and fix
+7. Repeat steps 5-6 until all CI checks show ✅
+8. Only consider task complete when CI is fully green
 
 ### Component Development
 - **Always import only what you use** - remove unused imports immediately

@@ -151,8 +151,8 @@ describe('Header', () => {
 
     renderWithProviders(<Header onMenuClick={mockOnMenuClick} />);
     
-    // Should show user avatar
-    const avatar = screen.getByRole('button', { name: /test user/i });
+    // Should show user avatar - when there's an avatar image, the name is the user's name
+    const avatar = screen.getByRole('button', { name: 'T' });
     expect(avatar).toBeInTheDocument();
     
     // Click avatar to open menu
@@ -186,7 +186,7 @@ describe('Header', () => {
     renderWithProviders(<Header onMenuClick={mockOnMenuClick} />);
     
     // Open user menu
-    const avatar = screen.getByRole('button', { name: /test user/i });
+    const avatar = screen.getByRole('button', { name: 'T' });
     await user.click(avatar);
     
     // Should show Professional Analysis menu item
@@ -218,7 +218,7 @@ describe('Header', () => {
     renderWithProviders(<Header onMenuClick={mockOnMenuClick} />);
     
     // Open user menu
-    const avatar = screen.getByRole('button', { name: /test user/i });
+    const avatar = screen.getByRole('button', { name: 'T' });
     await user.click(avatar);
     
     // Click Sign Out
@@ -331,6 +331,6 @@ describe('Header', () => {
     
     // Check for aria labels
     expect(screen.getByLabelText('open drawer')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /test user/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'T' })).toBeInTheDocument();
   });
 });
