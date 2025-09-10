@@ -30,16 +30,10 @@ import {
   StepLabel,
   StepContent,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
   LinearProgress,
   Alert,
   Chip,
   IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
   FileDownload as DownloadIcon,

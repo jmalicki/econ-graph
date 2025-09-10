@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   Button,
-  Chip,
   FormControl,
   InputLabel,
   Select,
@@ -20,7 +19,6 @@ import {
   Switch,
   FormControlLabel,
   IconButton,
-  Tooltip,
   Alert,
   CircularProgress,
   Dialog,
@@ -34,7 +32,6 @@ import {
   Checkbox,
   Snackbar,
   Paper,
-  Slider,
   TextField,
   ButtonGroup,
 } from '@mui/material';
@@ -53,7 +50,6 @@ import {
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import { Line } from 'react-chartjs-2';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 interface SeriesData {
   id: string;
