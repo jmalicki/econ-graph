@@ -8,6 +8,7 @@ pub mod global_analysis_service;
 pub mod queue_service;
 pub mod search_service;
 pub mod series_service;
+pub mod statistical_analysis;
 
 // #[cfg(test)]
 // mod __tests__;
@@ -20,3 +21,4 @@ pub use global_analysis_service::*;
 pub use queue_service::*;
 pub use search_service::*;
 pub use series_service::*;
+pub use statistical_analysis::*;

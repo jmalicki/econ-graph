@@ -5,8 +5,9 @@ use uuid::Uuid;
 use crate::{
     database::DatabasePool,
     graphql::types::*,
+    graphql::statistical_analysis::*,
     models::search::SearchParams,
-    services::{search_service::SearchService, series_service},
+    services::{search_service::SearchService, series_service, statistical_analysis::*},
 };
 use std::sync::Arc;
 
@@ -369,6 +370,84 @@ impl Query {
             .optional()?;
 
         Ok(user.map(UserType::from))
+    }
+
+    /// Statistical Analysis Queries
+
+    /// Calculate correlation between two economic series
+    async fn calculate_series_correlation(
+        &self,
+        ctx: &Context<'_>,
+        series1_id: String,
+        series2_id: String,
+        start_date: Option<String>,
+        end_date: Option<String>,
+    ) -> Result<CorrelationAnalysisResult> {
+        // Delegate to StatisticalAnalysisQuery
+        let statistical_query = StatisticalAnalysisQuery::default();
+        statistical_query.calculate_series_correlation(ctx, series1_id, series2_id, start_date, end_date).await
+    }
+
+    /// Perform linear regression analysis between two series
+    async fn linear_regression_analysis(
+        &self,
+        ctx: &Context<'_>,
+        independent_series_id: String,
+        dependent_series_id: String,
+        start_date: Option<String>,
+        end_date: Option<String>,
+    ) -> Result<RegressionAnalysisResult> {
+        let statistical_query = StatisticalAnalysisQuery::default();
+        statistical_query.linear_regression_analysis(ctx, independent_series_id, dependent_series_id, start_date, end_date).await
+    }
+
+    /// Analyze trends in a time series
+    async fn analyze_series_trends(
+        &self,
+        ctx: &Context<'_>,
+        series_id: String,
+        start_date: Option<String>,
+        end_date: Option<String>,
+    ) -> Result<TrendAnalysisResult> {
+        let statistical_query = StatisticalAnalysisQuery::default();
+        statistical_query.analyze_series_trends(ctx, series_id, start_date, end_date).await
+    }
+
+    /// Generate statistical summary for a series
+    async fn series_statistical_summary(
+        &self,
+        ctx: &Context<'_>,
+        series_id: String,
+        start_date: Option<String>,
+        end_date: Option<String>,
+    ) -> Result<StatisticalSummaryResult> {
+        let statistical_query = StatisticalAnalysisQuery::default();
+        statistical_query.series_statistical_summary(ctx, series_id, start_date, end_date).await
+    }
+
+    /// Generate correlation matrix for multiple series
+    async fn correlation_matrix(
+        &self,
+        ctx: &Context<'_>,
+        series_ids: Vec<String>,
+        start_date: Option<String>,
+        end_date: Option<String>,
+    ) -> Result<CorrelationMatrixResult> {
+        let statistical_query = StatisticalAnalysisQuery::default();
+        statistical_query.correlation_matrix(ctx, series_ids, start_date, end_date).await
+    }
+
+    /// Calculate moving averages for a series
+    async fn calculate_moving_averages(
+        &self,
+        ctx: &Context<'_>,
+        series_id: String,
+        window_sizes: Vec<i32>,
+        start_date: Option<String>,
+        end_date: Option<String>,
+    ) -> Result<Vec<MovingAverageResult>> {
+        let statistical_query = StatisticalAnalysisQuery::default();
+        statistical_query.calculate_moving_averages(ctx, series_id, window_sizes, start_date, end_date).await
     }
 }
 
