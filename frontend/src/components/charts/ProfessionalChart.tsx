@@ -134,7 +134,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
 
   const [showEvents, setShowEvents] = useState(showEconomicEvents);
   const [showCorrelation, setShowCorrelation] = useState(false);
-  // const [annotations] = useState<ChartAnnotation[]>([]); // Unused but kept for future features
+  const [customAnnotations] = useState<ChartAnnotation[]>([]); // Custom chart annotations
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Calculate technical indicators
@@ -361,7 +361,7 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
     }
 
     // Custom annotations
-    annotations.forEach((annotation: any, index: number) => {
+    customAnnotations.forEach((annotation: any, index: number) => {
       annotations[`custom${index}`] = {
         type: annotation.type,
         xMin: annotation.date,
