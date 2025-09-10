@@ -24,15 +24,14 @@ describe('DataSources', () => {
       renderDataSources();
 
       expect(screen.getByText('Data Sources')).toBeInTheDocument();
-      expect(screen.getByText('Economic Data Providers')).toBeInTheDocument();
+      expect(screen.getByText('Economic data providers and their current status')).toBeInTheDocument();
     });
 
     test('should display page title and description', () => {
       renderDataSources();
 
       expect(screen.getByText('Data Sources')).toBeInTheDocument();
-      expect(screen.getByText('Economic Data Providers')).toBeInTheDocument();
-      expect(screen.getByText(/comprehensive collection of economic data/i)).toBeInTheDocument();
+      expect(screen.getByText('Economic data providers and their current status')).toBeInTheDocument();
     });
 
     test('should have proper heading hierarchy', () => {
@@ -41,8 +40,14 @@ describe('DataSources', () => {
       const mainHeading = screen.getByRole('heading', { level: 1 });
       expect(mainHeading).toHaveTextContent('Data Sources');
 
-      const subHeadings = screen.getAllByRole('heading', { level: 2 });
-      expect(subHeadings.length).toBeGreaterThan(0);
+      // Should have H3 headings for statistics
+      const statisticHeadings = screen.getAllByRole('heading', { level: 3 });
+      expect(statisticHeadings.length).toBe(4); // Active Sources, Total Series, Healthy Sources, Uptime
+
+      // Should have H6 heading only for "Crawl Schedule" (data source names use component='div')
+      const subHeadings = screen.getAllByRole('heading', { level: 6 });
+      expect(subHeadings.length).toBe(1); // Only "Crawl Schedule"
+      expect(subHeadings[0]).toHaveTextContent('Crawl Schedule');
     });
   });
 
@@ -50,39 +55,29 @@ describe('DataSources', () => {
     test('should display FRED data source information', () => {
       renderDataSources();
 
-      expect(screen.getByText('Federal Reserve Economic Data (FRED)')).toBeInTheDocument();
-      expect(screen.getByText(/comprehensive database of economic data/i)).toBeInTheDocument();
-      expect(screen.getByText(/Federal Reserve Bank of St. Louis/i)).toBeInTheDocument();
+      expect(screen.getAllByText('Federal Reserve Economic Data (FRED)')).toHaveLength(2); // Card + Table
+      expect(screen.getByText(/Economic data from the Federal Reserve Bank of St. Louis/i)).toBeInTheDocument();
     });
 
     test('should display BLS data source information', () => {
       renderDataSources();
 
-      expect(screen.getByText('Bureau of Labor Statistics (BLS)')).toBeInTheDocument();
-      expect(screen.getByText(/employment and labor market data/i)).toBeInTheDocument();
-      expect(screen.getByText(/U.S. Department of Labor/i)).toBeInTheDocument();
-    });
-
-    test('should display BEA data source information', () => {
-      renderDataSources();
-
-      expect(screen.getByText('Bureau of Economic Analysis (BEA)')).toBeInTheDocument();
-      expect(screen.getByText(/national economic accounts/i)).toBeInTheDocument();
-      expect(screen.getByText(/U.S. Department of Commerce/i)).toBeInTheDocument();
-    });
-
-    test('should display Federal Reserve data source information', () => {
-      renderDataSources();
-
-      expect(screen.getByText('Federal Reserve System')).toBeInTheDocument();
-      expect(screen.getByText(/monetary policy and financial data/i)).toBeInTheDocument();
+      expect(screen.getAllByText('Bureau of Labor Statistics (BLS)')).toHaveLength(2); // Card + Table
+      expect(screen.getByText(/Labor market data including employment/i)).toBeInTheDocument();
     });
 
     test('should display Census Bureau data source information', () => {
       renderDataSources();
 
-      expect(screen.getByText('U.S. Census Bureau')).toBeInTheDocument();
-      expect(screen.getByText(/demographic and economic data/i)).toBeInTheDocument();
+      expect(screen.getAllByText('U.S. Census Bureau')).toHaveLength(2); // Card + Table
+      expect(screen.getByText(/Demographic and economic data including population/i)).toBeInTheDocument();
+    });
+
+    test('should display World Bank data source information', () => {
+      renderDataSources();
+
+      expect(screen.getAllByText('World Bank Open Data')).toHaveLength(2); // Card + Table
+      expect(screen.getByText(/Global economic and development indicators/i)).toBeInTheDocument();
     });
   });
 
@@ -90,30 +85,27 @@ describe('DataSources', () => {
     test('should display data source characteristics', () => {
       renderDataSources();
 
-      // Check for common metadata elements
-      expect(screen.getByText('Update Frequency')).toBeInTheDocument();
-      expect(screen.getByText('Data Coverage')).toBeInTheDocument();
-      expect(screen.getByText('Access Method')).toBeInTheDocument();
+      // Check for metadata elements that actually exist in the component (appears once per data source card)
+      expect(screen.getAllByText('Series Count')).toHaveLength(4); // One for each data source
+      expect(screen.getAllByText('Rate Limit')).toHaveLength(4);
+      expect(screen.getAllByText('Last Crawl')).toHaveLength(4);
     });
 
-    test('should display update frequencies for different sources', () => {
+    test('should display crawl schedule frequencies', () => {
       renderDataSources();
 
-      // FRED typically updates daily
-      expect(screen.getByText(/daily/i)).toBeInTheDocument();
-
-      // BLS typically updates monthly
-      expect(screen.getByText(/monthly/i)).toBeInTheDocument();
-
-      // BEA typically updates quarterly
-      expect(screen.getByText(/quarterly/i)).toBeInTheDocument();
+      // Should show the actual frequencies from the schedule table
+      expect(screen.getByText('Every 4 hours')).toBeInTheDocument(); // FRED
+      expect(screen.getByText('Every 6 hours')).toBeInTheDocument(); // BLS
+      expect(screen.getAllByText('Daily')).toHaveLength(2); // Census and World Bank
     });
 
-    test('should display data coverage information', () => {
+    test('should display data source statistics', () => {
       renderDataSources();
 
-      // Should show coverage periods
-      expect(screen.getByText(/1947-present/i) || screen.getByText(/1950-present/i)).toBeInTheDocument();
+      // Should show statistics like series count for individual sources
+      expect(screen.getByText('12,543')).toBeInTheDocument(); // FRED series count
+      expect(screen.getByText('8,932')).toBeInTheDocument(); // BLS series count
     });
   });
 
@@ -121,24 +113,29 @@ describe('DataSources', () => {
     test('should display data sources in organized cards', () => {
       renderDataSources();
 
-      // Should have multiple data source cards
-      const dataSourceCards = screen.getAllByText(/Federal Reserve|Bureau of Labor|Bureau of Economic|Census Bureau/i);
-      expect(dataSourceCards.length).toBeGreaterThanOrEqual(4);
+      // Should have the four actual data sources
+      expect(screen.getAllByText(/Federal Reserve Economic Data \(FRED\)/i)).toHaveLength(2); // Appears in card and table
+      expect(screen.getAllByText(/Bureau of Labor Statistics \(BLS\)/i)).toHaveLength(2); // Appears in card and table
+      expect(screen.getAllByText(/U\.S\. Census Bureau/i)).toHaveLength(2); // Appears in card and table
+      expect(screen.getAllByText(/World Bank Open Data/i)).toHaveLength(2); // Appears in card and table
     });
 
-    test('should display data source logos or icons', () => {
+    test('should display data source icons via testId', () => {
       renderDataSources();
 
-      // Should have some visual indicators for data sources (SVG icons)
-      const svgIcons = screen.getAllByRole('img', { hidden: true });
-      expect(svgIcons.length).toBeGreaterThan(0);
+      // Icons are present but aria-hidden, so check via testId instead
+      expect(screen.getAllByTestId('AccountBalanceIcon')).toHaveLength(2); // FRED icons (card + table)
+      expect(screen.getAllByTestId('WorkIcon')).toHaveLength(2); // BLS icons
+      expect(screen.getAllByTestId('PublicIcon')).toHaveLength(2); // Census icons
+      expect(screen.getAllByTestId('LanguageIcon')).toHaveLength(2); // World Bank icons
     });
 
     test('should display data source statistics', () => {
       renderDataSources();
 
-      // Should show statistics like number of series
+      // Should show statistics like total series in summary
       expect(screen.getByText('Total Series')).toBeInTheDocument();
+      expect(screen.getByText('25,454')).toBeInTheDocument(); // Total of all series
     });
   });
 
@@ -219,6 +216,7 @@ describe('DataSources', () => {
       renderDataSources();
 
       expect(screen.getByText('Data Sources')).toBeInTheDocument();
+      expect(screen.getAllByText('Bureau of Labor Statistics (BLS)')).toHaveLength(2);
     });
   });
 
@@ -274,7 +272,8 @@ describe('DataSources', () => {
       // Should display all data sources without issues
       expect(screen.getAllByText('Federal Reserve Economic Data (FRED)')).toHaveLength(2);
       expect(screen.getAllByText('Bureau of Labor Statistics (BLS)')).toHaveLength(2);
-      expect(screen.getByText('Bureau of Economic Analysis (BEA)')).toBeInTheDocument();
+      expect(screen.getAllByText('U.S. Census Bureau')).toHaveLength(2);
+      expect(screen.getAllByText('World Bank Open Data')).toHaveLength(2);
     });
   });
 

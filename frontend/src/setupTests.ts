@@ -305,6 +305,12 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock useMediaQuery hook to prevent breakpoints issues
+jest.mock('@mui/system', () => ({
+  ...jest.requireActual('@mui/system'),
+  useMediaQuery: jest.fn(() => false), // Always return false for mobile detection
+}));
+
 // Mock localStorage for components that use it
 const localStorageMock = {
   getItem: jest.fn(),

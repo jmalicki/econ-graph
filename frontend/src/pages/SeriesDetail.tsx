@@ -71,8 +71,8 @@ const SeriesDetail: React.FC = () => {
       setError(null);
 
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Simulate API call - use shorter timeout in test environment
+        await new Promise(resolve => setTimeout(resolve, process.env.NODE_ENV === 'test' ? 0 : 1000));
 
         // Mock data based on series ID - FIX: Handle all actual series IDs from SeriesExplorer
         const getSeriesData = (seriesId: string) => {
@@ -251,14 +251,14 @@ const SeriesDetail: React.FC = () => {
   if (isLoading) {
     return (
       <Box>
-        <Skeleton variant='text' width='60%' height={40} sx={{ mb: 2 }} />
-        <Skeleton variant='text' width='80%' height={24} sx={{ mb: 4 }} />
+        <Skeleton variant='text' width='60%' height={40} sx={{ mb: 2 }} data-testid='skeleton-loader' />
+        <Skeleton variant='text' width='80%' height={24} sx={{ mb: 4 }} data-testid='skeleton-loader' />
         <Grid container spacing={3}>
           <Grid item xs={12} lg={8}>
-            <Skeleton variant='rectangular' height={500} />
+            <Skeleton variant='rectangular' height={500} data-testid='skeleton-loader' />
           </Grid>
           <Grid item xs={12} lg={4}>
-            <Skeleton variant='rectangular' height={300} />
+            <Skeleton variant='rectangular' height={300} data-testid='skeleton-loader' />
           </Grid>
         </Grid>
       </Box>

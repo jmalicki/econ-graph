@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TestProviders } from '../../test-utils/test-providers';
 import SeriesDetail from '../SeriesDetail';
@@ -96,20 +96,26 @@ describe('SeriesDetail', () => {
   });
 
   describe('Series Data Display', () => {
-    test('should display GDP Real series data correctly', () => {
+    test('should display GDP Real series data correctly', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      });
+      
       expect(screen.getByText('Real GDP measures the inflation-adjusted value of all goods and services produced')).toBeInTheDocument();
       expect(screen.getByText('Federal Reserve Economic Data')).toBeInTheDocument();
       expect(screen.getByText('Quarterly')).toBeInTheDocument();
       expect(screen.getByText('Billions of Chained 2017 Dollars')).toBeInTheDocument();
     });
 
-    test('should display Unemployment Rate series data correctly', () => {
+    test('should display Unemployment Rate series data correctly', async () => {
       renderSeriesDetail('unemployment-rate');
 
-      expect(screen.getByText('Unemployment Rate')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Unemployment Rate')).toBeInTheDocument();
+      });
+      
       expect(screen.getByText('Percent of labor force that is unemployed')).toBeInTheDocument();
       expect(screen.getByText('Bureau of Labor Statistics')).toBeInTheDocument();
       expect(screen.getByText('Monthly')).toBeInTheDocument();
@@ -148,18 +154,24 @@ describe('SeriesDetail', () => {
   });
 
   describe('Interactive Chart Integration', () => {
-    test('should render interactive chart with series data', () => {
+    test('should render interactive chart with series data', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByTestId('interactive-chart')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('interactive-chart')).toBeInTheDocument();
+      });
+      
       expect(screen.getByTestId('chart-title')).toHaveTextContent('Real Gross Domestic Product');
       expect(screen.getByTestId('chart-data-points')).toBeInTheDocument();
     });
 
-    test('should display data transformation buttons', () => {
+    test('should display data transformation buttons', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByTestId('transform-yoy')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('transform-yoy')).toBeInTheDocument();
+      });
+      
       expect(screen.getByTestId('transform-qoq')).toBeInTheDocument();
       expect(screen.getByTestId('transform-mom')).toBeInTheDocument();
     });
@@ -180,42 +192,55 @@ describe('SeriesDetail', () => {
       const user = userEvent.setup();
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Back to Explorer')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Back to Explorer')).toBeInTheDocument();
+      });
 
       await user.click(screen.getByText('Back to Explorer'));
       expect(mockNavigate).toHaveBeenCalledWith('/explore');
     });
 
-    test('should have share button', () => {
+    test('should have share button', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByLabelText('share')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByLabelText('share')).toBeInTheDocument();
+      });
     });
 
-    test('should have download button', () => {
+    test('should have download button', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Download Data')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Download Data')).toBeInTheDocument();
+      });
     });
 
-    test('should have bookmark button', () => {
+    test('should have bookmark button', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByLabelText('bookmark')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByLabelText('bookmark')).toBeInTheDocument();
+      });
     });
 
-    test('should have info button', () => {
+    test('should have info button', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Series Information')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Series Information')).toBeInTheDocument();
+      });
     });
   });
 
   describe('Series Metadata Display', () => {
-    test('should display series metadata table', () => {
+    test('should display series metadata table', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Series Information')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Series Information')).toBeInTheDocument();
+      });
+      
       expect(screen.getByText('Seasonal Adjustment')).toBeInTheDocument();
       expect(screen.getByText('Seasonally Adjusted Annual Rate')).toBeInTheDocument();
       expect(screen.getByText('Start Date')).toBeInTheDocument();
@@ -223,28 +248,36 @@ describe('SeriesDetail', () => {
       expect(screen.getByText('Last Updated')).toBeInTheDocument();
     });
 
-    test('should display correct date ranges', () => {
+    test('should display correct date ranges', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('1947-01-01')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('1947-01-01')).toBeInTheDocument();
+      });
+      
       expect(screen.getByText('2024-09-30')).toBeInTheDocument();
       expect(screen.getByText('2024-12-15')).toBeInTheDocument();
     });
   });
 
   describe('Breadcrumb Navigation', () => {
-    test('should display breadcrumb navigation', () => {
+    test('should display breadcrumb navigation', async () => {
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Explore')).toBeInTheDocument();
-      expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Explore')).toBeInTheDocument();
+      });
+      
+      expect(screen.getAllByText('Real Gross Domestic Product')).toHaveLength(2); // Appears in breadcrumb and heading
     });
 
     test('should have clickable breadcrumb links', async () => {
       const user = userEvent.setup();
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Explore')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Explore')).toBeInTheDocument();
+      });
 
       await user.click(screen.getByText('Explore'));
       expect(mockNavigate).toHaveBeenCalledWith('/explore');
@@ -252,34 +285,40 @@ describe('SeriesDetail', () => {
   });
 
   describe('Data Points Generation', () => {
-    test('should generate appropriate data points for quarterly series', () => {
+    test('should generate appropriate data points for quarterly series', async () => {
       renderSeriesDetail('gdp-real');
 
-      const dataPointsElement = screen.getByTestId('chart-data-points');
-      expect(dataPointsElement).toBeInTheDocument();
-      // Should have data points (exact count depends on mock data generation)
-      expect(dataPointsElement.textContent).toMatch(/\d+ data points/);
+      await waitFor(() => {
+        const dataPointsElement = screen.getByTestId('chart-data-points');
+        expect(dataPointsElement).toBeInTheDocument();
+        // Should have data points (exact count depends on mock data generation)
+        expect(dataPointsElement.textContent).toMatch(/\d+ data points/);
+      });
     });
 
-    test('should generate appropriate data points for monthly series', () => {
+    test('should generate appropriate data points for monthly series', async () => {
       renderSeriesDetail('unemployment-rate');
 
-      const dataPointsElement = screen.getByTestId('chart-data-points');
-      expect(dataPointsElement).toBeInTheDocument();
-      expect(dataPointsElement.textContent).toMatch(/\d+ data points/);
+      await waitFor(() => {
+        const dataPointsElement = screen.getByTestId('chart-data-points');
+        expect(dataPointsElement).toBeInTheDocument();
+        expect(dataPointsElement.textContent).toMatch(/\d+ data points/);
+      });
     });
 
-    test('should generate appropriate data points for daily series', () => {
+    test('should generate appropriate data points for daily series', async () => {
       renderSeriesDetail('fed-funds-rate');
 
-      const dataPointsElement = screen.getByTestId('chart-data-points');
-      expect(dataPointsElement).toBeInTheDocument();
-      expect(dataPointsElement.textContent).toMatch(/\d+ data points/);
+      await waitFor(() => {
+        const dataPointsElement = screen.getByTestId('chart-data-points');
+        expect(dataPointsElement).toBeInTheDocument();
+        expect(dataPointsElement.textContent).toMatch(/\d+ data points/);
+      });
     });
   });
 
   describe('Responsive Design', () => {
-    test('should render without crashing on mobile viewport', () => {
+    test('should render without crashing on mobile viewport', async () => {
       // Mock mobile viewport
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
@@ -289,7 +328,9 @@ describe('SeriesDetail', () => {
 
       renderSeriesDetail('gdp-real');
 
-      expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      });
     });
   });
 
@@ -309,7 +350,7 @@ describe('SeriesDetail', () => {
   });
 
   describe('Error Handling', () => {
-    test('should handle network errors gracefully', () => {
+    test('should handle network errors gracefully', async () => {
       // Mock fetch to reject
       const originalFetch = global.fetch;
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
@@ -317,7 +358,9 @@ describe('SeriesDetail', () => {
       renderSeriesDetail('gdp-real');
 
       // Should still render the component even with network errors
-      expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Real Gross Domestic Product')).toBeInTheDocument();
+      });
 
       global.fetch = originalFetch;
     });
