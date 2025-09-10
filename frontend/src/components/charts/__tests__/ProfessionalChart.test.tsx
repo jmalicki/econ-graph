@@ -8,7 +8,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import ProfessionalChart, { SeriesData, ChartAnnotation } from '../ProfessionalChart';
+import ProfessionalChart, { SeriesData } from '../ProfessionalChart';
+import { ChartAnnotation } from '../ChartCollaboration';
 
 // Mock Chart.js
 jest.mock('react-chartjs-2', () => ({
