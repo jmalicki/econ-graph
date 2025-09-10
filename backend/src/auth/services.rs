@@ -163,7 +163,7 @@ impl AuthService {
         Ok(user_info)
     }
 
-    /// Create or update user from OAuth provider
+    /// Create or update user from OAuth provider using actual database
     pub async fn create_or_update_oauth_user(
         &self,
         provider: AuthProvider,
@@ -172,77 +172,32 @@ impl AuthService {
         name: String,
         avatar: Option<String>,
     ) -> AppResult<User> {
-        // In a real implementation, this would use the database
-        // For now, we'll create a deterministic user ID based on provider and provider_id
-        // This ensures the same user gets the same ID on subsequent calls
         let provider_str = match provider {
             AuthProvider::Google => "google",
-            AuthProvider::Facebook => "facebook",
+            AuthProvider::Facebook => "facebook", 
             AuthProvider::Email => "email",
         };
-        // Create a deterministic UUID by hashing the provider and provider_id
-        let input = format!("{}-{}", provider_str, provider_id);
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        use std::hash::{Hash, Hasher};
-        input.hash(&mut hasher);
-        let hash = hasher.finish();
-        let user_id = Uuid::from_u128(hash as u128);
 
-        let user = User {
-            id: user_id,
+        // Use the actual database User model methods
+        crate::models::user::User::create_or_get_oauth(
+            &self.db_pool,
+            provider_str.to_string(),
+            provider_id,
             email,
             name,
             avatar,
-            provider,
-            provider_id,
-            role: UserRole::default(),
-            organization: None,
-            preferences: UserPreferences::default(),
-            created_at: Utc::now(),
-            last_login_at: Utc::now(),
-            is_active: true,
-        };
-
-        Ok(user)
+        ).await
     }
 
-    /// Create user with email/password
+    /// Create user with email/password using actual database
     pub async fn create_email_user(
         &self,
         email: String,
         password: String,
         name: String,
     ) -> AppResult<User> {
-        // Hash password
-        let _password_hash = PasswordHash::new(&password).map_err(|e| {
-            AppError::AuthenticationError(format!("Failed to hash password: {}", e))
-        })?;
-
-        // Create deterministic user ID based on email
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        use std::hash::{Hash, Hasher};
-        email.hash(&mut hasher);
-        let hash = hasher.finish();
-        let user_id = Uuid::from_u128(hash as u128);
-        let provider_id = user_id.to_string();
-
-        // In a real implementation, this would check if user exists and store in database
-        let user = User {
-            id: user_id,
-            email,
-            name,
-            avatar: None,
-            provider: AuthProvider::Email,
-            provider_id,
-            role: UserRole::default(),
-            organization: None,
-            preferences: UserPreferences::default(),
-            created_at: Utc::now(),
-            last_login_at: Utc::now(),
-            is_active: true,
-        };
-
-        Ok(user)
+        // Use the actual database User model method
+        crate::models::user::User::create_with_email(&self.db_pool, email, password, name).await
     }
 
     /// Authenticate user with email/password
@@ -311,25 +266,13 @@ impl AuthService {
         }
     }
 
-    /// Get user by ID
+    /// Get user by ID using actual database lookup
     pub async fn get_user_by_id(&self, user_id: Uuid) -> AppResult<Option<User>> {
-        // Mock implementation for demo - return a valid user to prevent crashes
-        // In production, this would query the database
-        let user = User {
-            id: user_id,
-            email: "demo@econgraph.com".to_string(),
-            name: "Demo User".to_string(),
-            avatar: Some("https://via.placeholder.com/150".to_string()),
-            provider: AuthProvider::Google,
-            provider_id: format!("google-{}", user_id),
-            role: UserRole::Analyst,
-            organization: Some("EconGraph Demo".to_string()),
-            preferences: UserPreferences::default(),
-            created_at: Utc::now() - chrono::Duration::days(30),
-            last_login_at: Utc::now(),
-            is_active: true,
-        };
-        Ok(Some(user))
+        match crate::models::user::User::get_by_id(&self.db_pool, user_id).await {
+            Ok(user) => Ok(Some(user)),
+            Err(AppError::DatabaseError(_)) => Ok(None), // User not found
+            Err(e) => Err(e), // Other errors
+        }
     }
 
     /// Update user profile
