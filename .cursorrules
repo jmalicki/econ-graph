@@ -44,10 +44,12 @@
 - **Use this command to check recent runs**: `curl -s -H "Authorization: token $(git remote get-url origin | grep -o 'ghs_[^@]*')" "https://api.github.com/repos/$(git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^/]*\).*/\1/' | sed 's/\.git$//')/actions/runs?per_page=5"`
 - **NEVER stop iterating if you see "conclusion": "failure"** - continue fixing until all checks show "conclusion": "success"
 - **Get job details for failures**: `curl -s -H "Authorization: token <TOKEN>" "https://api.github.com/repos/<REPO>/actions/runs/<RUN_ID>/jobs"`
+- **If CI doesn't auto-trigger on PR updates, manually trigger by closing/reopening PR or making empty commit**
 - **Monitor CI after every push** and immediately address any failures
 - **CI failures are NEVER acceptable** - treat them as blocking issues that must be resolved immediately
 - **If CI is failing, that takes priority over all other tasks**
 - **Common CI failure patterns to watch for**: "Check Rust formatting", "Run Clippy", "Frontend Tests", "Backend Tests"
+- **Always ensure CI workflow includes 'types: [opened, synchronize, reopened, ready_for_review]' for PR triggers**
 
 ### Development Workflow
 1. Write/modify code
