@@ -360,9 +360,10 @@ const ProfessionalChart: React.FC<ProfessionalChartProps> = ({
       });
     }
 
-    // Custom annotations
-    customAnnotations.forEach((annotation: any, index: number) => {
-      annotations[`custom${index}`] = {
+    // Custom annotations - ensure it's an array before iterating
+    if (Array.isArray(customAnnotations) && customAnnotations.length > 0) {
+      customAnnotations.forEach((annotation: any, index: number) => {
+        annotations[`custom${index}`] = {
         type: annotation.type,
         xMin: annotation.date,
         xMax: annotation.date,
