@@ -11,6 +11,17 @@ echo "🚀 Deploying EconGraph to local Kubernetes cluster..."
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
+# Load port configuration
+if [ -f "ports.env" ]; then
+    echo "📋 Loading port configuration from ports.env..."
+    source ports.env
+else
+    echo "⚠️  ports.env not found, using default ports"
+    BACKEND_NODEPORT=30080
+    FRONTEND_NODEPORT=30000
+    GRAFANA_NODEPORT=30001
+fi
+
 # Check if kind cluster exists
 if ! kind get clusters | grep -q "econ-graph"; then
     echo "❌ Kind cluster 'econ-graph' not found. Please run terraform first."
@@ -115,11 +126,11 @@ kubectl get pods -n econ-graph
 echo "✅ Deployment completed successfully!"
 echo ""
 echo "🌐 Application URLs:"
-echo "  Frontend: http://localhost/"
-echo "  Backend:  http://localhost:9876"
-echo "  GraphQL:  http://localhost/graphql"
-echo "  Playground: http://localhost/playground"
-echo "  Grafana:  http://localhost:30001 (admin/admin123)"
+echo "  Frontend: http://localhost:${FRONTEND_NODEPORT}"
+echo "  Backend:  http://localhost:${BACKEND_NODEPORT}"
+echo "  GraphQL:  http://localhost:${FRONTEND_NODEPORT}/graphql"
+echo "  Playground: http://localhost:${FRONTEND_NODEPORT}/playground"
+echo "  Grafana:  http://localhost:${GRAFANA_NODEPORT} (admin/admin123)"
 echo ""
 echo "📊 Useful commands:"
 echo "  kubectl get pods -n econ-graph"

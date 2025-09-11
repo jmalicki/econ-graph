@@ -12,6 +12,17 @@ echo ""
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
+# Load port configuration
+if [ -f "ports.env" ]; then
+    echo "📋 Loading port configuration from ports.env..."
+    source ports.env
+else
+    echo "⚠️  ports.env not found, using default ports"
+    BACKEND_NODEPORT=30080
+    FRONTEND_NODEPORT=30000
+    GRAFANA_NODEPORT=30001
+fi
+
 # Check if kind cluster exists
 if ! kind get clusters | grep -q "econ-graph"; then
     echo "❌ Kind cluster 'econ-graph' not found."
@@ -136,12 +147,12 @@ echo "📊 Current deployment status:"
 kubectl get pods -n econ-graph -o wide
 echo ""
 echo "🌐 Application URLs:"
-echo "  Frontend: http://localhost/"
-echo "  Backend:  http://localhost:9876"
-echo "  GraphQL:  http://localhost/graphql"
-echo "  Playground: http://localhost/playground"
-echo "  Health:   http://localhost/health"
-echo "  Grafana:  http://localhost:30001 (admin/admin123)"
+echo "  Frontend: http://localhost:${FRONTEND_NODEPORT}"
+echo "  Backend:  http://localhost:${BACKEND_NODEPORT}"
+echo "  GraphQL:  http://localhost:${FRONTEND_NODEPORT}/graphql"
+echo "  Playground: http://localhost:${FRONTEND_NODEPORT}/playground"
+echo "  Health:   http://localhost:${BACKEND_NODEPORT}/health"
+echo "  Grafana:  http://localhost:${GRAFANA_NODEPORT} (admin/admin123)"
 echo ""
 echo "🎯 Version deployed: v3.7.4"
 echo "   ✅ Integration tests fixed: All auth tests passing (11/11)"
@@ -160,9 +171,9 @@ echo "  kubectl logs -f deployment/econ-graph-backend -n econ-graph"
 echo "  kubectl logs -f deployment/econ-graph-frontend -n econ-graph"
 echo ""
 echo "✅ Services are accessible via NodePort:"
-echo "  Frontend: http://localhost:3000"
-echo "  Backend:  http://localhost:8080"
-echo "  Grafana:  http://localhost:30001 (admin/admin123)"
+echo "  Frontend: http://localhost:${FRONTEND_NODEPORT}"
+echo "  Backend:  http://localhost:${BACKEND_NODEPORT}"
+echo "  Grafana:  http://localhost:${GRAFANA_NODEPORT} (admin/admin123)"
 
 # Test service accessibility
 echo ""
@@ -170,22 +181,22 @@ echo "🧪 Testing service accessibility..."
 sleep 5
 
 # Test Grafana
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:30001 | grep -q "302\|200"; then
-    echo "  ✅ Grafana: http://localhost:30001 - Accessible"
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:${GRAFANA_NODEPORT} | grep -q "302\|200"; then
+    echo "  ✅ Grafana: http://localhost:${GRAFANA_NODEPORT} - Accessible"
 else
-    echo "  ❌ Grafana: http://localhost:30001 - Not accessible"
+    echo "  ❌ Grafana: http://localhost:${GRAFANA_NODEPORT} - Not accessible"
 fi
 
 # Test Frontend
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:30000 | grep -q "200\|404"; then
-    echo "  ✅ Frontend: http://localhost:30000 - Accessible"
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:${FRONTEND_NODEPORT} | grep -q "200\|404"; then
+    echo "  ✅ Frontend: http://localhost:${FRONTEND_NODEPORT} - Accessible"
 else
-    echo "  ❌ Frontend: http://localhost:30000 - Not accessible"
+    echo "  ❌ Frontend: http://localhost:${FRONTEND_NODEPORT} - Not accessible"
 fi
 
 # Test Backend
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:30080/health | grep -q "200"; then
-    echo "  ✅ Backend: http://localhost:30080 - Accessible"
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:${BACKEND_NODEPORT}/health | grep -q "200"; then
+    echo "  ✅ Backend: http://localhost:${BACKEND_NODEPORT} - Accessible"
 else
-    echo "  ❌ Backend: http://localhost:30080 - Not accessible"
+    echo "  ❌ Backend: http://localhost:${BACKEND_NODEPORT} - Not accessible"
 fi
