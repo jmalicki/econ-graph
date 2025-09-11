@@ -388,7 +388,11 @@
           {
             "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*postgres.*\", resource=\"memory\"})",
             "legendFormat": "PostgreSQL Memory Requests",
-            "refId": "D"
+            "refId": "D",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       },
@@ -459,7 +463,11 @@
           {
             "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*postgres.*\", resource=\"cpu\"}) * 100",
             "legendFormat": "PostgreSQL CPU Requests (cores)",
-            "refId": "D"
+            "refId": "D",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       },
