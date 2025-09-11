@@ -8,9 +8,8 @@ metadata:
 data:
   econgraph-overview.json: |
     {
-      "dashboard": {
-        "id": null,
-        "uid": "econgraph-overview",
+      "id": null,
+      "uid": "econgraph-overview",
       "title": "EconGraph Platform Overview",
       "description": "High-level overview of the EconGraph platform performance and health",
       "tags": ["econgraph", "overview", "platform"],
@@ -65,7 +64,7 @@ data:
               "refId": "A",
               "datasource": {
                 "type": "prometheus",
-                "uid": "prometheus"
+                "uid": "prometheus-uid"
               }
             }
           ]
@@ -112,7 +111,7 @@ data:
               "refId": "A",
               "datasource": {
                 "type": "prometheus",
-                "uid": "prometheus"
+                "uid": "prometheus-uid"
               }
             }
           ]
@@ -121,7 +120,6 @@ data:
       "templating": {
         "list": []
       }
-    }
   logging-dashboard.json: |
     {
       "id": null,
