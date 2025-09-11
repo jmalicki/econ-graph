@@ -54,7 +54,11 @@
           {
             "expr": "avg(up{job=~\"econgraph-.*\"})",
             "legendFormat": "Service Uptime",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       },
@@ -98,22 +102,38 @@
           {
             "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\"}[5m]))",
             "legendFormat": "Total Requests/sec",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\", code=~\"2..\"}[5m]))",
             "legendFormat": "Success (2xx)",
-            "refId": "B"
+            "refId": "B",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\", code=~\"4..\"}[5m]))",
             "legendFormat": "Client Error (4xx)",
-            "refId": "C"
+            "refId": "C",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\", code=~\"5..\"}[5m]))",
             "legendFormat": "Server Error (5xx)",
-            "refId": "D"
+            "refId": "D",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       },
@@ -157,17 +177,29 @@
           {
             "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"econgraph-backend\"}[5m])) by (le))",
             "legendFormat": "50th percentile",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"econgraph-backend\"}[5m])) by (le))",
             "legendFormat": "95th percentile",
-            "refId": "B"
+            "refId": "B",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"econgraph-backend\"}[5m])) by (le))",
             "legendFormat": "99th percentile",
-            "refId": "C"
+            "refId": "C",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       },
@@ -206,17 +238,29 @@
           {
             "expr": "sum(up{job=\"econgraph-backend\"})",
             "legendFormat": "Backend",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(up{job=\"econgraph-frontend\"})",
             "legendFormat": "Frontend",
-            "refId": "B"
+            "refId": "B",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(up{job=\"econgraph-crawler\"})",
             "legendFormat": "Crawler",
-            "refId": "C"
+            "refId": "C",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       },
@@ -260,12 +304,20 @@
           {
             "expr": "sum(pg_stat_activity_count{datname=\"econ_graph\"})",
             "legendFormat": "Active Connections",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(pg_settings_max_connections)",
             "legendFormat": "Max Connections",
-            "refId": "B"
+            "refId": "B",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       },
@@ -309,17 +361,29 @@
           {
             "expr": "sum(container_memory_usage_bytes{pod=~\"econgraph-backend-.*\"})",
             "legendFormat": "Backend Memory",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(container_memory_usage_bytes{pod=~\"econgraph-frontend-.*\"})",
             "legendFormat": "Frontend Memory",
-            "refId": "B"
+            "refId": "B",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(container_memory_usage_bytes{pod=~\"econgraph-crawler-.*\"})",
             "legendFormat": "Crawler Memory",
-            "refId": "C"
+            "refId": "C",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(container_memory_usage_bytes{pod=~\"postgresql-.*\"})",
@@ -368,17 +432,29 @@
           {
             "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"econgraph-backend-.*\"}[5m])) * 100",
             "legendFormat": "Backend CPU %",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"econgraph-frontend-.*\"}[5m])) * 100",
             "legendFormat": "Frontend CPU %",
-            "refId": "B"
+            "refId": "B",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"econgraph-crawler-.*\"}[5m])) * 100",
             "legendFormat": "Crawler CPU %",
-            "refId": "C"
+            "refId": "C",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"postgresql-.*\"}[5m])) * 100",
@@ -427,12 +503,20 @@
           {
             "expr": "sum(rate(container_network_receive_bytes_total{pod=~\"econgraph-.*\"}[5m]))",
             "legendFormat": "Inbound Traffic",
-            "refId": "A"
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           },
           {
             "expr": "sum(rate(container_network_transmit_bytes_total{pod=~\"econgraph-.*\"}[5m]))",
             "legendFormat": "Outbound Traffic",
-            "refId": "B"
+            "refId": "B",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus-uid"
+            }
           }
         ]
       }

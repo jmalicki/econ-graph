@@ -4,44 +4,43 @@ metadata:
   name: promtail-config
   namespace: econ-graph
 data:
-  config.yml: |
+  promtail.yaml: |
     server:
       http_listen_port: 9080
       grpc_listen_port: 0
+
     positions:
       filename: /tmp/positions.yaml
+
     clients:
       - url: http://loki-service:3100/loki/api/v1/push
+
     scrape_configs:
-    - job_name: kubernetes-pods
-      kubernetes_sd_configs:
-      - role: pod
-        namespaces:
-          names:
-          - econ-graph
-      relabel_configs:
-      # Keep only pods from econ-graph namespace
-      - source_labels: [__meta_kubernetes_namespace]
-        action: keep
-        regex: econ-graph
-      # Set the log path using the standard Kubernetes log path format
-      - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
-        action: replace
-        target_label: __path__
-        replacement: /var/log/pods/$1/$2/*.log
-      # Add labels for better organization
-      - source_labels: [__meta_kubernetes_pod_label_app]
-        action: replace
-        target_label: app
-      - source_labels: [__meta_kubernetes_pod_name]
-        action: replace
-        target_label: pod
-      - source_labels: [__meta_kubernetes_pod_container_name]
-        action: replace
-        target_label: container
-      - source_labels: [__meta_kubernetes_namespace]
-        action: replace
-        target_label: namespace
-      - source_labels: [__meta_kubernetes_pod_node_name]
-        action: replace
-        target_label: node
+      - job_name: econ-graph-backend-logs
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: econ-graph-logs
+              app: econ-graph-backend
+              __path__: /var/log/pods/econ-graph_econ-graph-backend-7c7fcbf7b7-k8qdf_93bff30b-239b-44c5-bfe5-3c513821825f/backend/0.log
+          - targets:
+              - localhost
+            labels:
+              job: econ-graph-logs
+              app: econ-graph-backend
+              __path__: /var/log/pods/econ-graph_econ-graph-backend-7c7fcbf7b7-tqr9k_37aa2ffb-fc70-4c96-95a2-999f61d5821a/backend/0.log
+      - job_name: econ-graph-frontend-logs
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: econ-graph-logs
+              app: econ-graph-frontend
+              __path__: /var/log/pods/econ-graph_econ-graph-frontend-6dbb884bbc-lqczp_4236ed2e-3ab0-4f46-a7f9-6fc10f9132a1/frontend/0.log
+          - targets:
+              - localhost
+            labels:
+              job: econ-graph-logs
+              app: econ-graph-frontend
+              __path__: /var/log/pods/econ-graph_econ-graph-frontend-6dbb884bbc-n4b5k_9a347b49-7542-4f97-aec4-70ca3e5fd1ee/frontend/0.log
