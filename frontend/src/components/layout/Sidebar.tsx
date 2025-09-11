@@ -191,29 +191,58 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     </Box>
   );
 
+  // For mobile, use Material-UI Drawer
+  if (isMobile) {
+    return (
+      <Drawer
+        variant='temporary'
+        open={open}
+        onClose={onClose}
+        anchor='left'
+        ModalProps={{
+          keepMounted: true, // Better mobile performance
+        }}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            borderRight: `1px solid ${theme.palette.divider}`,
+            background: theme.palette.background.default,
+          },
+        }}
+        role='navigation'
+        aria-label='Main navigation'
+      >
+        {drawerContent}
+      </Drawer>
+    );
+  }
+
+  // For desktop, use a simple Box instead of Drawer
+  if (!open) return null;
+
   return (
-    <Drawer
-      variant={isMobile ? 'temporary' : 'persistent'}
-      open={open}
-      onClose={onClose}
-      ModalProps={{
-        keepMounted: true, // Better mobile performance
-      }}
+    <Box
       sx={{
         width: drawerWidth,
         flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-          borderRight: `1px solid ${theme.palette.divider}`,
-          background: theme.palette.background.default,
-        },
+        height: '100vh',
+        position: 'fixed',
+        top: 64, // Below header
+        left: 0,
+        zIndex: 9999,
+        borderRight: `1px solid ${theme.palette.divider}`,
+        background: '#f5f5f5',
+        boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+        overflow: 'auto',
       }}
       role='navigation'
       aria-label='Main navigation'
     >
       {drawerContent}
-    </Drawer>
+    </Box>
   );
 };
 
