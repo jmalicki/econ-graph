@@ -52,9 +52,17 @@ fi
 echo "📋 Applying updated Kubernetes manifests..."
 kubectl apply -f k8s/manifests/
 
+# Wait for namespace to be ready
+echo "⏳ Waiting for namespace to be ready..."
+kubectl wait --for=condition=Ready pods --all -n econ-graph --timeout=300s || true
+
 # Apply monitoring stack
 echo "📊 Deploying monitoring stack (Grafana + Loki)..."
 kubectl apply -f k8s/monitoring/
+
+# Wait for all pods to be ready
+echo "⏳ Waiting for all pods to be ready..."
+kubectl wait --for=condition=Ready pods --all -n econ-graph --timeout=300s
 
 # Restart deployments to pick up new images
 echo "🔄 Restarting deployments..."
@@ -95,13 +103,33 @@ echo "📋 Monitor deployment:"
 echo "  kubectl logs -f deployment/econ-graph-backend -n econ-graph"
 echo "  kubectl logs -f deployment/econ-graph-frontend -n econ-graph"
 echo ""
-echo "🔗 Setting up port forwarding for Grafana..."
-echo "  Starting Grafana port forwarding on port 30001..."
-kubectl port-forward -n econ-graph service/grafana-service 30001:3000 &
-GRAFANA_PID=$!
-echo "  Grafana port forwarding started (PID: $GRAFANA_PID)"
-echo "  To stop port forwarding later, run: kill $GRAFANA_PID"
+echo "✅ Services are accessible via NodePort:"
+echo "  Frontend: http://localhost:3000"
+echo "  Backend:  http://localhost:8080"
+echo "  Grafana:  http://localhost:30001 (admin/admin123)"
+
+# Test service accessibility
 echo ""
-echo "✅ Grafana is now accessible at: http://localhost:30001"
-echo "   Username: admin"
-echo "   Password: admin123"
+echo "🧪 Testing service accessibility..."
+sleep 5
+
+# Test Grafana
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:30001 | grep -q "302\|200"; then
+    echo "  ✅ Grafana: http://localhost:30001 - Accessible"
+else
+    echo "  ❌ Grafana: http://localhost:30001 - Not accessible"
+fi
+
+# Test Frontend
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200\|404"; then
+    echo "  ✅ Frontend: http://localhost:3000 - Accessible"
+else
+    echo "  ❌ Frontend: http://localhost:3000 - Not accessible"
+fi
+
+# Test Backend
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health | grep -q "200"; then
+    echo "  ✅ Backend: http://localhost:8080 - Accessible"
+else
+    echo "  ❌ Backend: http://localhost:8080 - Not accessible"
+fi

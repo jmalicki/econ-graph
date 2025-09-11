@@ -14,6 +14,9 @@
   - "containerPort": 8080
     "hostPort": 8080
     "protocol": "TCP"
+  - "containerPort": 30001
+    "hostPort": 30001
+    "protocol": "TCP"
   "kubeadmConfigPatches":
   - |-
     kind: InitConfiguration
