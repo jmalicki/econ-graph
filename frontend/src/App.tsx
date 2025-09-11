@@ -39,7 +39,7 @@ function App() {
           sx={{
             flexGrow: 1,
             pt: { xs: 7, sm: 8 }, // Account for header height
-            pl: { sm: sidebarOpen ? 30 : 0 }, // Account for sidebar when open
+            pl: { sm: sidebarOpen ? 30 : 0 }, // Account for sidebar when open (240px width)
             transition: 'padding-left 0.3s ease',
           }}
         >
