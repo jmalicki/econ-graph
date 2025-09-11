@@ -311,8 +311,8 @@
             }
           },
           {
-            "expr": "sum(container_memory_usage_bytes{id=~\".*postgres.*\"})",
-            "legendFormat": "PostgreSQL Memory",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*postgres.*\", resource=\"memory\"})",
+            "legendFormat": "PostgreSQL Memory Requests",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -359,8 +359,8 @@
         },
         "targets": [
           {
-            "expr": "sum(container_memory_usage_bytes{id=~\".*burstable.*\"})",
-            "legendFormat": "Backend Memory (Burstable)",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*backend.*\", resource=\"memory\"})",
+            "legendFormat": "Backend Memory Requests",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -368,8 +368,8 @@
             }
           },
           {
-            "expr": "sum(container_memory_usage_bytes{id=~\".*besteffort.*\"})",
-            "legendFormat": "Frontend Memory (BestEffort)",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*frontend.*\", resource=\"memory\"})",
+            "legendFormat": "Frontend Memory Requests",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -377,8 +377,8 @@
             }
           },
           {
-            "expr": "sum(container_memory_usage_bytes{id=~\".*burstable.*\"})",
-            "legendFormat": "Crawler Memory (Burstable)",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*crawler.*\", resource=\"memory\"})",
+            "legendFormat": "Crawler Memory Requests",
             "refId": "C",
             "datasource": {
               "type": "prometheus",
@@ -386,8 +386,8 @@
             }
           },
           {
-            "expr": "sum(container_memory_usage_bytes{id=~\".*postgres.*\"})",
-            "legendFormat": "Database Memory",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*postgres.*\", resource=\"memory\"})",
+            "legendFormat": "PostgreSQL Memory Requests",
             "refId": "D"
           }
         ]
@@ -430,8 +430,8 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*burstable.*\"}[5m])) * 100",
-            "legendFormat": "Backend CPU % (Burstable)",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*backend.*\", resource=\"cpu\"}) * 100",
+            "legendFormat": "Backend CPU Requests (cores)",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -439,8 +439,8 @@
             }
           },
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*besteffort.*\"}[5m])) * 100",
-            "legendFormat": "Frontend CPU % (BestEffort)",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*frontend.*\", resource=\"cpu\"}) * 100",
+            "legendFormat": "Frontend CPU Requests (cores)",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -448,8 +448,8 @@
             }
           },
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*burstable.*\"}[5m])) * 100",
-            "legendFormat": "Crawler CPU % (Burstable)",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*crawler.*\", resource=\"cpu\"}) * 100",
+            "legendFormat": "Crawler CPU Requests (cores)",
             "refId": "C",
             "datasource": {
               "type": "prometheus",
@@ -457,8 +457,8 @@
             }
           },
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*postgres.*\"}[5m])) * 100",
-            "legendFormat": "Database CPU %",
+            "expr": "sum(kube_pod_container_resource_requests{namespace=\"econ-graph\", pod=~\".*postgres.*\", resource=\"cpu\"}) * 100",
+            "legendFormat": "PostgreSQL CPU Requests (cores)",
             "refId": "D"
           }
         ]
