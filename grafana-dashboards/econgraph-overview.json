@@ -52,8 +52,8 @@
         },
         "targets": [
           {
-            "expr": "avg(up{job=~\"econgraph-.*\"})",
-            "legendFormat": "Service Uptime",
+            "expr": "count(kube_pod_status_phase{namespace=\"econ-graph\", phase=\"Running\"})",
+            "legendFormat": "Running Pods",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -100,8 +100,8 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\"}[5m]))",
-            "legendFormat": "Total Requests/sec",
+            "expr": "sum(rate(container_network_receive_bytes_total[5m]))",
+            "legendFormat": "Network Receive (bytes/sec)",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -109,8 +109,8 @@
             }
           },
           {
-            "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\", code=~\"2..\"}[5m]))",
-            "legendFormat": "Success (2xx)",
+            "expr": "sum(rate(container_network_transmit_bytes_total[5m]))",
+            "legendFormat": "Network Transmit (bytes/sec)",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -118,8 +118,8 @@
             }
           },
           {
-            "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\", code=~\"4..\"}[5m]))",
-            "legendFormat": "Client Error (4xx)",
+            "expr": "sum(container_memory_usage_bytes)",
+            "legendFormat": "Total Memory Usage (bytes)",
             "refId": "C",
             "datasource": {
               "type": "prometheus",
@@ -127,8 +127,8 @@
             }
           },
           {
-            "expr": "sum(rate(http_requests_total{job=\"econgraph-backend\", code=~\"5..\"}[5m]))",
-            "legendFormat": "Server Error (5xx)",
+            "expr": "sum(rate(container_cpu_usage_seconds_total[5m]))",
+            "legendFormat": "Total CPU Usage (cores/sec)",
             "refId": "D",
             "datasource": {
               "type": "prometheus",
@@ -175,8 +175,8 @@
         },
         "targets": [
           {
-            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"econgraph-backend\"}[5m])) by (le))",
-            "legendFormat": "50th percentile",
+            "expr": "sum(container_memory_usage_bytes{id=~\".*burstable.*\"})",
+            "legendFormat": "Burstable Pods Memory",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -184,8 +184,8 @@
             }
           },
           {
-            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"econgraph-backend\"}[5m])) by (le))",
-            "legendFormat": "95th percentile",
+            "expr": "sum(container_memory_usage_bytes{id=~\".*besteffort.*\"})",
+            "legendFormat": "BestEffort Pods Memory",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -193,8 +193,8 @@
             }
           },
           {
-            "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"econgraph-backend\"}[5m])) by (le))",
-            "legendFormat": "99th percentile",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*burstable.*\"}[5m]))",
+            "legendFormat": "Burstable Pods CPU",
             "refId": "C",
             "datasource": {
               "type": "prometheus",
@@ -236,8 +236,8 @@
         },
         "targets": [
           {
-            "expr": "sum(up{job=\"econgraph-backend\"})",
-            "legendFormat": "Backend",
+            "expr": "count(kube_pod_status_phase{namespace=\"econ-graph\", pod=~\".*backend.*\", phase=\"Running\"})",
+            "legendFormat": "Backend Pods",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -245,8 +245,8 @@
             }
           },
           {
-            "expr": "sum(up{job=\"econgraph-frontend\"})",
-            "legendFormat": "Frontend",
+            "expr": "count(kube_pod_status_phase{namespace=\"econ-graph\", pod=~\".*frontend.*\", phase=\"Running\"})",
+            "legendFormat": "Frontend Pods",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -254,8 +254,8 @@
             }
           },
           {
-            "expr": "sum(up{job=\"econgraph-crawler\"})",
-            "legendFormat": "Crawler",
+            "expr": "count(kube_pod_status_phase{namespace=\"econ-graph\", pod=~\".*crawler.*\", phase=\"Running\"})",
+            "legendFormat": "Crawler Pods",
             "refId": "C",
             "datasource": {
               "type": "prometheus",
@@ -302,8 +302,8 @@
         },
         "targets": [
           {
-            "expr": "sum(pg_stat_activity_count{datname=\"econ_graph\"})",
-            "legendFormat": "Active Connections",
+            "expr": "count(kube_pod_status_phase{namespace=\"econ-graph\", pod=~\".*postgres.*\", phase=\"Running\"})",
+            "legendFormat": "PostgreSQL Pods",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -311,8 +311,8 @@
             }
           },
           {
-            "expr": "sum(pg_settings_max_connections)",
-            "legendFormat": "Max Connections",
+            "expr": "sum(container_memory_usage_bytes{id=~\".*postgres.*\"})",
+            "legendFormat": "PostgreSQL Memory",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -359,8 +359,8 @@
         },
         "targets": [
           {
-            "expr": "sum(container_memory_usage_bytes{pod=~\"econgraph-backend-.*\"})",
-            "legendFormat": "Backend Memory",
+            "expr": "sum(container_memory_usage_bytes{id=~\".*burstable.*\"})",
+            "legendFormat": "Backend Memory (Burstable)",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -368,8 +368,8 @@
             }
           },
           {
-            "expr": "sum(container_memory_usage_bytes{pod=~\"econgraph-frontend-.*\"})",
-            "legendFormat": "Frontend Memory",
+            "expr": "sum(container_memory_usage_bytes{id=~\".*besteffort.*\"})",
+            "legendFormat": "Frontend Memory (BestEffort)",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -377,8 +377,8 @@
             }
           },
           {
-            "expr": "sum(container_memory_usage_bytes{pod=~\"econgraph-crawler-.*\"})",
-            "legendFormat": "Crawler Memory",
+            "expr": "sum(container_memory_usage_bytes{id=~\".*burstable.*\"})",
+            "legendFormat": "Crawler Memory (Burstable)",
             "refId": "C",
             "datasource": {
               "type": "prometheus",
@@ -386,7 +386,7 @@
             }
           },
           {
-            "expr": "sum(container_memory_usage_bytes{pod=~\"postgresql-.*\"})",
+            "expr": "sum(container_memory_usage_bytes{id=~\".*postgres.*\"})",
             "legendFormat": "Database Memory",
             "refId": "D"
           }
@@ -430,8 +430,8 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"econgraph-backend-.*\"}[5m])) * 100",
-            "legendFormat": "Backend CPU %",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*burstable.*\"}[5m])) * 100",
+            "legendFormat": "Backend CPU % (Burstable)",
             "refId": "A",
             "datasource": {
               "type": "prometheus",
@@ -439,8 +439,8 @@
             }
           },
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"econgraph-frontend-.*\"}[5m])) * 100",
-            "legendFormat": "Frontend CPU %",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*besteffort.*\"}[5m])) * 100",
+            "legendFormat": "Frontend CPU % (BestEffort)",
             "refId": "B",
             "datasource": {
               "type": "prometheus",
@@ -448,8 +448,8 @@
             }
           },
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"econgraph-crawler-.*\"}[5m])) * 100",
-            "legendFormat": "Crawler CPU %",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*burstable.*\"}[5m])) * 100",
+            "legendFormat": "Crawler CPU % (Burstable)",
             "refId": "C",
             "datasource": {
               "type": "prometheus",
@@ -457,7 +457,7 @@
             }
           },
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"postgresql-.*\"}[5m])) * 100",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*postgres.*\"}[5m])) * 100",
             "legendFormat": "Database CPU %",
             "refId": "D"
           }
@@ -501,7 +501,7 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(container_network_receive_bytes_total{pod=~\"econgraph-.*\"}[5m]))",
+            "expr": "sum(rate(container_network_receive_bytes_total[5m]))",
             "legendFormat": "Inbound Traffic",
             "refId": "A",
             "datasource": {
@@ -510,7 +510,7 @@
             }
           },
           {
-            "expr": "sum(rate(container_network_transmit_bytes_total{pod=~\"econgraph-.*\"}[5m]))",
+            "expr": "sum(rate(container_network_transmit_bytes_total[5m]))",
             "legendFormat": "Outbound Traffic",
             "refId": "B",
             "datasource": {
