@@ -1,19 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Box,
-  Typography,
-  Button,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
+import { Drawer, Divider, Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
   Explore as ExploreIcon,
