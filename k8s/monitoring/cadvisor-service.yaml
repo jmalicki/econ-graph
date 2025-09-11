@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cadvisor
+  namespace: econ-graph
+  labels:
+    app: cadvisor
+spec:
+  selector:
+    app: cadvisor
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
