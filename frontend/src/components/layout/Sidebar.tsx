@@ -10,6 +10,7 @@ import {
   Divider,
   Box,
   Typography,
+  Button,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -96,57 +97,70 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     <>
       {showDivider && <Divider sx={{ my: 1 }} />}
       {items.map(item => (
-        <ListItem key={item.path} disablePadding>
-          <ListItemButton
-            selected={location.pathname === item.path}
-            onClick={() => handleNavigation(item.path)}
-            sx={{
-              minHeight: 48,
-              px: 2.5,
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                },
-                '& .MuiListItemIcon-root': {
-                  color: theme.palette.primary.contrastText,
-                },
-              },
+        <div
+          key={item.path}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            minHeight: '48px',
+            padding: '0 20px',
+            cursor: 'pointer',
+            backgroundColor:
+              location.pathname === item.path ? theme.palette.primary.main : 'transparent',
+            color:
+              location.pathname === item.path
+                ? theme.palette.primary.contrastText
+                : theme.palette.text.primary,
+            position: 'relative',
+            left: '0',
+            transform: 'translateX(0)',
+            visibility: 'visible',
+            width: '100%',
+            boxSizing: 'border-box',
+          }}
+          onClick={() => handleNavigation(item.path)}
+        >
+          <div
+            style={{
+              minWidth: '0',
+              marginRight: '24px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
-            <ListItemIcon
-              sx={{
-                minWidth: 0,
-                mr: 3,
-                justifyContent: 'center',
-              }}
-            >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText
-              primary={item.text}
-              secondary={item.description}
-              primaryTypographyProps={{
+            {item.icon}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div
+              style={{
                 fontSize: '0.875rem',
                 fontWeight: location.pathname === item.path ? 600 : 400,
+                color: 'inherit',
               }}
-              secondaryTypographyProps={{
+            >
+              {item.text}
+            </div>
+            <div
+              style={{
                 fontSize: '0.75rem',
                 color:
                   location.pathname === item.path
                     ? theme.palette.primary.contrastText
                     : theme.palette.text.secondary,
+                display: 'block',
               }}
-            />
-          </ListItemButton>
-        </ListItem>
+            >
+              {item.description}
+            </div>
+          </div>
+        </div>
       ))}
     </>
   );
 
   const drawerContent = (
-    <Box sx={{ overflow: 'auto', height: '100%' }}>
+    <div style={{ overflow: 'auto', height: '100%', position: 'relative' }}>
       {/* Sidebar header */}
       <Box
         sx={{
@@ -167,10 +181,10 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       </Box>
 
       {/* Navigation items */}
-      <List sx={{ pt: 2 }}>
+      <div style={{ paddingTop: '16px' }}>
         {renderNavigationItems(navigationItems)}
         {renderNavigationItems(secondaryItems, true)}
-      </List>
+      </div>
 
       {/* Footer info */}
       <Box
@@ -188,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           Built with modern web technologies
         </Typography>
       </Box>
-    </Box>
+    </div>
   );
 
   // For mobile, use Material-UI Drawer
@@ -224,25 +238,28 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <Box
-      sx={{
-        width: drawerWidth,
+    <div
+      style={{
+        width: `${drawerWidth}px`,
         flexShrink: 0,
         height: '100vh',
         position: 'fixed',
-        top: 64, // Below header
-        left: 0,
+        top: '64px', // Below header
+        left: '0px',
         zIndex: 9999,
-        borderRight: `1px solid ${theme.palette.divider}`,
+        borderRight: '1px solid #ccc',
         background: '#f5f5f5',
         boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
         overflow: 'auto',
+        // Force positioning to ensure sidebar is visible
+        transform: 'translateX(0)',
+        visibility: 'visible',
       }}
       role='navigation'
       aria-label='Main navigation'
     >
       {drawerContent}
-    </Box>
+    </div>
   );
 };
 
