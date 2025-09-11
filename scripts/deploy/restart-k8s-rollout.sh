@@ -54,6 +54,8 @@ kubectl apply -f k8s/manifests/
 
 # Wait for namespace to be ready
 echo "⏳ Waiting for namespace to be ready..."
+echo "📊 Current pod status:"
+kubectl get pods -n econ-graph
 kubectl wait --for=condition=Ready pods --all -n econ-graph --timeout=300s || true
 
 # Apply monitoring stack
@@ -69,6 +71,8 @@ kubectl create configmap grafana-dashboards \
 
 # Wait for all pods to be ready
 echo "⏳ Waiting for all pods to be ready..."
+echo "📊 Current pod status:"
+kubectl get pods -n econ-graph
 kubectl wait --for=condition=Ready pods --all -n econ-graph --timeout=300s
 
 # Restart deployments to pick up new images
@@ -85,6 +89,10 @@ echo "⏳ Waiting for rollouts to complete..."
 kubectl rollout status deployment/econ-graph-backend -n econ-graph --timeout=300s
 kubectl rollout status deployment/econ-graph-frontend -n econ-graph --timeout=300s
 kubectl rollout status statefulset/grafana -n econ-graph --timeout=300s
+
+# Show final pod status
+echo "📊 Final pod status:"
+kubectl get pods -n econ-graph
 
 # Display status
 echo ""

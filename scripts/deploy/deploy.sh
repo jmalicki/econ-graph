@@ -47,6 +47,8 @@ kubectl apply -f k8s/manifests/frontend-service.yaml
 kubectl apply -f k8s/manifests/ingress.yaml
 
 echo "⏳ Waiting for deployments to be ready..."
+echo "📊 Current pod status:"
+kubectl get pods -n econ-graph
 
 # Wait for backend deployment
 echo "Waiting for backend deployment..."
@@ -69,9 +71,15 @@ kubectl create configmap grafana-dashboards \
 
 # Wait for monitoring stack to be ready
 echo "⏳ Waiting for monitoring stack to be ready..."
+echo "📊 Current pod status:"
+kubectl get pods -n econ-graph
 kubectl wait --for=condition=ready pod -l app=grafana -n econ-graph --timeout=300s
 kubectl wait --for=condition=ready pod -l app=loki -n econ-graph --timeout=300s
 kubectl wait --for=condition=ready pod -l app=prometheus -n econ-graph --timeout=300s
+
+# Show final pod status
+echo "📊 Final pod status:"
+kubectl get pods -n econ-graph
 
 echo "✅ Deployment completed successfully!"
 echo ""
