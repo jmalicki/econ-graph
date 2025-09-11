@@ -24,11 +24,11 @@ data:
       - source_labels: [__meta_kubernetes_namespace]
         action: keep
         regex: econ-graph
-      # Set the log path
+      # Set the log path - use the standard Kubernetes log path
       - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
         action: replace
         target_label: __path__
-        replacement: /var/log/pods/$1/$2/0.log
+        replacement: /var/log/pods/$1/$2/*.log
       # Add labels
       - source_labels: [__meta_kubernetes_pod_label_app]
         action: replace

@@ -4,12 +4,18 @@ metadata:
   name: grafana-datasources
   namespace: econ-graph
 data:
-  loki.yaml: |
+  datasources.yaml: |
     apiVersion: 1
     datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus-service:9090
+      isDefault: true
+      editable: true
     - name: Loki
       type: loki
       access: proxy
       url: http://loki-service:3100
-      isDefault: true
+      isDefault: false
       editable: true
