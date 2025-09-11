@@ -177,15 +177,15 @@ else
 fi
 
 # Test Frontend
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200\|404"; then
-    echo "  ✅ Frontend: http://localhost:3000 - Accessible"
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:30000 | grep -q "200\|404"; then
+    echo "  ✅ Frontend: http://localhost:30000 - Accessible"
 else
-    echo "  ❌ Frontend: http://localhost:3000 - Not accessible"
+    echo "  ❌ Frontend: http://localhost:30000 - Not accessible"
 fi
 
 # Test Backend
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health | grep -q "200"; then
-    echo "  ✅ Backend: http://localhost:8080 - Accessible"
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:30080/health | grep -q "200"; then
+    echo "  ✅ Backend: http://localhost:30080 - Accessible"
 else
-    echo "  ❌ Backend: http://localhost:8080 - Not accessible"
+    echo "  ❌ Backend: http://localhost:30080 - Not accessible"
 fi
