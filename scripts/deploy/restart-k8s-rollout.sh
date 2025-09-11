@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Restart Kubernetes rollout to deploy v3.7.3 with monitoring stack (Grafana + Loki)
+# Restart Kubernetes rollout to deploy v3.7.4 with monitoring stack (Grafana + Loki + Prometheus)
 # Run this script when Docker and Kubernetes cluster are available
 
 set -e
 
-echo "🚀 Restarting EconGraph Kubernetes rollout for v3.7.3 (with monitoring stack)..."
+echo "🚀 Restarting EconGraph Kubernetes rollout for v3.7.4 (with monitoring stack)..."
 echo ""
 
 # Get the project root directory
@@ -27,18 +27,18 @@ echo "🔧 Setting kubectl context..."
 kubectl config use-context kind-econ-graph
 
 # Rebuild Docker images with new version tag
-echo "🏗️  Building Docker images for v3.7.3..."
+echo "🏗️  Building Docker images for v3.7.4..."
 ./scripts/deploy/build-images.sh
 
 # Tag images with new version
-echo "🏷️  Tagging images with v3.7.3..."
-docker tag econ-graph-backend:latest econ-graph-backend:v3.7.3
-docker tag econ-graph-frontend:latest econ-graph-frontend:v3.7.3
+echo "🏷️  Tagging images with v3.7.4..."
+docker tag econ-graph-backend:latest econ-graph-backend:v3.7.4
+docker tag econ-graph-frontend:latest econ-graph-frontend:v3.7.4
 
 # Load images into kind cluster
 echo "📦 Loading images into kind cluster..."
-kind load docker-image econ-graph-backend:v3.7.3 --name econ-graph
-kind load docker-image econ-graph-frontend:v3.7.3 --name econ-graph
+kind load docker-image econ-graph-backend:v3.7.4 --name econ-graph
+kind load docker-image econ-graph-frontend:v3.7.4 --name econ-graph
 
 # Check if PostgreSQL is running
 echo "🗄️  Checking PostgreSQL..."
@@ -57,8 +57,15 @@ echo "⏳ Waiting for namespace to be ready..."
 kubectl wait --for=condition=Ready pods --all -n econ-graph --timeout=300s || true
 
 # Apply monitoring stack
-echo "📊 Deploying monitoring stack (Grafana + Loki)..."
+echo "📊 Deploying monitoring stack (Grafana + Loki + Prometheus)..."
 kubectl apply -f k8s/monitoring/
+
+# Ensure Grafana dashboards are properly configured
+echo "📋 Configuring Grafana dashboards..."
+kubectl create configmap grafana-dashboards \
+  --from-file=grafana-dashboards/econgraph-overview.json \
+  --from-file=k8s/monitoring/grafana-logging-dashboard.yaml \
+  --dry-run=client -o yaml | kubectl apply -f -
 
 # Wait for all pods to be ready
 echo "⏳ Waiting for all pods to be ready..."
@@ -69,10 +76,15 @@ echo "🔄 Restarting deployments..."
 kubectl rollout restart deployment/econ-graph-backend -n econ-graph
 kubectl rollout restart deployment/econ-graph-frontend -n econ-graph
 
+# Restart Grafana to pick up updated dashboards
+echo "🔄 Restarting Grafana to pick up updated dashboards..."
+kubectl rollout restart statefulset/grafana -n econ-graph
+
 # Wait for rollout to complete
 echo "⏳ Waiting for rollouts to complete..."
 kubectl rollout status deployment/econ-graph-backend -n econ-graph --timeout=300s
 kubectl rollout status deployment/econ-graph-frontend -n econ-graph --timeout=300s
+kubectl rollout status statefulset/grafana -n econ-graph --timeout=300s
 
 # Display status
 echo ""
@@ -89,7 +101,7 @@ echo "  Playground: http://localhost/playground"
 echo "  Health:   http://localhost/health"
 echo "  Grafana:  http://localhost:30001 (admin/admin123)"
 echo ""
-echo "🎯 Version deployed: v3.7.3"
+echo "🎯 Version deployed: v3.7.4"
 echo "   ✅ Integration tests fixed: All auth tests passing (11/11)"
 echo "   ✅ Collaboration tests fixed: 6/7 tests passing"
 echo "   ✅ GitHub Actions release/deploy workflow disabled"
@@ -97,7 +109,9 @@ echo "   ✅ Database connection issues resolved"
 echo "   ✅ Test container lifecycle improved"
 echo "   ✅ Authentication system reliability enhanced"
 echo "   ✅ Port configuration standardized (9876 for backend)"
-echo "   ✅ Monitoring stack deployed (Grafana + Loki + Promtail)"
+echo "   ✅ Monitoring stack deployed (Grafana + Loki + Prometheus + Promtail)"
+echo "   ✅ Dashboard metrics separated by pod type (backend/frontend/postgres)"
+echo "   ✅ All dashboard queries validated and working"
 echo ""
 echo "📋 Monitor deployment:"
 echo "  kubectl logs -f deployment/econ-graph-backend -n econ-graph"

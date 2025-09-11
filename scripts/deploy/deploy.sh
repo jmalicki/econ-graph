@@ -56,6 +56,23 @@ kubectl wait --for=condition=available --timeout=300s deployment/econ-graph-back
 echo "Waiting for frontend deployment..."
 kubectl wait --for=condition=available --timeout=300s deployment/econ-graph-frontend -n econ-graph
 
+# Deploy monitoring stack
+echo "📊 Deploying monitoring stack (Grafana + Loki + Prometheus)..."
+kubectl apply -f k8s/monitoring/
+
+# Configure Grafana dashboards
+echo "📋 Configuring Grafana dashboards..."
+kubectl create configmap grafana-dashboards \
+  --from-file=grafana-dashboards/econgraph-overview.json \
+  --from-file=k8s/monitoring/grafana-logging-dashboard.yaml \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Wait for monitoring stack to be ready
+echo "⏳ Waiting for monitoring stack to be ready..."
+kubectl wait --for=condition=ready pod -l app=grafana -n econ-graph --timeout=300s
+kubectl wait --for=condition=ready pod -l app=loki -n econ-graph --timeout=300s
+kubectl wait --for=condition=ready pod -l app=prometheus -n econ-graph --timeout=300s
+
 echo "✅ Deployment completed successfully!"
 echo ""
 echo "🌐 Application URLs:"
@@ -63,6 +80,7 @@ echo "  Frontend: http://localhost/"
 echo "  Backend:  http://localhost:9876"
 echo "  GraphQL:  http://localhost/graphql"
 echo "  Playground: http://localhost/playground"
+echo "  Grafana:  http://localhost:30001 (admin/admin123)"
 echo ""
 echo "📊 Useful commands:"
 echo "  kubectl get pods -n econ-graph"
