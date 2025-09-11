@@ -20,15 +20,19 @@ test.describe('Test Sidebar Fix', () => {
     const aboutButton = page.getByRole('button', { name: /about/i });
     console.log('About button visible:', await aboutButton.isVisible());
 
-    // Check for ListItemButton elements specifically
-    const listItemButtons = await page.locator('.MuiListItemButton-root').all();
-    console.log('ListItemButton count:', listItemButtons.length);
-    for (let i = 0; i < listItemButtons.length; i++) {
-      const button = listItemButtons[i];
+    // Check for Button elements specifically
+    const buttons = await page.locator('button').all();
+    console.log('Button count:', buttons.length);
+    for (let i = 0; i < buttons.length; i++) {
+      const button = buttons[i];
       const text = await button.textContent();
       const isVisible = await button.isVisible();
-      console.log(`  ListItemButton ${i}: "${text}" (visible: ${isVisible})`);
+      console.log(`  Button ${i}: "${text}" (visible: ${isVisible})`);
     }
+
+    // Check for ListItemButton elements specifically (old implementation)
+    const listItemButtons = await page.locator('.MuiListItemButton-root').all();
+    console.log('ListItemButton count:', listItemButtons.length);
 
     // Try different selectors for About
     const aboutSelectors = [
