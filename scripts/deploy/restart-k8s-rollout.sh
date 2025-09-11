@@ -54,9 +54,26 @@ kubectl apply -f k8s/manifests/
 
 # Wait for namespace to be ready
 echo "⏳ Waiting for namespace to be ready..."
-echo "📊 Current pod status:"
+echo "📊 Monitoring pod status (updates every 10 seconds):"
 kubectl get pods -n econ-graph
+echo ""
+
+# Start background monitoring
+(
+  while true; do
+    sleep 10
+    echo "📊 Pod status update:"
+    kubectl get pods -n econ-graph
+    echo ""
+  done
+) &
+MONITOR_PID=$!
+
+# Wait for pods to be ready
 kubectl wait --for=condition=Ready pods --all -n econ-graph --timeout=300s || true
+
+# Stop monitoring
+kill $MONITOR_PID 2>/dev/null || true
 
 # Apply monitoring stack
 echo "📊 Deploying monitoring stack (Grafana + Loki + Prometheus)..."
@@ -71,9 +88,26 @@ kubectl create configmap grafana-dashboards \
 
 # Wait for all pods to be ready
 echo "⏳ Waiting for all pods to be ready..."
-echo "📊 Current pod status:"
+echo "📊 Monitoring pod status (updates every 10 seconds):"
 kubectl get pods -n econ-graph
+echo ""
+
+# Start background monitoring
+(
+  while true; do
+    sleep 10
+    echo "📊 Pod status update:"
+    kubectl get pods -n econ-graph
+    echo ""
+  done
+) &
+MONITOR_PID=$!
+
+# Wait for pods to be ready
 kubectl wait --for=condition=Ready pods --all -n econ-graph --timeout=300s
+
+# Stop monitoring
+kill $MONITOR_PID 2>/dev/null || true
 
 # Restart deployments to pick up new images
 echo "🔄 Restarting deployments..."

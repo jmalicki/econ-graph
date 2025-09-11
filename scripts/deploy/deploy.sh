@@ -47,8 +47,20 @@ kubectl apply -f k8s/manifests/frontend-service.yaml
 kubectl apply -f k8s/manifests/ingress.yaml
 
 echo "⏳ Waiting for deployments to be ready..."
-echo "📊 Current pod status:"
+echo "📊 Monitoring pod status (updates every 10 seconds):"
 kubectl get pods -n econ-graph
+echo ""
+
+# Start background monitoring
+(
+  while true; do
+    sleep 10
+    echo "📊 Pod status update:"
+    kubectl get pods -n econ-graph
+    echo ""
+  done
+) &
+MONITOR_PID=$!
 
 # Wait for backend deployment
 echo "Waiting for backend deployment..."
@@ -57,6 +69,9 @@ kubectl wait --for=condition=available --timeout=300s deployment/econ-graph-back
 # Wait for frontend deployment
 echo "Waiting for frontend deployment..."
 kubectl wait --for=condition=available --timeout=300s deployment/econ-graph-frontend -n econ-graph
+
+# Stop monitoring
+kill $MONITOR_PID 2>/dev/null || true
 
 # Deploy monitoring stack
 echo "📊 Deploying monitoring stack (Grafana + Loki + Prometheus)..."
@@ -71,11 +86,27 @@ kubectl create configmap grafana-dashboards \
 
 # Wait for monitoring stack to be ready
 echo "⏳ Waiting for monitoring stack to be ready..."
-echo "📊 Current pod status:"
+echo "📊 Monitoring pod status (updates every 10 seconds):"
 kubectl get pods -n econ-graph
+echo ""
+
+# Start background monitoring
+(
+  while true; do
+    sleep 10
+    echo "📊 Pod status update:"
+    kubectl get pods -n econ-graph
+    echo ""
+  done
+) &
+MONITOR_PID=$!
+
 kubectl wait --for=condition=ready pod -l app=grafana -n econ-graph --timeout=300s
 kubectl wait --for=condition=ready pod -l app=loki -n econ-graph --timeout=300s
 kubectl wait --for=condition=ready pod -l app=prometheus -n econ-graph --timeout=300s
+
+# Stop monitoring
+kill $MONITOR_PID 2>/dev/null || true
 
 # Show final pod status
 echo "📊 Final pod status:"
