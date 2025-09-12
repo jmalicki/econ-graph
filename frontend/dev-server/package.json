@@ -4,7 +4,17 @@
   "description": "Development server for EconGraph frontend",
   "private": true,
   "scripts": {
-    "start": "npx serve -s ../build -l 18473"
+    "start": "serve -s ../build -l 18473 --cors",
+    "start:secure": "serve -s ../build -l 18473 --cors --no-clipboard --no-compression",
+    "audit": "npm audit",
+    "audit:fix": "npm audit fix",
+    "security-check": "npm audit --audit-level=moderate"
   },
-  "dependencies": {}
+  "dependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
 }
