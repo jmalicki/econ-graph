@@ -240,14 +240,13 @@ impl SeriesMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::database::create_pool;
-    use crate::test_utils::DatabaseTestExt;
+    use crate::test_utils::TestContainer;
     use tokio;
 
     #[tokio::test]
     async fn test_series_metadata_creation() {
-        let container = DatabaseTestExt::new().await;
-        let pool = create_pool(&container.database_url).await.unwrap();
+        let container = TestContainer::new().await;
+        let pool = &container.pool;
 
         // Create a test data source first
         let test_source = crate::models::data_source::NewDataSource {
@@ -263,7 +262,7 @@ mod tests {
             api_documentation_url: Some("https://api.test.com/docs".to_string()),
         };
 
-        let data_source = crate::models::data_source::DataSource::get_or_create(&pool, test_source)
+        let data_source = crate::models::data_source::DataSource::get_or_create(pool, test_source)
             .await
             .unwrap();
 
@@ -283,7 +282,7 @@ mod tests {
 
         // Test creation
         let created =
-            SeriesMetadata::get_or_create(&pool, data_source.id, "TEST_SERIES_001", &new_metadata)
+            SeriesMetadata::get_or_create(pool, data_source.id, "TEST_SERIES_001", &new_metadata)
                 .await;
         assert!(created.is_ok());
         let metadata = created.unwrap();
@@ -292,7 +291,7 @@ mod tests {
 
         // Test retrieval
         let found =
-            SeriesMetadata::find_by_external_id(&pool, data_source.id, "TEST_SERIES_001").await;
+            SeriesMetadata::find_by_external_id(pool, data_source.id, "TEST_SERIES_001").await;
         assert!(found.is_ok());
         let found_metadata = found.unwrap();
         assert!(found_metadata.is_some());
@@ -304,7 +303,7 @@ mod tests {
             ..new_metadata
         };
         let updated = SeriesMetadata::get_or_create(
-            &pool,
+            pool,
             data_source.id,
             "TEST_SERIES_001",
             &updated_metadata,
@@ -317,8 +316,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_series_metadata_deactivation() {
-        let container = DatabaseTestExt::new().await;
-        let pool = create_pool(&container.database_url).await.unwrap();
+        let container = TestContainer::new().await;
+        let pool = &container.pool;
 
         // Create a test data source first
         let test_source = crate::models::data_source::NewDataSource {
@@ -334,7 +333,7 @@ mod tests {
             api_documentation_url: Some("https://api.test2.com/docs".to_string()),
         };
 
-        let data_source = crate::models::data_source::DataSource::get_or_create(&pool, test_source)
+        let data_source = crate::models::data_source::DataSource::get_or_create(pool, test_source)
             .await
             .unwrap();
 
@@ -353,18 +352,18 @@ mod tests {
         };
 
         let created =
-            SeriesMetadata::get_or_create(&pool, data_source.id, "TEST_SERIES_002", &new_metadata)
+            SeriesMetadata::get_or_create(pool, data_source.id, "TEST_SERIES_002", &new_metadata)
                 .await
                 .unwrap();
         assert!(created.is_active);
 
         // Test deactivation
         let deactivate_result =
-            SeriesMetadata::deactivate(&pool, data_source.id, "TEST_SERIES_002").await;
+            SeriesMetadata::deactivate(pool, data_source.id, "TEST_SERIES_002").await;
         assert!(deactivate_result.is_ok());
 
         // Verify deactivation
-        let found = SeriesMetadata::find_by_external_id(&pool, data_source.id, "TEST_SERIES_002")
+        let found = SeriesMetadata::find_by_external_id(pool, data_source.id, "TEST_SERIES_002")
             .await
             .unwrap();
         assert!(found.is_some());

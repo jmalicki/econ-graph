@@ -403,8 +403,7 @@ pub async fn discover_oecd_series(_client: &Client, pool: &DatabasePool) -> AppR
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::database::create_pool;
-    use crate::test_utils::DatabaseTestExt;
+    use crate::test_utils::TestContainer;
     use tokio;
 
     #[tokio::test]
@@ -475,17 +474,17 @@ mod tests {
 
     #[tokio::test]
     async fn test_discover_oecd_series_integration() {
-        let container = DatabaseTestExt::new().await;
-        let pool = create_pool(&container.database_url).await;
+        let container = TestContainer::new().await;
+        let pool = &container.pool;
 
-        let discovered_series = discover_oecd_series(&Client::new(), &pool).await;
+        let discovered_series = discover_oecd_series(&Client::new(), pool).await;
         assert!(discovered_series.is_ok());
         let series_ids = discovered_series.unwrap();
         assert!(!series_ids.is_empty());
 
         // Verify that the OECD data source was created
         let oecd_data_source = DataSource::find_by_name(
-            &pool,
+            pool,
             "OECD (Organisation for Economic Co-operation and Development)",
         )
         .await;

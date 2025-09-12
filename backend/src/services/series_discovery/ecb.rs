@@ -365,8 +365,7 @@ pub async fn discover_ecb_series(_client: &Client, pool: &DatabasePool) -> AppRe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::database::create_pool;
-    use crate::test_utils::DatabaseTestExt;
+    use crate::test_utils::TestContainer;
     use tokio;
 
     #[tokio::test]
@@ -422,16 +421,16 @@ mod tests {
 
     #[tokio::test]
     async fn test_discover_ecb_series_integration() {
-        let container = DatabaseTestExt::new().await;
-        let pool = create_pool(&container.database_url).await;
+        let container = TestContainer::new().await;
+        let pool = &container.pool;
 
-        let discovered_series = discover_ecb_series(&Client::new(), &pool).await;
+        let discovered_series = discover_ecb_series(&Client::new(), pool).await;
         assert!(discovered_series.is_ok());
         let series_ids = discovered_series.unwrap();
         assert!(!series_ids.is_empty());
 
         // Verify that the ECB data source was created
-        let ecb_data_source = DataSource::find_by_name(&pool, "European Central Bank (ECB)").await;
+        let ecb_data_source = DataSource::find_by_name(pool, "European Central Bank (ECB)").await;
         assert!(ecb_data_source.is_ok());
 
         // Verify some series were created

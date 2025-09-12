@@ -411,8 +411,7 @@ impl Default for ApiDiscoveryService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::database::create_pool;
-    use crate::test_utils::DatabaseTestExt;
+    use crate::test_utils::TestContainer;
     use tokio;
 
     #[tokio::test]
@@ -426,13 +425,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_discover_series_for_source() {
-        let container = DatabaseTestExt::new().await;
-        let pool = create_pool(&container.database_url).await;
+        let container = TestContainer::new().await;
+        let pool = &container.pool;
 
         let service = ApiDiscoveryService::new();
 
         // Test with FRED (this will fail without API key, but we can test the structure)
-        let result = service.discover_series_for_source("FRED", &pool).await;
+        let result = service.discover_series_for_source("FRED", pool).await;
         // We expect this to fail due to missing API key, but the structure should be correct
         assert!(result.is_err() || result.is_ok());
     }
