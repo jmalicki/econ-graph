@@ -613,7 +613,7 @@ mod tests {
 
         // Create test countries using NewCountry structs
         let country_a = NewCountry {
-            iso_code: format!("U{}", test_id),
+            iso_code: format!("US{}", test_id),
             iso_code_2: format!("U{}", test_id),
             name: format!("United States {}", test_id),
             region: "North America".to_string(),
@@ -629,7 +629,7 @@ mod tests {
         };
 
         let country_b = NewCountry {
-            iso_code: format!("C{}", test_id),
+            iso_code: format!("CN{}", test_id),
             iso_code_2: format!("C{}", test_id),
             name: format!("China {}", test_id),
             region: "Asia".to_string(),
@@ -645,7 +645,7 @@ mod tests {
         };
 
         let country_c = NewCountry {
-            iso_code: format!("D{}", test_id),
+            iso_code: format!("DE{}", test_id),
             iso_code_2: format!("D{}", test_id),
             name: format!("Germany {}", test_id),
             region: "Europe".to_string(),
@@ -851,7 +851,7 @@ mod tests {
             .expect("Should find USA country");
 
         assert!(usa_country.country.name.starts_with("United States"));
-        assert!(usa_country.country.iso_code.starts_with("U"));
+        assert!(usa_country.country.iso_code.starts_with("US"));
         assert!(usa_country.latest_gdp.is_some(), "Should have GDP data");
         assert!(
             usa_country.latest_gdp_growth.is_some(),
@@ -920,16 +920,50 @@ mod tests {
         let start_date = NaiveDate::from_ymd_opt(2020, 1, 1).unwrap();
         let end_date = NaiveDate::from_ymd_opt(2023, 12, 31).unwrap();
 
-        GlobalAnalysisService::calculate_country_correlations(
+        println!(
+            "Calculating correlations for GDP from {} to {}",
+            start_date, end_date
+        );
+        let correlation_result = GlobalAnalysisService::calculate_country_correlations(
             pool, "GDP", start_date, end_date, 0.3,
         )
-        .await
-        .expect("Failed to calculate correlations");
+        .await;
+
+        match correlation_result {
+            Ok(correlations) => {
+                println!(
+                    "Successfully calculated {} correlations",
+                    correlations.len()
+                );
+                for (i, corr) in correlations.iter().enumerate() {
+                    println!(
+                        "Correlation {}: {} <-> {} = {:.3}",
+                        i, corr.country_a_id, corr.country_b_id, corr.correlation_coefficient
+                    );
+                }
+            }
+            Err(e) => {
+                println!("Failed to calculate correlations: {:?}", e);
+                panic!("Failed to calculate correlations: {:?}", e);
+            }
+        }
 
         // Test the service method
+        println!("Getting correlation network for GDP with threshold 0.3");
         let result = GlobalAnalysisService::get_correlation_network(pool, "GDP", 0.3)
             .await
             .expect("Failed to get correlation network");
+
+        println!("Got {} network nodes", result.len());
+        for (i, node) in result.iter().enumerate() {
+            println!(
+                "Node {}: {} (centrality: {:.3}, connections: {})",
+                i,
+                node.country.iso_code,
+                node.centrality_score,
+                node.connections.len()
+            );
+        }
 
         // Verify results
         assert!(
