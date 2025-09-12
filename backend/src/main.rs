@@ -13,6 +13,8 @@ mod config;
 mod database;
 mod error;
 mod graphql;
+mod mcp_server;
+mod metrics;
 mod models;
 mod schema;
 mod services;
@@ -57,10 +59,15 @@ async fn graphql_handler(
     let operation_name = operation_name_clone.as_deref().unwrap_or("anonymous");
 
     let response = schema.execute(request).await;
-
-    // Record GraphQL query metrics
     let duration = start_time.elapsed().as_secs_f64();
-    metrics::record_graphql_query(operation_type, operation_name, duration, 0.0); // Complexity not yet calculated
+
+    // Record GraphQL metrics
+    metrics::record_graphql_query(
+        operation_type,
+        operation_name,
+        duration,
+        1.0, // Basic complexity for now
+    );
 
     Ok(GraphQLResponse::from(response))
 }
@@ -127,6 +134,11 @@ async fn root_handler() -> Result<impl warp::Reply, Infallible> {
         <div class="endpoint">
             <div><span class="method">GET</span> <code>/metrics</code></div>
             <p><a href="/metrics">Prometheus metrics endpoint</a> - Application metrics for monitoring</p>
+        </div>
+
+        <div class="endpoint">
+            <div><span class="method">POST</span> <code>/mcp</code></div>
+            <p>MCP (Model Context Protocol) server endpoint - AI model integration for economic data access</p>
         </div>
 
         <h2>🚀 Quick Start</h2>
@@ -247,6 +259,20 @@ async fn main() -> AppResult<()> {
     let auth_service = AuthService::new(pool.clone());
     info!("🔐 Authentication service created");
 
+    // Initialize metrics
+    info!("📊 Initializing Prometheus metrics...");
+    let _metrics = &metrics::METRICS; // Initialize metrics
+    info!("✅ Prometheus metrics initialized");
+
+    // Start uptime counter task
+    let uptime_task = tokio::spawn(async {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
+        loop {
+            interval.tick().await;
+            metrics::increment_uptime(60);
+        }
+    });
+
     // Start background crawler (if enabled in config)
     // For now, crawler is always enabled - in production this could be configurable
     info!("🕷️  Starting background crawler...");
@@ -332,6 +358,15 @@ async fn main() -> AppResult<()> {
     // Authentication routes
     let auth_filter = auth_routes(auth_service);
 
+    // MCP Server routes
+    let mcp_server = Arc::new(mcp_server::EconGraphMcpServer::new(Arc::new(pool.clone())));
+
+    let mcp_filter = warp::path("mcp")
+        .and(warp::post())
+        .and(warp::body::bytes())
+        .and(warp::any().map(move || mcp_server.clone()))
+        .and_then(mcp_server::mcp_handler);
+
     // Combine all routes
     let routes = root_filter
         .or(graphql_filter)
@@ -339,6 +374,7 @@ async fn main() -> AppResult<()> {
         .or(health_filter)
         .or(metrics_filter)
         .or(auth_filter)
+        .or(mcp_filter)
         .with(cors)
         .with(warp::trace::request());
 

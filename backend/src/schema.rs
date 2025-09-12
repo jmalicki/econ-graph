@@ -74,6 +74,36 @@ diesel::table! {
 }
 
 diesel::table! {
+    crawl_attempts (id) {
+        id -> Uuid,
+        series_id -> Uuid,
+        attempted_at -> Timestamptz,
+        completed_at -> Nullable<Timestamptz>,
+        #[max_length = 50]
+        crawl_method -> Varchar,
+        crawl_url -> Nullable<Text>,
+        http_status_code -> Nullable<Int4>,
+        data_found -> Bool,
+        new_data_points -> Nullable<Int4>,
+        latest_data_date -> Nullable<Date>,
+        data_freshness_hours -> Nullable<Int4>,
+        success -> Bool,
+        #[max_length = 50]
+        error_type -> Nullable<Varchar>,
+        error_message -> Nullable<Text>,
+        retry_count -> Nullable<Int4>,
+        response_time_ms -> Nullable<Int4>,
+        data_size_bytes -> Nullable<Int4>,
+        rate_limit_remaining -> Nullable<Int4>,
+        user_agent -> Nullable<Text>,
+        request_headers -> Nullable<Jsonb>,
+        response_headers -> Nullable<Jsonb>,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     crawl_queue (id) {
         id -> Uuid,
         source_id -> Uuid,
@@ -112,6 +142,16 @@ diesel::table! {
         rate_limit_per_minute -> Integer,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
+        is_visible -> Bool,
+        is_enabled -> Bool,
+        requires_admin_approval -> Bool,
+        crawl_frequency_hours -> Int4,
+        last_crawl_at -> Nullable<Timestamptz>,
+        #[max_length = 50]
+        crawl_status -> Nullable<Varchar>,
+        crawl_error_message -> Nullable<Text>,
+        #[max_length = 500]
+        api_documentation_url -> Nullable<Varchar>,
     }
 }
 
@@ -131,6 +171,12 @@ diesel::table! {
         is_active -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
+        first_discovered_at -> Nullable<Timestamptz>,
+        last_crawled_at -> Nullable<Timestamptz>,
+        first_missing_date -> Nullable<Date>,
+        #[max_length = 50]
+        crawl_status -> Nullable<Varchar>,
+        crawl_error_message -> Nullable<Text>,
     }
 }
 
@@ -196,6 +242,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    user_data_source_preferences (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        data_source_id -> Uuid,
+        is_visible -> Bool,
+        is_favorite -> Bool,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     user_sessions (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -239,16 +297,21 @@ diesel::joinable!(audit_logs -> users (user_id));
 diesel::joinable!(chart_annotations -> users (user_id));
 diesel::joinable!(chart_collaborators -> users (user_id));
 diesel::joinable!(chart_collaborators -> users (invited_by));
+diesel::joinable!(crawl_attempts -> economic_series (series_id));
 diesel::joinable!(crawl_queue -> data_sources (source_id));
 diesel::joinable!(data_points -> economic_series (series_id));
 diesel::joinable!(economic_series -> data_sources (source_id));
 diesel::joinable!(event_country_impacts -> countries (country_id));
 diesel::joinable!(event_country_impacts -> global_economic_events (event_id));
 diesel::joinable!(global_economic_events -> countries (primary_country_id));
+diesel::joinable!(global_economic_indicators -> countries (country_id));
+diesel::joinable!(global_indicator_data -> global_economic_indicators (indicator_id));
 diesel::joinable!(security_events -> users (user_id));
 diesel::joinable!(security_events -> users (resolved_by));
 diesel::joinable!(trade_relationships -> countries (exporter_country_id));
 diesel::joinable!(trade_relationships -> countries (importer_country_id));
+diesel::joinable!(user_data_source_preferences -> data_sources (data_source_id));
+diesel::joinable!(user_data_source_preferences -> users (user_id));
 diesel::joinable!(user_sessions -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
@@ -257,6 +320,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     chart_annotations,
     chart_collaborators,
     countries,
+    country_correlations,
+    crawl_attempts,
     crawl_queue,
     data_points,
     data_sources,
@@ -265,6 +330,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     global_economic_events,
     security_events,
     trade_relationships,
+    user_data_source_preferences,
     user_sessions,
     users,
 );
