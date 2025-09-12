@@ -19,6 +19,7 @@ use validator::Validate;
 )]
 #[diesel(belongs_to(crate::models::economic_series::EconomicSeries, foreign_key = series_id))]
 #[diesel(table_name = crawl_attempts)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct CrawlAttempt {
     pub id: Uuid,
     pub series_id: Uuid,
