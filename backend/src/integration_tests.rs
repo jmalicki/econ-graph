@@ -37,6 +37,7 @@ mod tests {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
+            api_documentation_url: Some("https://test.example.com/docs".to_string()),
         };
 
         let created_source = DataSource::create(&pool, new_source)
