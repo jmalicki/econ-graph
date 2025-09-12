@@ -370,6 +370,118 @@ impl Query {
 
         Ok(user.map(UserType::from))
     }
+
+    // Admin Queries
+
+    /// Get all users (admin only)
+    async fn users(
+        &self,
+        ctx: &Context<'_>,
+        filter: Option<UserFilterInput>,
+        pagination: Option<PaginationInput>,
+    ) -> Result<UserConnection> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+
+        // Get users logic would go here
+        // For now, return empty connection
+        Ok(UserConnection {
+            nodes: vec![],
+            total_count: 0,
+            page_info: PageInfo {
+                has_next_page: false,
+                has_previous_page: false,
+                start_cursor: None,
+                end_cursor: None,
+            },
+        })
+    }
+
+    /// Get user sessions (admin only)
+    async fn user_sessions(
+        &self,
+        ctx: &Context<'_>,
+        user_id: Option<ID>,
+    ) -> Result<Vec<UserSessionType>> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+
+        // Get user sessions logic would go here
+        // For now, return empty vector
+        Ok(vec![])
+    }
+
+    /// Get active user sessions (admin only)
+    async fn active_sessions(&self, ctx: &Context<'_>) -> Result<Vec<UserSessionType>> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+
+        // Get active sessions logic would go here
+        // For now, return empty vector
+        Ok(vec![])
+    }
+
+    /// Get system health metrics (admin only)
+    async fn system_health(&self, ctx: &Context<'_>) -> Result<SystemHealthType> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+
+        // Get system health logic would go here
+        // For now, return placeholder
+        Ok(SystemHealthType {
+            status: "healthy".to_string(),
+            services: vec![],
+            metrics: SystemMetricsType {
+                total_users: 0,
+                active_users: 0,
+                total_sessions: 0,
+                active_sessions: 0,
+                database_size_mb: 0.0,
+                queue_items: 0,
+                api_requests_per_minute: 0.0,
+                average_response_time_ms: 0.0,
+            },
+            last_updated: chrono::Utc::now(),
+        })
+    }
+
+    /// Get security events (admin only)
+    async fn security_events(
+        &self,
+        ctx: &Context<'_>,
+        limit: Option<i32>,
+    ) -> Result<Vec<SecurityEventType>> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+
+        // Get security events logic would go here
+        // For now, return empty vector
+        Ok(vec![])
+    }
+
+    /// Get audit logs (admin only)
+    async fn audit_logs(
+        &self,
+        ctx: &Context<'_>,
+        filter: Option<AuditLogFilterInput>,
+        pagination: Option<PaginationInput>,
+    ) -> Result<AuditLogConnection> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+
+        // Get audit logs logic would go here
+        // For now, return empty connection
+        Ok(AuditLogConnection {
+            nodes: vec![],
+            total_count: 0,
+            page_info: PageInfo {
+                has_next_page: false,
+                has_previous_page: false,
+                start_cursor: None,
+                end_cursor: None,
+            },
+        })
+    }
 }
 
 /// Convert GraphQL series filter to service parameters
