@@ -186,25 +186,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    series_metadata (id) {
-        id -> Uuid,
-        source_id -> Uuid,
-        external_id -> Varchar,
-        title -> Varchar,
-        description -> Nullable<Text>,
-        units -> Nullable<Varchar>,
-        frequency -> Nullable<Varchar>,
-        geographic_level -> Nullable<Varchar>,
-        data_url -> Nullable<Text>,
-        api_endpoint -> Nullable<Text>,
-        last_discovered_at -> Timestamptz,
-        is_active -> Bool,
-        created_at -> Timestamptz,
-        updated_at -> Timestamptz,
-    }
-}
-
-diesel::table! {
     economic_series (id) {
         id -> Uuid,
         source_id -> Uuid,
@@ -320,6 +301,30 @@ diesel::table! {
 }
 
 diesel::table! {
+    series_metadata (id) {
+        id -> Uuid,
+        source_id -> Uuid,
+        #[max_length = 255]
+        external_id -> Varchar,
+        #[max_length = 500]
+        title -> Varchar,
+        description -> Nullable<Text>,
+        #[max_length = 100]
+        units -> Nullable<Varchar>,
+        #[max_length = 50]
+        frequency -> Nullable<Varchar>,
+        #[max_length = 100]
+        geographic_level -> Nullable<Varchar>,
+        data_url -> Nullable<Text>,
+        api_endpoint -> Nullable<Text>,
+        last_discovered_at -> Nullable<Timestamptz>,
+        is_active -> Bool,
+        created_at -> Nullable<Timestamptz>,
+        updated_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
     trade_relationships (id) {
         id -> Uuid,
         exporter_country_id -> Uuid,
@@ -399,12 +404,12 @@ diesel::joinable!(chart_annotations -> users (user_id));
 diesel::joinable!(crawl_attempts -> economic_series (series_id));
 diesel::joinable!(data_points -> economic_series (series_id));
 diesel::joinable!(economic_series -> data_sources (source_id));
-diesel::joinable!(series_metadata -> data_sources (source_id));
 diesel::joinable!(event_country_impacts -> countries (country_id));
 diesel::joinable!(event_country_impacts -> global_economic_events (event_id));
 diesel::joinable!(global_economic_events -> countries (primary_country_id));
 diesel::joinable!(global_economic_indicators -> countries (country_id));
 diesel::joinable!(global_indicator_data -> global_economic_indicators (indicator_id));
+diesel::joinable!(series_metadata -> data_sources (source_id));
 diesel::joinable!(user_data_source_preferences -> data_sources (data_source_id));
 diesel::joinable!(user_data_source_preferences -> users (user_id));
 diesel::joinable!(user_sessions -> users (user_id));

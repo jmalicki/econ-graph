@@ -11,7 +11,7 @@ CREATE TABLE series_metadata (
     data_url TEXT,
     api_endpoint TEXT,
     last_discovered_at TIMESTAMPTZ DEFAULT NOW(),
-    is_active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 

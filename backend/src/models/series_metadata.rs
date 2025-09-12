@@ -38,13 +38,13 @@ pub struct SeriesMetadata {
     /// API endpoint for this series
     pub api_endpoint: Option<String>,
     /// When this series was last discovered
-    pub last_discovered_at: DateTime<Utc>,
+    pub last_discovered_at: Option<DateTime<Utc>>,
     /// Whether this series is currently active
     pub is_active: bool,
     /// Creation timestamp
-    pub created_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
     /// Last update timestamp
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 /// New series metadata for insertion
@@ -94,7 +94,7 @@ pub struct UpdateSeriesMetadata {
     /// When this series was last discovered
     pub last_discovered_at: Option<DateTime<Utc>>,
     /// Whether this series is currently active
-    pub is_active: Option<bool>,
+    pub is_active: bool,
 }
 
 impl Default for UpdateSeriesMetadata {
@@ -108,7 +108,7 @@ impl Default for UpdateSeriesMetadata {
             data_url: None,
             api_endpoint: None,
             last_discovered_at: None,
-            is_active: None,
+            is_active: false,
         }
     }
 }
@@ -144,7 +144,7 @@ impl SeriesMetadata {
                 data_url: new_metadata.data_url.clone(),
                 api_endpoint: new_metadata.api_endpoint.clone(),
                 last_discovered_at: Some(Utc::now()),
-                is_active: Some(new_metadata.is_active),
+                is_active: new_metadata.is_active,
             };
 
             let updated = diesel::update(dsl::series_metadata.filter(dsl::id.eq(existing.id)))
