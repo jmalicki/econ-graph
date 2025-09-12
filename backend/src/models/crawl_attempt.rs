@@ -22,7 +22,7 @@ use validator::Validate;
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct CrawlAttempt {
     pub id: Uuid,
-    pub series_id: Uuid,
+    pub series_id: Option<Uuid>,
     pub attempted_at: DateTime<Utc>,
     pub completed_at: Option<DateTime<Utc>>,
 
@@ -61,7 +61,7 @@ pub struct CrawlAttempt {
 #[derive(Debug, Clone, Insertable, Validate)]
 #[diesel(table_name = crawl_attempts)]
 pub struct NewCrawlAttempt {
-    pub series_id: Uuid,
+    pub series_id: Option<Uuid>,
     pub attempted_at: Option<DateTime<Utc>>,
     pub completed_at: Option<DateTime<Utc>>,
 
@@ -98,7 +98,7 @@ pub struct NewCrawlAttempt {
 impl Default for NewCrawlAttempt {
     fn default() -> Self {
         Self {
-            series_id: Uuid::new_v4(),
+            series_id: Some(Uuid::new_v4()),
             attempted_at: Some(Utc::now()),
             completed_at: None,
             crawl_method: "api".to_string(),
@@ -360,7 +360,7 @@ impl CrawlAttempt {
         };
 
         Ok(CrawlStatistics {
-            series_id: *series_id,
+            series_id: Some(*series_id),
             total_attempts,
             successful_attempts,
             data_found_attempts,
@@ -423,7 +423,7 @@ impl CrawlAttempt {
 /// Crawl statistics for predictive crawling
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CrawlStatistics {
-    pub series_id: Uuid,
+    pub series_id: Option<Uuid>,
     pub total_attempts: usize,
     pub successful_attempts: usize,
     pub data_found_attempts: usize,
@@ -438,7 +438,7 @@ pub struct CrawlStatistics {
 impl Default for CrawlStatistics {
     fn default() -> Self {
         Self {
-            series_id: Uuid::new_v4(),
+            series_id: Some(Uuid::new_v4()),
             total_attempts: 0,
             successful_attempts: 0,
             data_found_attempts: 0,
@@ -537,7 +537,7 @@ mod tests {
 
         // Create a crawl attempt
         let new_attempt = NewCrawlAttempt {
-            series_id: series.id,
+            series_id: Some(series.id),
             attempted_at: Some(chrono::Utc::now()),
             completed_at: None,
             crawl_method: "api".to_string(),
@@ -563,7 +563,7 @@ mod tests {
             .await
             .expect("Should create crawl attempt");
 
-        assert_eq!(attempt.series_id, series.id);
+        assert_eq!(attempt.series_id, Some(series.id));
         assert_eq!(attempt.crawl_method, "api");
         assert!(!attempt.data_found);
         assert!(!attempt.success);

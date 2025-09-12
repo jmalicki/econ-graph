@@ -12,10 +12,11 @@ pub fn create_schema() -> Schema<Query, Mutation, EmptySubscription> {
 pub fn create_schema_with_data(
     db_pool: crate::database::DatabasePool,
 ) -> Schema<Query, Mutation, EmptySubscription> {
+    // Pool is already cloneable
     let data_loaders = crate::graphql::dataloaders::DataLoaders::new(db_pool.clone());
 
     Schema::build(Query, Mutation, EmptySubscription)
-        .data(db_pool)
+        .data(db_pool.clone())
         .data(data_loaders)
         .finish()
 }

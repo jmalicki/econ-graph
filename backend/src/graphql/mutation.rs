@@ -145,11 +145,11 @@ impl Mutation {
         let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
-        use crate::schema::users;
         use crate::models::User;
+        use crate::schema::users;
+        use bcrypt::{hash, DEFAULT_COST};
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
-        use bcrypt::{hash, DEFAULT_COST};
 
         let mut conn = pool.get().await?;
 
@@ -167,8 +167,10 @@ impl Mutation {
 
         // Hash password if provided
         let password_hash = if let Some(password) = &input.password {
-            Some(hash(password, DEFAULT_COST)
-                .map_err(|e| Error::new(format!("Password hashing failed: {}", e)))?)
+            Some(
+                hash(password, DEFAULT_COST)
+                    .map_err(|e| Error::new(format!("Password hashing failed: {}", e)))?,
+            )
         } else {
             None
         };
@@ -211,8 +213,9 @@ impl Mutation {
         let pool = ctx.data::<DatabasePool>()?;
         let user_id = uuid::Uuid::parse_str(&id)?;
 
+        use crate::models::user::UpdateUser;
+        use crate::models::User;
         use crate::schema::users;
-        use crate::models::{User, UpdateUser};
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
 
@@ -251,9 +254,15 @@ impl Mutation {
             avatar_url: input.avatar_url.or(existing_user.avatar_url),
             organization: input.organization.or(existing_user.organization),
             theme: input.theme.or(Some(existing_user.theme)),
-            default_chart_type: input.default_chart_type.or(Some(existing_user.default_chart_type)),
-            notifications_enabled: input.notifications_enabled.or(Some(existing_user.notifications_enabled)),
-            collaboration_enabled: input.collaboration_enabled.or(Some(existing_user.collaboration_enabled)),
+            default_chart_type: input
+                .default_chart_type
+                .or(Some(existing_user.default_chart_type)),
+            notifications_enabled: input
+                .notifications_enabled
+                .or(Some(existing_user.notifications_enabled)),
+            collaboration_enabled: input
+                .collaboration_enabled
+                .or(Some(existing_user.collaboration_enabled)),
             last_login_at: existing_user.last_login_at,
         };
 
@@ -410,7 +419,7 @@ impl Mutation {
         let pool = ctx.data::<DatabasePool>()?;
         let user_id = uuid::Uuid::parse_str(&id)?;
 
-        use crate::schema::{users, user_sessions};
+        use crate::schema::{user_sessions, users};
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
 

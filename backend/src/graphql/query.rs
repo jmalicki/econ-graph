@@ -411,8 +411,9 @@ impl Query {
                 let search_pattern = format!("%{}%", search_query);
                 let pattern_clone = search_pattern.clone();
                 query = query.filter(
-                    users::name.ilike(search_pattern)
-                        .or(users::email.ilike(pattern_clone))
+                    users::name
+                        .ilike(search_pattern)
+                        .or(users::email.ilike(pattern_clone)),
                 );
             }
         }
@@ -436,16 +437,14 @@ impl Query {
                 let search_pattern = format!("%{}%", search_query);
                 let pattern_clone = search_pattern.clone();
                 count_query = count_query.filter(
-                    users::name.ilike(search_pattern)
-                        .or(users::email.ilike(pattern_clone))
+                    users::name
+                        .ilike(search_pattern)
+                        .or(users::email.ilike(pattern_clone)),
                 );
             }
         }
 
-        let total_count: i64 = count_query
-            .count()
-            .get_result(&mut conn)
-            .await?;
+        let total_count: i64 = count_query.count().get_result(&mut conn).await?;
 
         // Apply pagination
         let limit = pagination
@@ -477,8 +476,16 @@ impl Query {
             page_info: PageInfo {
                 has_next_page,
                 has_previous_page,
-                start_cursor: if has_previous_page { Some(offset.to_string()) } else { None },
-                end_cursor: if has_next_page { Some((offset + limit).to_string()) } else { None },
+                start_cursor: if has_previous_page {
+                    Some(offset.to_string())
+                } else {
+                    None
+                },
+                end_cursor: if has_next_page {
+                    Some((offset + limit).to_string())
+                } else {
+                    None
+                },
             },
         })
     }
@@ -512,16 +519,19 @@ impl Query {
             .load(&mut conn)
             .await?;
 
-               Ok(sessions.into_iter().map(|session| UserSessionType {
-                   id: ID::from(session.id),
-                   user_id: ID::from(session.user_id),
-                   created_at: session.created_at,
-                   last_activity: session.last_used_at,
-                   expires_at: session.expires_at,
-                   user_agent: session.user_agent,
-                   ip_address: session.ip_address,
-                   is_active: session.expires_at > Utc::now(),
-               }).collect())
+        Ok(sessions
+            .into_iter()
+            .map(|session| UserSessionType {
+                id: ID::from(session.id),
+                user_id: ID::from(session.user_id),
+                created_at: session.created_at,
+                last_activity: session.last_used_at,
+                expires_at: session.expires_at,
+                user_agent: session.user_agent,
+                ip_address: session.ip_address,
+                is_active: session.expires_at > Utc::now(),
+            })
+            .collect())
     }
 
     /// Get active user sessions (admin only)
@@ -543,16 +553,19 @@ impl Query {
             .load(&mut conn)
             .await?;
 
-        Ok(sessions.into_iter().map(|session| UserSessionType {
-            id: ID::from(session.id),
-            user_id: ID::from(session.user_id),
-            created_at: session.created_at,
-            last_activity: session.last_used_at,
-            expires_at: session.expires_at,
-            user_agent: session.user_agent,
-            ip_address: session.ip_address,
-            is_active: true, // All sessions here are active by definition
-        }).collect())
+        Ok(sessions
+            .into_iter()
+            .map(|session| UserSessionType {
+                id: ID::from(session.id),
+                user_id: ID::from(session.user_id),
+                created_at: session.created_at,
+                last_activity: session.last_used_at,
+                expires_at: session.expires_at,
+                user_agent: session.user_agent,
+                ip_address: session.ip_address,
+                is_active: true, // All sessions here are active by definition
+            })
+            .collect())
     }
 
     /// Get system health metrics (admin only)
@@ -561,17 +574,14 @@ impl Query {
         let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
-        use crate::schema::{users, user_sessions, crawl_queue};
+        use crate::schema::{crawl_queue, user_sessions, users};
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
 
         let mut conn = pool.get().await?;
 
         // Get user counts
-        let total_users: i64 = users::table
-            .count()
-            .get_result(&mut conn)
-            .await?;
+        let total_users: i64 = users::table.count().get_result(&mut conn).await?;
 
         let active_users: i64 = users::table
             .filter(users::last_login_at.gt(Utc::now() - chrono::Duration::hours(24)))
@@ -580,10 +590,7 @@ impl Query {
             .await?;
 
         // Get session counts
-        let total_sessions: i64 = user_sessions::table
-            .count()
-            .get_result(&mut conn)
-            .await?;
+        let total_sessions: i64 = user_sessions::table.count().get_result(&mut conn).await?;
 
         let active_sessions: i64 = user_sessions::table
             .filter(user_sessions::expires_at.gt(Utc::now()))
@@ -592,15 +599,12 @@ impl Query {
             .await?;
 
         // Get queue items count
-        let queue_items: i64 = crawl_queue::table
-            .count()
-            .get_result(&mut conn)
-            .await?;
+        let queue_items: i64 = crawl_queue::table.count().get_result(&mut conn).await?;
 
         // Basic service status
-               Ok(SystemHealthType {
-                   status: "healthy".to_string(),
-                   metrics: SystemMetricsType {
+        Ok(SystemHealthType {
+            status: "healthy".to_string(),
+            metrics: SystemMetricsType {
                 total_users: total_users as i32,
                 active_users: active_users as i32,
                 total_sessions: total_sessions as i32,

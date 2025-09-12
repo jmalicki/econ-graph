@@ -295,51 +295,60 @@ async fn main() -> AppResult<()> {
         .allow_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"]);
 
     // GraphQL endpoint with authentication
+    let pool_for_graphql = pool.clone();
     let graphql_filter = warp::path("graphql")
         .and(warp::header::headers_cloned())
         .and(async_graphql_warp::graphql(schema.clone()))
         .and_then(
-            |headers: warp::http::HeaderMap<warp::http::HeaderValue>,
-             (schema, request): (
+            move |headers: warp::http::HeaderMap<warp::http::HeaderValue>,
+                  (schema, request): (
                 async_graphql::Schema<
                     graphql::query::Query,
                     graphql::mutation::Mutation,
                     async_graphql::EmptySubscription,
                 >,
                 async_graphql::Request,
-            )| async move {
-                // Extract JWT token from Authorization header
-                let user = if let Some(auth_header) = headers.get("authorization") {
-                    if let Ok(auth_str) = std::str::from_utf8(auth_header.as_bytes()) {
-                        if auth_str.starts_with("Bearer ") {
-                            let token = auth_str.trim_start_matches("Bearer ");
-                            // Validate token and get user
-                            match crate::models::User::validate_token(
-                                &pool,
-                                token,
-                                &config.jwt_secret,
-                            )
-                            .await
-                            {
-                                Ok(user) => Some(user),
-                                Err(_) => None, // Invalid token, continue without user
+            )| {
+                let pool_for_graphql = pool_for_graphql.clone();
+                async move {
+                    // Extract JWT token from Authorization header
+                    let user = if let Some(auth_header) = headers.get("authorization") {
+                        if let Ok(auth_str) = std::str::from_utf8(auth_header.as_bytes()) {
+                            if auth_str.starts_with("Bearer ") {
+                                let token = auth_str.trim_start_matches("Bearer ");
+                                // Validate token and get user
+                                let auth_service = crate::auth::services::AuthService::new(
+                                    pool_for_graphql.clone(),
+                                );
+                                match auth_service.verify_token(token) {
+                                    Ok(claims) => crate::models::User::get_by_id(
+                                        &pool_for_graphql,
+                                        claims.sub.parse().unwrap_or_default(),
+                                    )
+                                    .await
+                                    .ok(),
+                                    Err(_) => None, // Invalid token, continue without user
+                                }
+                            } else {
+                                None
                             }
                         } else {
                             None
                         }
                     } else {
                         None
-                    }
-                } else {
-                    None
-                };
+                    };
 
-                // Create authenticated GraphQL context
-                let auth_context = std::sync::Arc::new(graphql::context::GraphQLContext::new(user));
-                let auth_schema =
-                    graphql::schema::create_schema_with_auth(pool.clone(), auth_context);
+                    // Create authenticated GraphQL context
+                    let auth_context =
+                        std::sync::Arc::new(graphql::context::GraphQLContext::new(user));
+                    let auth_schema = graphql::schema::create_schema_with_auth(
+                        pool_for_graphql.clone(),
+                        auth_context,
+                    );
 
-                Ok::<_, Infallible>(GraphQLResponse::from(auth_schema.execute(request).await))
+                    Ok::<_, Infallible>(GraphQLResponse::from(auth_schema.execute(request).await))
+                }
             },
         );
 
