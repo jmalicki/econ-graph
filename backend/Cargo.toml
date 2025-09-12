@@ -3,6 +3,10 @@ name = "econ-graph-backend"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "regenerate_schema"
+path = "regenerate_schema.rs"
+
 [dependencies]
 # Web framework
 warp = { version = "0.3", features = ["tls"] }

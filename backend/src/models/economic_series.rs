@@ -356,3 +356,6 @@ mod _inline_tests {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod timestamp_integration_tests;
