@@ -54,7 +54,8 @@ pub async fn discover_bea_series(
     bea_api_key: &Option<String>,
     pool: &DatabasePool,
 ) -> AppResult<Vec<String>> {
-    let api_key = bea_api_key.as_ref()
+    let api_key = bea_api_key
+        .as_ref()
         .ok_or_else(|| AppError::ExternalApiError("BEA API key not configured".to_string()))?;
 
     let bea_source = DataSource::get_or_create(pool, DataSource::bea()).await?;
@@ -66,7 +67,10 @@ pub async fn discover_bea_series(
 
     // For each dataset, discover series
     for dataset in datasets {
-        println!("Discovering series for dataset: {} ({})", dataset.dataset_description, dataset.dataset_name);
+        println!(
+            "Discovering series for dataset: {} ({})",
+            dataset.dataset_description, dataset.dataset_name
+        );
 
         let dataset_series = get_known_bea_series_by_dataset(&dataset.dataset_name);
 
@@ -88,9 +92,10 @@ async fn fetch_bea_datasets(client: &Client, api_key: &str) -> AppResult<Vec<Bea
         api_key
     );
 
-    let response = client.get(&url).send().await.map_err(|e| {
-        AppError::ExternalApiError(format!("BEA datasets request failed: {}", e))
-    })?;
+    let response =
+        client.get(&url).send().await.map_err(|e| {
+            AppError::ExternalApiError(format!("BEA datasets request failed: {}", e))
+        })?;
 
     if !response.status().is_success() {
         return Err(AppError::ExternalApiError(format!(
@@ -113,7 +118,9 @@ fn get_known_bea_series_by_dataset(dataset_name: &str) -> Vec<BeaSeriesInfo> {
             BeaSeriesInfo {
                 series_id: "NIPA_GDP_TOTAL".to_string(),
                 title: "Gross Domestic Product".to_string(),
-                description: Some("Total GDP from National Income and Product Accounts".to_string()),
+                description: Some(
+                    "Total GDP from National Income and Product Accounts".to_string(),
+                ),
                 frequency: "Quarterly".to_string(),
                 units: "Billions of Dollars".to_string(),
                 dataset: "NIPA".to_string(),
@@ -124,7 +131,9 @@ fn get_known_bea_series_by_dataset(dataset_name: &str) -> Vec<BeaSeriesInfo> {
             BeaSeriesInfo {
                 series_id: "NIPA_GDP_PC".to_string(),
                 title: "Gross Domestic Product Per Capita".to_string(),
-                description: Some("GDP per capita from National Income and Product Accounts".to_string()),
+                description: Some(
+                    "GDP per capita from National Income and Product Accounts".to_string(),
+                ),
                 frequency: "Quarterly".to_string(),
                 units: "Dollars".to_string(),
                 dataset: "NIPA".to_string(),
@@ -144,24 +153,24 @@ fn get_known_bea_series_by_dataset(dataset_name: &str) -> Vec<BeaSeriesInfo> {
                 end_date: None,
             },
         ],
-        "FixedAssets" => vec![
-            BeaSeriesInfo {
-                series_id: "FA_NET_STOCK_TOTAL".to_string(),
-                title: "Net Stock of Fixed Assets".to_string(),
-                description: Some("Total net stock of fixed assets".to_string()),
-                frequency: "Annual".to_string(),
-                units: "Billions of Dollars".to_string(),
-                dataset: "FixedAssets".to_string(),
-                table_name: "T10101".to_string(),
-                start_date: Some("1925-01-01".to_string()),
-                end_date: None,
-            },
-        ],
+        "FixedAssets" => vec![BeaSeriesInfo {
+            series_id: "FA_NET_STOCK_TOTAL".to_string(),
+            title: "Net Stock of Fixed Assets".to_string(),
+            description: Some("Total net stock of fixed assets".to_string()),
+            frequency: "Annual".to_string(),
+            units: "Billions of Dollars".to_string(),
+            dataset: "FixedAssets".to_string(),
+            table_name: "T10101".to_string(),
+            start_date: Some("1925-01-01".to_string()),
+            end_date: None,
+        }],
         "ITA" => vec![
             BeaSeriesInfo {
                 series_id: "ITA_EXPORTS_TOTAL".to_string(),
                 title: "Total Exports of Goods and Services".to_string(),
-                description: Some("Total exports from International Transactions Accounts".to_string()),
+                description: Some(
+                    "Total exports from International Transactions Accounts".to_string(),
+                ),
                 frequency: "Quarterly".to_string(),
                 units: "Billions of Dollars".to_string(),
                 dataset: "ITA".to_string(),
@@ -172,7 +181,9 @@ fn get_known_bea_series_by_dataset(dataset_name: &str) -> Vec<BeaSeriesInfo> {
             BeaSeriesInfo {
                 series_id: "ITA_IMPORTS_TOTAL".to_string(),
                 title: "Total Imports of Goods and Services".to_string(),
-                description: Some("Total imports from International Transactions Accounts".to_string()),
+                description: Some(
+                    "Total imports from International Transactions Accounts".to_string(),
+                ),
                 frequency: "Quarterly".to_string(),
                 units: "Billions of Dollars".to_string(),
                 dataset: "ITA".to_string(),
@@ -181,19 +192,17 @@ fn get_known_bea_series_by_dataset(dataset_name: &str) -> Vec<BeaSeriesInfo> {
                 end_date: None,
             },
         ],
-        "RegionalData" => vec![
-            BeaSeriesInfo {
-                series_id: "REG_GDP_TOTAL".to_string(),
-                title: "Gross Domestic Product by State".to_string(),
-                description: Some("Total GDP by state".to_string()),
-                frequency: "Annual".to_string(),
-                units: "Millions of Dollars".to_string(),
-                dataset: "RegionalData".to_string(),
-                table_name: "T10101".to_string(),
-                start_date: Some("1997-01-01".to_string()),
-                end_date: None,
-            },
-        ],
+        "RegionalData" => vec![BeaSeriesInfo {
+            series_id: "REG_GDP_TOTAL".to_string(),
+            title: "Gross Domestic Product by State".to_string(),
+            description: Some("Total GDP by state".to_string()),
+            frequency: "Annual".to_string(),
+            units: "Millions of Dollars".to_string(),
+            dataset: "RegionalData".to_string(),
+            table_name: "T10101".to_string(),
+            start_date: Some("1997-01-01".to_string()),
+            end_date: None,
+        }],
         // For other datasets, return empty vector for now
         // This can be expanded as we discover more series patterns
         _ => vec![],
@@ -230,7 +239,6 @@ async fn store_bea_series(
         crawl_error_message: None,
     };
 
-    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series)
-        .await?;
+    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series).await?;
     Ok(())
 }

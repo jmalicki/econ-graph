@@ -3,12 +3,12 @@
 //! This module provides a unified interface for discovering and cataloging
 //! economic data series from multiple government and international organization APIs.
 
-pub mod fred;
+pub mod bea;
 pub mod bls;
 pub mod census;
-pub mod bea;
-pub mod world_bank;
+pub mod fred;
 pub mod imf;
+pub mod world_bank;
 
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};

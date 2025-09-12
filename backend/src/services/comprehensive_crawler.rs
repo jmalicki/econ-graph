@@ -7,10 +7,10 @@ use tokio::time::{sleep, Duration};
 
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
-use crate::models::{DataSource, CrawlQueueItem, NewCrawlQueueItem, QueuePriority};
+use crate::models::{CrawlQueueItem, DataSource, NewCrawlQueueItem, QueuePriority};
 use crate::services::{
+    comprehensive_series_catalog::ComprehensiveSeriesCatalog,
     series_discovery::SeriesDiscoveryService, CrawlerService,
-    comprehensive_series_catalog::ComprehensiveSeriesCatalog
 };
 
 /// Comprehensive crawler that can discover and catalog all available series
@@ -20,9 +20,19 @@ pub struct ComprehensiveCrawler {
 }
 
 impl ComprehensiveCrawler {
-    pub fn new(fred_api_key: Option<String>, bls_api_key: Option<String>, census_api_key: Option<String>, bea_api_key: Option<String>) -> Self {
+    pub fn new(
+        fred_api_key: Option<String>,
+        bls_api_key: Option<String>,
+        census_api_key: Option<String>,
+        bea_api_key: Option<String>,
+    ) -> Self {
         Self {
-            discovery_service: SeriesDiscoveryService::new(fred_api_key.clone(), bls_api_key.clone(), census_api_key.clone(), bea_api_key.clone()),
+            discovery_service: SeriesDiscoveryService::new(
+                fred_api_key.clone(),
+                bls_api_key.clone(),
+                census_api_key.clone(),
+                bea_api_key.clone(),
+            ),
             crawler_service: CrawlerService::new(fred_api_key, bls_api_key),
         }
     }
@@ -67,7 +77,10 @@ impl ComprehensiveCrawler {
         match self.discovery_service.discover_census_series(pool).await {
             Ok(series) => {
                 results.census_series = series;
-                println!("✅ Discovered {} Census series", results.census_series.len());
+                println!(
+                    "✅ Discovered {} Census series",
+                    results.census_series.len()
+                );
             }
             Err(e) => {
                 println!("❌ Census discovery failed: {}", e);
@@ -88,10 +101,17 @@ impl ComprehensiveCrawler {
         }
 
         // Discover World Bank series
-        match self.discovery_service.discover_world_bank_series(pool).await {
+        match self
+            .discovery_service
+            .discover_world_bank_series(pool)
+            .await
+        {
             Ok(series) => {
                 results.world_bank_series = series;
-                println!("✅ Discovered {} World Bank series", results.world_bank_series.len());
+                println!(
+                    "✅ Discovered {} World Bank series",
+                    results.world_bank_series.len()
+                );
             }
             Err(e) => {
                 println!("❌ World Bank discovery failed: {}", e);
@@ -111,11 +131,17 @@ impl ComprehensiveCrawler {
             }
         }
 
-        results.total_discovered = results.fred_series.len() + results.bls_series.len() +
-                                 results.census_series.len() + results.bea_series.len() +
-                                 results.world_bank_series.len() + results.imf_series.len();
+        results.total_discovered = results.fred_series.len()
+            + results.bls_series.len()
+            + results.census_series.len()
+            + results.bea_series.len()
+            + results.world_bank_series.len()
+            + results.imf_series.len();
 
-        println!("🎉 Discovery complete: {} total series found", results.total_discovered);
+        println!(
+            "🎉 Discovery complete: {} total series found",
+            results.total_discovered
+        );
         Ok(results)
     }
 
@@ -129,7 +155,9 @@ impl ComprehensiveCrawler {
         let mut queued_count = 0;
         for series in all_series {
             // Determine source from series ID or source_id
-            let source = self.determine_source(&series.external_id, series.source_id).await?;
+            let source = self
+                .determine_source(&series.external_id, series.source_id)
+                .await?;
 
             // Add to crawl queue
             let queue_item = NewCrawlQueueItem {
@@ -160,14 +188,19 @@ impl ComprehensiveCrawler {
 
         // Step 3: Start crawling process
         println!("🔄 Starting crawling process...");
-        self.crawler_service.process_queue(pool, "comprehensive_crawler").await?;
+        self.crawler_service
+            .process_queue(pool, "comprehensive_crawler")
+            .await?;
 
         println!("✅ Full discovery and crawl process completed");
         Ok(())
     }
 
     /// Get all active series from database
-    async fn get_all_active_series(&self, pool: &DatabasePool) -> AppResult<Vec<crate::models::EconomicSeries>> {
+    async fn get_all_active_series(
+        &self,
+        pool: &DatabasePool,
+    ) -> AppResult<Vec<crate::models::EconomicSeries>> {
         use crate::schema::economic_series::dsl::*;
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
@@ -183,7 +216,11 @@ impl ComprehensiveCrawler {
     }
 
     /// Determine source from series ID pattern or source_id
-    async fn determine_source(&self, external_id: &str, source_id: uuid::Uuid) -> AppResult<String> {
+    async fn determine_source(
+        &self,
+        external_id: &str,
+        source_id: uuid::Uuid,
+    ) -> AppResult<String> {
         // Try to determine from series ID pattern first
         if external_id.len() >= 10 && external_id.chars().all(|c| c.is_alphanumeric()) {
             // FRED series IDs are typically 10+ alphanumeric characters
@@ -192,7 +229,10 @@ impl ComprehensiveCrawler {
 
         // Fall back to database lookup - this would need a proper database connection
         // For now, return a placeholder based on series ID patterns
-        if external_id.starts_with("LNS") || external_id.starts_with("CES") || external_id.starts_with("JTS") {
+        if external_id.starts_with("LNS")
+            || external_id.starts_with("CES")
+            || external_id.starts_with("JTS")
+        {
             Ok("BLS".to_string())
         } else if external_id.starts_with("GDP") || external_id.starts_with("UNRATE") {
             Ok("FRED".to_string())

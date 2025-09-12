@@ -13,8 +13,8 @@ use uuid::Uuid;
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
 use crate::models::{
-    CrawlAttempt, CrawlQueueItem, DataPoint, DataSource, EconomicSeries,
-    NewCrawlAttempt, NewCrawlQueueItem, NewDataPoint, NewEconomicSeries, QueuePriority,
+    CrawlAttempt, CrawlQueueItem, DataPoint, DataSource, EconomicSeries, NewCrawlAttempt,
+    NewCrawlQueueItem, NewDataPoint, NewEconomicSeries, QueuePriority,
 };
 
 /// Enhanced crawler service with comprehensive tracking
@@ -62,7 +62,10 @@ impl EnhancedCrawlerService {
         let crawl_result = match source_name {
             "FRED" => self.crawl_fred_series(pool, series_id, external_id).await,
             "BLS" => self.crawl_bls_series(pool, series_id, external_id).await,
-            _ => Err(AppError::ExternalApiError(format!("Unsupported source: {}", source_name))),
+            _ => Err(AppError::ExternalApiError(format!(
+                "Unsupported source: {}",
+                source_name
+            ))),
         };
 
         let end_time = Utc::now();
@@ -83,7 +86,8 @@ impl EnhancedCrawlerService {
                     None, // error_message
                     Some(response_time_ms),
                     Some(result.data_size_bytes),
-                ).await?
+                )
+                .await?
             }
             Err(e) => {
                 CrawlAttempt::update_completion(
@@ -91,19 +95,21 @@ impl EnhancedCrawlerService {
                     &attempt.id,
                     false, // success
                     false, // data_found
-                    0, // new_data_points
-                    None, // latest_data_date
-                    None, // data_freshness_hours
+                    0,     // new_data_points
+                    None,  // latest_data_date
+                    None,  // data_freshness_hours
                     Some("crawl_error".to_string()),
                     Some(e.to_string()),
                     Some(response_time_ms),
                     None, // data_size_bytes
-                ).await?
+                )
+                .await?
             }
         };
 
         // Update series last_crawled_at
-        self.update_series_crawl_status(pool, series_id, &crawl_result).await?;
+        self.update_series_crawl_status(pool, series_id, &crawl_result)
+            .await?;
 
         crawl_result
     }
@@ -119,7 +125,10 @@ impl EnhancedCrawlerService {
                 }
             }
             "BLS" => {
-                format!("https://api.bls.gov/publicAPI/v2/timeseries/data/{}", external_id)
+                format!(
+                    "https://api.bls.gov/publicAPI/v2/timeseries/data/{}",
+                    external_id
+                )
             }
             _ => format!("unknown://{}/{}", source_name, external_id),
         }
@@ -132,7 +141,9 @@ impl EnhancedCrawlerService {
         series_id: &Uuid,
         external_id: &str,
     ) -> AppResult<CrawlResult> {
-        let api_key = self.fred_api_key.as_ref()
+        let api_key = self
+            .fred_api_key
+            .as_ref()
             .ok_or_else(|| AppError::ExternalApiError("FRED API key not configured".to_string()))?;
 
         let url = format!(
@@ -140,9 +151,12 @@ impl EnhancedCrawlerService {
             external_id, api_key
         );
 
-        let response = self.client.get(&url).send().await.map_err(|e| {
-            AppError::ExternalApiError(format!("FRED request failed: {}", e))
-        })?;
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| AppError::ExternalApiError(format!("FRED request failed: {}", e)))?;
 
         if !response.status().is_success() {
             return Err(AppError::ExternalApiError(format!(
@@ -162,14 +176,19 @@ impl EnhancedCrawlerService {
 
         for observation in &fred_response.observations {
             if observation.value != "." && !observation.value.is_empty() {
-                let date = NaiveDate::parse_from_str(&observation.date, "%Y-%m-%d")
-                    .map_err(|e| AppError::ExternalApiError(format!("Invalid date format: {}", e)))?;
+                let date =
+                    NaiveDate::parse_from_str(&observation.date, "%Y-%m-%d").map_err(|e| {
+                        AppError::ExternalApiError(format!("Invalid date format: {}", e))
+                    })?;
 
-                let value = BigDecimal::parse_bytes(observation.value.as_bytes(), 10)
-                    .ok_or_else(|| AppError::ExternalApiError("Invalid value format".to_string()))?;
+                let value =
+                    BigDecimal::parse_bytes(observation.value.as_bytes(), 10).ok_or_else(|| {
+                        AppError::ExternalApiError("Invalid value format".to_string())
+                    })?;
 
                 // Check if this data point already exists
-                let existing_point = DataPoint::get_by_series_and_date(pool, *series_id, &date).await?;
+                let existing_point =
+                    DataPoint::get_by_series_and_date(pool, *series_id, &date).await?;
 
                 if existing_point.is_none() {
                     let new_point = NewDataPoint {
@@ -232,7 +251,10 @@ impl EnhancedCrawlerService {
         series_id: &Uuid,
         crawl_result: &AppResult<CrawlResult>,
     ) -> AppResult<()> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         let (crawl_status, crawl_error_message) = match crawl_result {
             Ok(result) => {
@@ -242,27 +264,34 @@ impl EnhancedCrawlerService {
                     ("no_data".to_string(), Some("No new data found".to_string()))
                 }
             }
-            Err(e) => {
-                ("failed".to_string(), Some(e.to_string()))
-            }
+            Err(e) => ("failed".to_string(), Some(e.to_string())),
         };
 
-        diesel::update(crate::schema::economic_series::table.filter(crate::schema::economic_series::id.eq(*series_id)))
-            .set((
-                crate::schema::economic_series::last_crawled_at.eq(Some(Utc::now())),
-                crate::schema::economic_series::crawl_status.eq(Some(crawl_status)),
-                crate::schema::economic_series::crawl_error_message.eq(crawl_error_message),
-                crate::schema::economic_series::updated_at.eq(Utc::now()),
-            ))
-            .execute(&mut conn)
-            .await?;
+        diesel::update(
+            crate::schema::economic_series::table
+                .filter(crate::schema::economic_series::id.eq(*series_id)),
+        )
+        .set((
+            crate::schema::economic_series::last_crawled_at.eq(Some(Utc::now())),
+            crate::schema::economic_series::crawl_status.eq(Some(crawl_status)),
+            crate::schema::economic_series::crawl_error_message.eq(crawl_error_message),
+            crate::schema::economic_series::updated_at.eq(Utc::now()),
+        ))
+        .execute(&mut conn)
+        .await?;
 
         Ok(())
     }
 
     /// Get crawlable series based on visibility controls and crawl frequency
-    pub async fn get_crawlable_series(&self, pool: &DatabasePool) -> AppResult<Vec<CrawlableSeries>> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    pub async fn get_crawlable_series(
+        &self,
+        pool: &DatabasePool,
+    ) -> AppResult<Vec<CrawlableSeries>> {
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         // For now, return an empty vector to avoid the complex SQL query
         // TODO: Implement proper query using Diesel's query builder
@@ -272,7 +301,11 @@ impl EnhancedCrawlerService {
     }
 
     /// Get crawl statistics for a series
-    pub async fn get_series_crawl_statistics(&self, pool: &DatabasePool, series_id: &Uuid) -> AppResult<CrawlStatistics> {
+    pub async fn get_series_crawl_statistics(
+        &self,
+        pool: &DatabasePool,
+        series_id: &Uuid,
+    ) -> AppResult<CrawlStatistics> {
         CrawlAttempt::get_crawl_statistics(pool, series_id).await
     }
 }

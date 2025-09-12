@@ -61,10 +61,7 @@ pub struct ImfSeriesInfo {
 }
 
 /// Discover IMF series using the IMF Data API
-pub async fn discover_imf_series(
-    client: &Client,
-    pool: &DatabasePool,
-) -> AppResult<Vec<String>> {
+pub async fn discover_imf_series(client: &Client, pool: &DatabasePool) -> AppResult<Vec<String>> {
     let imf_source = DataSource::get_or_create(pool, DataSource::imf()).await?;
     let mut discovered_series = Vec::new();
 
@@ -74,7 +71,10 @@ pub async fn discover_imf_series(
 
     // For each dataset, discover series
     for dataset in datasets {
-        println!("Discovering series for dataset: {} ({})", dataset.name[0].value, dataset.key_family_ref.key_family_id);
+        println!(
+            "Discovering series for dataset: {} ({})",
+            dataset.name[0].value, dataset.key_family_ref.key_family_id
+        );
 
         let dataset_series = get_known_imf_series_by_dataset(&dataset.key_family_ref.key_family_id);
 
@@ -94,9 +94,10 @@ async fn fetch_imf_economic_datasets(client: &Client) -> AppResult<Vec<ImfDatafl
     // IMF API doesn't require authentication
     let url = "http://dataservices.imf.org/REST/SDMX_JSON.svc/Dataflow";
 
-    let response = client.get(url).send().await.map_err(|e| {
-        AppError::ExternalApiError(format!("IMF datasets request failed: {}", e))
-    })?;
+    let response =
+        client.get(url).send().await.map_err(|e| {
+            AppError::ExternalApiError(format!("IMF datasets request failed: {}", e))
+        })?;
 
     if !response.status().is_success() {
         return Err(AppError::ExternalApiError(format!(
@@ -120,19 +121,19 @@ async fn fetch_imf_economic_datasets(client: &Client) -> AppResult<Vec<ImfDatafl
             let id = &dataflow.key_family_ref.key_family_id.to_lowercase();
 
             // Filter for key economic datasets
-            name.contains("financial statistics") ||
-            name.contains("balance of payments") ||
-            name.contains("government finance") ||
-            name.contains("world economic outlook") ||
-            name.contains("direction of trade") ||
-            name.contains("international reserves") ||
-            name.contains("exchange rates") ||
-            id.contains("ifs") ||
-            id.contains("bop") ||
-            id.contains("gfs") ||
-            id.contains("weo") ||
-            id.contains("dot") ||
-            id.contains("ir")
+            name.contains("financial statistics")
+                || name.contains("balance of payments")
+                || name.contains("government finance")
+                || name.contains("world economic outlook")
+                || name.contains("direction of trade")
+                || name.contains("international reserves")
+                || name.contains("exchange rates")
+                || id.contains("ifs")
+                || id.contains("bop")
+                || id.contains("gfs")
+                || id.contains("weo")
+                || id.contains("dot")
+                || id.contains("ir")
         })
         .collect();
 
@@ -285,7 +286,6 @@ async fn store_imf_series(
         crawl_error_message: None,
     };
 
-    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series)
-        .await?;
+    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series).await?;
     Ok(())
 }

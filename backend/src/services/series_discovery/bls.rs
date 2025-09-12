@@ -50,7 +50,8 @@ pub async fn discover_bls_series(
     bls_api_key: &Option<String>,
     pool: &DatabasePool,
 ) -> AppResult<Vec<String>> {
-    let api_key = bls_api_key.as_ref()
+    let api_key = bls_api_key
+        .as_ref()
         .ok_or_else(|| AppError::ExternalApiError("BLS API key not configured".to_string()))?;
 
     let bls_source = DataSource::get_or_create(pool, DataSource::bls()).await?;
@@ -62,7 +63,10 @@ pub async fn discover_bls_series(
 
     // For each survey, discover series
     for survey in surveys {
-        println!("Discovering series for survey: {} ({})", survey.survey_name, survey.survey_abbreviation);
+        println!(
+            "Discovering series for survey: {} ({})",
+            survey.survey_name, survey.survey_abbreviation
+        );
 
         let survey_series = get_known_bls_series_by_survey(&survey.survey_abbreviation);
 
@@ -81,9 +85,10 @@ pub async fn discover_bls_series(
 async fn fetch_bls_surveys(client: &Client, api_key: &str) -> AppResult<Vec<BlsSurvey>> {
     let url = "https://api.bls.gov/publicAPI/v2/surveys";
 
-    let response = client.get(url).send().await.map_err(|e| {
-        AppError::ExternalApiError(format!("BLS surveys request failed: {}", e))
-    })?;
+    let response =
+        client.get(url).send().await.map_err(|e| {
+            AppError::ExternalApiError(format!("BLS surveys request failed: {}", e))
+        })?;
 
     if !response.status().is_success() {
         return Err(AppError::ExternalApiError(format!(
@@ -168,8 +173,14 @@ async fn store_bls_series(
         units: Some(series_info.units.clone()),
         frequency: series_info.frequency.clone(),
         seasonal_adjustment: Some("Not Seasonally Adjusted".to_string()),
-        start_date: series_info.start_date.as_ref().and_then(|d| chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").ok()),
-        end_date: series_info.end_date.as_ref().and_then(|d| chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").ok()),
+        start_date: series_info
+            .start_date
+            .as_ref()
+            .and_then(|d| chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").ok()),
+        end_date: series_info
+            .end_date
+            .as_ref()
+            .and_then(|d| chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").ok()),
         is_active: true,
         first_discovered_at: Some(chrono::Utc::now()),
         last_crawled_at: None,

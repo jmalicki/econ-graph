@@ -33,20 +33,7 @@ const mockUser = {
 // Mock fetch for API calls
 global.fetch = jest.fn();
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn((key) => {
-    if (key === 'auth_token') return 'mock-token';
-    if (key === 'theme') return 'light';
-    return null;
-  }),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
+// localStorage mock is now handled globally in setupTests.ts
 
 // Mock fetch to return user data
 (fetch as jest.Mock).mockImplementation((url) => {
@@ -68,23 +55,14 @@ Object.defineProperty(window, 'localStorage', {
   });
 });
 
-// Mock the useAuth hook directly
+// Create a mock useAuth hook that can be controlled per test
+const mockUseAuth = jest.fn();
+
+// Mock the AuthContext module
 jest.mock('../../../contexts/AuthContext', () => ({
   ...jest.requireActual('../../../contexts/AuthContext'),
-  useAuth: () => ({
-    user: mockUser,
-    isAuthenticated: true,
-    isLoading: false,
-    error: null,
-    signInWithGoogle: jest.fn(),
-    signInWithFacebook: jest.fn(),
-    signInWithEmail: jest.fn(),
-    signUp: jest.fn(),
-    signOut: jest.fn(),
-    updateProfile: jest.fn().mockResolvedValue({}),
-    refreshUser: jest.fn(),
-    clearError: jest.fn(),
-  }),
+  useAuth: () => mockUseAuth(),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock the useTheme hook
@@ -109,9 +87,31 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 describe('UserProfile Preferences', () => {
   beforeEach(() => {
-    (fetch as jest.Mock).mockClear();
-    localStorageMock.getItem.mockClear();
-    localStorageMock.setItem.mockClear();
+    // Reset all mocks to prevent test pollution
+    jest.clearAllMocks();
+
+    // Setup localStorage mock for this test
+    (window.localStorage.getItem as jest.Mock).mockImplementation((key) => {
+      if (key === 'auth_token') return 'mock-token';
+      if (key === 'theme') return 'light';
+      return null;
+    });
+
+    // Setup default AuthContext mock for each test
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+      signInWithGoogle: jest.fn(),
+      signInWithFacebook: jest.fn(),
+      signInWithEmail: jest.fn(),
+      signUp: jest.fn(),
+      signOut: jest.fn(),
+      updateProfile: jest.fn().mockResolvedValue({}),
+      refreshUser: jest.fn(),
+      clearError: jest.fn(),
+    });
   });
 
 
@@ -209,17 +209,21 @@ describe('UserProfile Preferences', () => {
     const user = userEvent.setup();
     const mockUpdateProfile = jest.fn().mockResolvedValue({});
 
-    // Mock the updateProfile function
-    jest.doMock('../../../contexts/AuthContext', () => ({
-      ...jest.requireActual('../../../contexts/AuthContext'),
-      useAuth: () => ({
-        user: mockUser,
-        updateProfile: mockUpdateProfile,
-        signOut: jest.fn(),
-        error: null,
-        clearError: jest.fn(),
-      }),
-    }));
+    // Override the mock for this specific test
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+      signInWithGoogle: jest.fn(),
+      signInWithFacebook: jest.fn(),
+      signInWithEmail: jest.fn(),
+      signUp: jest.fn(),
+      signOut: jest.fn(),
+      updateProfile: mockUpdateProfile,
+      refreshUser: jest.fn(),
+      clearError: jest.fn(),
+    });
 
     render(
       <TestWrapper>
@@ -232,8 +236,8 @@ describe('UserProfile Preferences', () => {
 
     await user.click(saveButton);
 
-    // Note: In a real test, we would need to properly mock the AuthContext
-    // This test demonstrates the expected behavior
+    // Verify that updateProfile was called
+    expect(mockUpdateProfile).toHaveBeenCalled();
   });
 
   it('should show all available theme options', async () => {

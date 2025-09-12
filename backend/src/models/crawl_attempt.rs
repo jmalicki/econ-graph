@@ -14,7 +14,9 @@ use uuid::Uuid;
 use validator::Validate;
 
 /// Crawl attempt record for tracking crawl history
-#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Identifiable, Associations, Selectable)]
+#[derive(
+    Debug, Clone, Serialize, Deserialize, Queryable, Identifiable, Associations, Selectable,
+)]
 #[diesel(belongs_to(crate::models::economic_series::EconomicSeries, foreign_key = series_id))]
 #[diesel(table_name = crawl_attempts)]
 pub struct CrawlAttempt {
@@ -146,7 +148,10 @@ pub enum CrawlErrorType {
 impl CrawlAttempt {
     /// Create a new crawl attempt
     pub async fn create(pool: &DatabasePool, new_attempt: &NewCrawlAttempt) -> AppResult<Self> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         let attempt = diesel::insert_into(crawl_attempts::table)
             .values(new_attempt)
@@ -159,7 +164,10 @@ impl CrawlAttempt {
 
     /// Get crawl attempts for a specific series
     pub async fn get_by_series_id(pool: &DatabasePool, series_id: &Uuid) -> AppResult<Vec<Self>> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         let attempts = crawl_attempts::table
             .filter(crawl_attempts::series_id.eq(*series_id))
@@ -172,7 +180,10 @@ impl CrawlAttempt {
 
     /// Get recent crawl attempts (last N days)
     pub async fn get_recent(pool: &DatabasePool, days: i32) -> AppResult<Vec<Self>> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         let cutoff_date = Utc::now() - chrono::Duration::days(days as i64);
 
@@ -186,8 +197,15 @@ impl CrawlAttempt {
     }
 
     /// Get crawl success rate for a series
-    pub async fn get_success_rate(pool: &DatabasePool, series_id: &Uuid, days: i32) -> AppResult<f64> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    pub async fn get_success_rate(
+        pool: &DatabasePool,
+        series_id: &Uuid,
+        days: i32,
+    ) -> AppResult<f64> {
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         let cutoff_date = Utc::now() - chrono::Duration::days(days as i64);
 
@@ -214,8 +232,15 @@ impl CrawlAttempt {
     }
 
     /// Get average data freshness for a series
-    pub async fn get_avg_data_freshness(pool: &DatabasePool, series_id: &Uuid, days: i32) -> AppResult<Option<f64>> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    pub async fn get_avg_data_freshness(
+        pool: &DatabasePool,
+        series_id: &Uuid,
+        days: i32,
+    ) -> AppResult<Option<f64>> {
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         let cutoff_date = Utc::now() - chrono::Duration::days(days as i64);
 
@@ -247,32 +272,42 @@ impl CrawlAttempt {
         response_time_ms: Option<i32>,
         data_size_bytes: Option<i32>,
     ) -> AppResult<Self> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
-        let updated_attempt = diesel::update(crawl_attempts::table.filter(crawl_attempts::id.eq(*attempt_id)))
-            .set((
-                crawl_attempts::completed_at.eq(Some(Utc::now())),
-                crawl_attempts::success.eq(success),
-                crawl_attempts::data_found.eq(data_found),
-                crawl_attempts::new_data_points.eq(new_data_points),
-                crawl_attempts::latest_data_date.eq(latest_data_date),
-                crawl_attempts::data_freshness_hours.eq(data_freshness_hours),
-                crawl_attempts::error_type.eq(error_type),
-                crawl_attempts::error_message.eq(error_message),
-                crawl_attempts::response_time_ms.eq(response_time_ms),
-                crawl_attempts::data_size_bytes.eq(data_size_bytes),
-                crawl_attempts::updated_at.eq(Utc::now()),
-            ))
-            .returning(CrawlAttempt::as_returning())
-            .get_result(&mut conn)
-            .await?;
+        let updated_attempt =
+            diesel::update(crawl_attempts::table.filter(crawl_attempts::id.eq(*attempt_id)))
+                .set((
+                    crawl_attempts::completed_at.eq(Some(Utc::now())),
+                    crawl_attempts::success.eq(success),
+                    crawl_attempts::data_found.eq(data_found),
+                    crawl_attempts::new_data_points.eq(new_data_points),
+                    crawl_attempts::latest_data_date.eq(latest_data_date),
+                    crawl_attempts::data_freshness_hours.eq(data_freshness_hours),
+                    crawl_attempts::error_type.eq(error_type),
+                    crawl_attempts::error_message.eq(error_message),
+                    crawl_attempts::response_time_ms.eq(response_time_ms),
+                    crawl_attempts::data_size_bytes.eq(data_size_bytes),
+                    crawl_attempts::updated_at.eq(Utc::now()),
+                ))
+                .returning(CrawlAttempt::as_returning())
+                .get_result(&mut conn)
+                .await?;
 
         Ok(updated_attempt)
     }
 
     /// Get crawl statistics for predictive crawling
-    pub async fn get_crawl_statistics(pool: &DatabasePool, series_id: &Uuid) -> AppResult<CrawlStatistics> {
-        let mut conn = pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    pub async fn get_crawl_statistics(
+        pool: &DatabasePool,
+        series_id: &Uuid,
+    ) -> AppResult<CrawlStatistics> {
+        let mut conn = pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         // Get last 30 days of attempts
         let cutoff_date = Utc::now() - chrono::Duration::days(30);
@@ -308,10 +343,7 @@ impl CrawlAttempt {
         };
 
         // Calculate average response time
-        let response_times: Vec<i32> = attempts
-            .iter()
-            .filter_map(|a| a.response_time_ms)
-            .collect();
+        let response_times: Vec<i32> = attempts.iter().filter_map(|a| a.response_time_ms).collect();
 
         let avg_response_time = if !response_times.is_empty() {
             Some(response_times.iter().sum::<i32>() as f64 / response_times.len() as f64)
@@ -355,7 +387,8 @@ impl CrawlAttempt {
             // If data is typically fresh (less than 24 hours old), crawl more frequently
             if freshness < 24.0 {
                 6 // Every 6 hours
-            } else if freshness < 168.0 { // 1 week
+            } else if freshness < 168.0 {
+                // 1 week
                 24 // Daily
             } else {
                 168 // Weekly

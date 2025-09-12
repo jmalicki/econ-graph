@@ -51,7 +51,10 @@ pub async fn discover_census_series(
 
     // For each dataset, discover series
     for dataset in datasets {
-        println!("Discovering series for dataset: {} ({})", dataset.title, dataset.dataset_name);
+        println!(
+            "Discovering series for dataset: {} ({})",
+            dataset.title, dataset.dataset_name
+        );
 
         let dataset_series = get_known_census_series_by_dataset(&dataset.dataset_name);
 
@@ -100,16 +103,16 @@ async fn fetch_census_economic_datasets(
             let title_lower = dataset.title.to_lowercase();
 
             // Filter for key economic datasets
-            name_lower.contains("economic") ||
-            name_lower.contains("business") ||
-            name_lower.contains("trade") ||
-            name_lower.contains("retail") ||
-            name_lower.contains("manufacturing") ||
-            title_lower.contains("economic") ||
-            title_lower.contains("business") ||
-            title_lower.contains("trade") ||
-            title_lower.contains("retail") ||
-            title_lower.contains("manufacturing")
+            name_lower.contains("economic")
+                || name_lower.contains("business")
+                || name_lower.contains("trade")
+                || name_lower.contains("retail")
+                || name_lower.contains("manufacturing")
+                || title_lower.contains("economic")
+                || title_lower.contains("business")
+                || title_lower.contains("trade")
+                || title_lower.contains("retail")
+                || title_lower.contains("manufacturing")
         })
         .collect();
 
@@ -133,7 +136,9 @@ fn get_known_census_series_by_dataset(dataset_name: &str) -> Vec<CensusSeriesInf
             CensusSeriesInfo {
                 series_id: "CENSUS_ECON_MANUFACTURING".to_string(),
                 title: "Manufacturing Shipments".to_string(),
-                description: Some("Monthly manufacturing shipments data from Census Bureau".to_string()),
+                description: Some(
+                    "Monthly manufacturing shipments data from Census Bureau".to_string(),
+                ),
                 frequency: "Monthly".to_string(),
                 units: "Millions of Dollars".to_string(),
                 dataset: "timeseries/economic".to_string(),
@@ -141,18 +146,16 @@ fn get_known_census_series_by_dataset(dataset_name: &str) -> Vec<CensusSeriesInf
                 end_date: None,
             },
         ],
-        "timeseries/business" => vec![
-            CensusSeriesInfo {
-                series_id: "CENSUS_BUS_NEW_ORDERS".to_string(),
-                title: "New Orders for Durable Goods".to_string(),
-                description: Some("New orders for durable goods from Census Bureau".to_string()),
-                frequency: "Monthly".to_string(),
-                units: "Millions of Dollars".to_string(),
-                dataset: "timeseries/business".to_string(),
-                start_date: Some("1992-01-01".to_string()),
-                end_date: None,
-            },
-        ],
+        "timeseries/business" => vec![CensusSeriesInfo {
+            series_id: "CENSUS_BUS_NEW_ORDERS".to_string(),
+            title: "New Orders for Durable Goods".to_string(),
+            description: Some("New orders for durable goods from Census Bureau".to_string()),
+            frequency: "Monthly".to_string(),
+            units: "Millions of Dollars".to_string(),
+            dataset: "timeseries/business".to_string(),
+            start_date: Some("1992-01-01".to_string()),
+            end_date: None,
+        }],
         // For other datasets, return empty vector for now
         // This can be expanded as we discover more series patterns
         _ => vec![],
@@ -189,7 +192,6 @@ async fn store_census_series(
         crawl_error_message: None,
     };
 
-    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series)
-        .await?;
+    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series).await?;
     Ok(())
 }

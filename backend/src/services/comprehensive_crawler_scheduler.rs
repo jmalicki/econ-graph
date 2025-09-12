@@ -12,10 +12,10 @@ use diesel_async::RunQueryDsl;
 
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
-use crate::models::{DataSource, CrawlAttempt, CrawlStatistics};
+use crate::models::{CrawlAttempt, CrawlStatistics, DataSource};
 use crate::services::{
+    enhanced_crawler_service::{CrawlableSeries, EnhancedCrawlerService},
     series_discovery::SeriesDiscoveryService,
-    enhanced_crawler_service::{EnhancedCrawlerService, CrawlableSeries},
 };
 
 /// Comprehensive crawler scheduler with intelligent crawling strategies
@@ -34,7 +34,12 @@ impl ComprehensiveCrawlerScheduler {
         bea_api_key: Option<String>,
     ) -> Self {
         Self {
-            discovery_service: SeriesDiscoveryService::new(fred_api_key.clone(), bls_api_key.clone(), census_api_key.clone(), bea_api_key.clone()),
+            discovery_service: SeriesDiscoveryService::new(
+                fred_api_key.clone(),
+                bls_api_key.clone(),
+                census_api_key.clone(),
+                bea_api_key.clone(),
+            ),
             crawler_service: EnhancedCrawlerService::new(fred_api_key, bls_api_key),
             pool,
         }
@@ -69,7 +74,10 @@ impl ComprehensiveCrawlerScheduler {
                     total_discovered: discovered_series.len(),
                 };
                 report.discovery_results = Some(discovery_results);
-                println!("✅ Discovery complete: {} total series found", discovered_series.len());
+                println!(
+                    "✅ Discovery complete: {} total series found",
+                    discovered_series.len()
+                );
             }
             Err(e) => {
                 let error_msg = format!("Series discovery failed: {}", e);
@@ -81,17 +89,24 @@ impl ComprehensiveCrawlerScheduler {
         // Step 2: Get crawlable series based on intelligent scheduling
         println!("🎯 Step 2: Identifying series to crawl...");
         let crawlable_series = self.get_intelligent_crawl_schedule().await?;
-        println!("📋 Found {} series ready for crawling", crawlable_series.len());
+        println!(
+            "📋 Found {} series ready for crawling",
+            crawlable_series.len()
+        );
 
         // Step 3: Crawl series with tracking
         println!("🔄 Step 3: Crawling series with comprehensive tracking...");
         for series in crawlable_series {
-            match self.crawler_service.crawl_series_with_tracking(
-                &self.pool,
-                &series.series_id,
-                &series.external_id,
-                &series.source_name,
-            ).await {
+            match self
+                .crawler_service
+                .crawl_series_with_tracking(
+                    &self.pool,
+                    &series.series_id,
+                    &series.external_id,
+                    &series.source_name,
+                )
+                .await
+            {
                 Ok(crawl_result) => {
                     let series_title = series.title.clone();
                     report.crawl_results.push(CrawlResult {
@@ -106,7 +121,10 @@ impl ComprehensiveCrawlerScheduler {
                     report.total_series_crawled += 1;
                     report.total_new_data_points += crawl_result.new_data_points as usize;
 
-                    println!("✅ Crawled {}: {} new data points", series_title, crawl_result.new_data_points);
+                    println!(
+                        "✅ Crawled {}: {} new data points",
+                        series_title, crawl_result.new_data_points
+                    );
                 }
                 Err(e) => {
                     let error_msg = format!("Failed to crawl {}: {}", series.title, e);
@@ -138,15 +156,22 @@ impl ComprehensiveCrawlerScheduler {
         self.generate_crawling_insights(&report).await?;
 
         println!("🎉 Comprehensive crawling complete!");
-        println!("📊 Summary: {} series crawled, {} new data points, {} errors",
-                report.total_series_crawled, report.total_new_data_points, report.errors.len());
+        println!(
+            "📊 Summary: {} series crawled, {} new data points, {} errors",
+            report.total_series_crawled,
+            report.total_new_data_points,
+            report.errors.len()
+        );
 
         Ok(report)
     }
 
     /// Get intelligent crawl schedule based on historical data and data source settings
     async fn get_intelligent_crawl_schedule(&self) -> AppResult<Vec<CrawlableSeries>> {
-        let mut crawlable_series = self.crawler_service.get_crawlable_series(&self.pool).await?;
+        let mut crawlable_series = self
+            .crawler_service
+            .get_crawlable_series(&self.pool)
+            .await?;
 
         // Sort by priority based on intelligent factors
         // For now, use a simple priority calculation without async
@@ -179,7 +204,11 @@ impl ComprehensiveCrawlerScheduler {
         }
 
         // Factor 2: Get crawl statistics for intelligent decisions
-        if let Ok(stats) = self.crawler_service.get_series_crawl_statistics(&self.pool, &series.series_id).await {
+        if let Ok(stats) = self
+            .crawler_service
+            .get_series_crawl_statistics(&self.pool, &series.series_id)
+            .await
+        {
             // High success rate series get higher priority
             if stats.success_rate > 0.8 {
                 priority += 500;
@@ -212,18 +241,25 @@ impl ComprehensiveCrawlerScheduler {
 
     /// Update data source crawl status after crawling
     async fn update_data_source_crawl_status(&self) -> AppResult<()> {
-        let mut conn = self.pool.get().await.map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        let mut conn = self
+            .pool
+            .get()
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         // Update last_crawl_at for all enabled data sources
-        diesel::update(crate::schema::data_sources::table.filter(crate::schema::data_sources::is_enabled.eq(true)))
-            .set((
-                crate::schema::data_sources::last_crawl_at.eq(Some(chrono::Utc::now())),
-                crate::schema::data_sources::crawl_status.eq(Some("completed".to_string())),
-                crate::schema::data_sources::crawl_error_message.eq(None::<String>),
-                crate::schema::data_sources::updated_at.eq(chrono::Utc::now()),
-            ))
-            .execute(&mut conn)
-            .await?;
+        diesel::update(
+            crate::schema::data_sources::table
+                .filter(crate::schema::data_sources::is_enabled.eq(true)),
+        )
+        .set((
+            crate::schema::data_sources::last_crawl_at.eq(Some(chrono::Utc::now())),
+            crate::schema::data_sources::crawl_status.eq(Some("completed".to_string())),
+            crate::schema::data_sources::crawl_error_message.eq(None::<String>),
+            crate::schema::data_sources::updated_at.eq(chrono::Utc::now()),
+        ))
+        .execute(&mut conn)
+        .await?;
 
         Ok(())
     }
@@ -236,7 +272,9 @@ impl ComprehensiveCrawlerScheduler {
         let mut source_stats: HashMap<String, (usize, usize)> = HashMap::new();
 
         for result in &report.crawl_results {
-            let entry = source_stats.entry(result.source_name.clone()).or_insert((0, 0));
+            let entry = source_stats
+                .entry(result.source_name.clone())
+                .or_insert((0, 0));
             entry.0 += 1; // total attempts
             if result.success {
                 entry.1 += 1; // successful attempts
@@ -245,8 +283,15 @@ impl ComprehensiveCrawlerScheduler {
 
         println!("📊 Success rates by data source:");
         for (source, (total, successful)) in source_stats {
-            let success_rate = if total > 0 { (successful as f64 / total as f64) * 100.0 } else { 0.0 };
-            println!("  {}: {:.1}% ({}/{} successful)", source, success_rate, successful, total);
+            let success_rate = if total > 0 {
+                (successful as f64 / total as f64) * 100.0
+            } else {
+                0.0
+            };
+            println!(
+                "  {}: {:.1}% ({}/{} successful)",
+                source, success_rate, successful, total
+            );
         }
 
         // Analyze data freshness patterns
@@ -258,7 +303,10 @@ impl ComprehensiveCrawlerScheduler {
         };
 
         println!("📊 Data freshness insights:");
-        println!("  Average new data points per series: {:.1}", avg_data_per_series);
+        println!(
+            "  Average new data points per series: {:.1}",
+            avg_data_per_series
+        );
         println!("  Total new data points: {}", total_data_points);
 
         // Generate recommendations
@@ -281,14 +329,20 @@ impl ComprehensiveCrawlerScheduler {
 
     /// Run continuous crawling with intelligent scheduling
     pub async fn run_continuous_crawling(&self, interval_minutes: u64) -> AppResult<()> {
-        println!("🔄 Starting continuous crawling (interval: {} minutes)", interval_minutes);
+        println!(
+            "🔄 Starting continuous crawling (interval: {} minutes)",
+            interval_minutes
+        );
 
         loop {
             match self.run_comprehensive_crawling().await {
                 Ok(report) => {
                     println!("✅ Crawling cycle completed successfully");
                     if !report.errors.is_empty() {
-                        println!("⚠️  {} errors occurred during crawling", report.errors.len());
+                        println!(
+                            "⚠️  {} errors occurred during crawling",
+                            report.errors.len()
+                        );
                     }
                 }
                 Err(e) => {
@@ -296,7 +350,10 @@ impl ComprehensiveCrawlerScheduler {
                 }
             }
 
-            println!("⏰ Waiting {} minutes until next crawling cycle...", interval_minutes);
+            println!(
+                "⏰ Waiting {} minutes until next crawling cycle...",
+                interval_minutes
+            );
             sleep(Duration::from_secs(interval_minutes * 60)).await;
         }
     }

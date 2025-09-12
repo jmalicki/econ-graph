@@ -47,7 +47,8 @@ pub async fn discover_fred_series(
     fred_api_key: &Option<String>,
     pool: &DatabasePool,
 ) -> AppResult<Vec<String>> {
-    let api_key = fred_api_key.as_ref()
+    let api_key = fred_api_key
+        .as_ref()
         .ok_or_else(|| AppError::ExternalApiError("FRED API key not configured".to_string()))?;
 
     let fred_source = DataSource::get_or_create(pool, DataSource::fred()).await?;
@@ -55,9 +56,21 @@ pub async fn discover_fred_series(
 
     // Search for economic indicators
     let search_terms = vec![
-        "GDP", "unemployment", "inflation", "interest rate", "employment",
-        "consumer price", "producer price", "retail sales", "industrial production",
-        "housing", "trade", "balance", "debt", "revenue", "expenditure"
+        "GDP",
+        "unemployment",
+        "inflation",
+        "interest rate",
+        "employment",
+        "consumer price",
+        "producer price",
+        "retail sales",
+        "industrial production",
+        "housing",
+        "trade",
+        "balance",
+        "debt",
+        "revenue",
+        "expenditure",
     ];
 
     for term in search_terms {

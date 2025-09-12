@@ -63,9 +63,9 @@ pub async fn discover_world_bank_series(
             title: indicator.name.clone(),
             description: indicator.source_note.clone(),
             frequency: "Annual".to_string(), // Most World Bank data is annual
-            units: "Various".to_string(), // World Bank uses various units
+            units: "Various".to_string(),    // World Bank uses various units
             source: indicator.source.value.clone(),
-            country: None, // Global indicators
+            country: None,                              // Global indicators
             start_date: Some("1960-01-01".to_string()), // World Bank data typically starts around 1960
             end_date: None,
         };
@@ -75,12 +75,17 @@ pub async fn discover_world_bank_series(
         discovered_series.push(series_info.series_id);
     }
 
-    println!("Discovered {} World Bank series total", discovered_series.len());
+    println!(
+        "Discovered {} World Bank series total",
+        discovered_series.len()
+    );
     Ok(discovered_series)
 }
 
 /// Fetch economic indicators from World Bank API
-async fn fetch_world_bank_economic_indicators(client: &Client) -> AppResult<Vec<WorldBankIndicator>> {
+async fn fetch_world_bank_economic_indicators(
+    client: &Client,
+) -> AppResult<Vec<WorldBankIndicator>> {
     // World Bank API doesn't require authentication
     let url = "https://api.worldbank.org/v2/indicator?format=json&per_page=1000";
 
@@ -105,13 +110,22 @@ async fn fetch_world_bank_economic_indicators(client: &Client) -> AppResult<Vec<
         if array.len() >= 2 {
             // Second element contains the actual data
             serde_json::from_value::<WorldBankIndicatorsResponse>(array[1].clone())
-                .map_err(|e| AppError::ExternalApiError(format!("Failed to parse World Bank indicators: {}", e)))?
+                .map_err(|e| {
+                    AppError::ExternalApiError(format!(
+                        "Failed to parse World Bank indicators: {}",
+                        e
+                    ))
+                })?
                 .indicator
         } else {
-            return Err(AppError::ExternalApiError("Invalid World Bank API response format".to_string()));
+            return Err(AppError::ExternalApiError(
+                "Invalid World Bank API response format".to_string(),
+            ));
         }
     } else {
-        return Err(AppError::ExternalApiError("World Bank API response is not an array".to_string()));
+        return Err(AppError::ExternalApiError(
+            "World Bank API response is not an array".to_string(),
+        ));
     };
 
     // Filter for economic indicators (focus on key economic metrics)
@@ -122,25 +136,25 @@ async fn fetch_world_bank_economic_indicators(client: &Client) -> AppResult<Vec<
             let id_lower = indicator.id.to_lowercase();
 
             // Filter for key economic indicators
-            name_lower.contains("gdp") ||
-            name_lower.contains("gross domestic product") ||
-            name_lower.contains("inflation") ||
-            name_lower.contains("unemployment") ||
-            name_lower.contains("interest rate") ||
-            name_lower.contains("exchange rate") ||
-            name_lower.contains("trade") ||
-            name_lower.contains("debt") ||
-            name_lower.contains("revenue") ||
-            name_lower.contains("expenditure") ||
-            name_lower.contains("current account") ||
-            name_lower.contains("balance of payments") ||
-            id_lower.contains("ny.gdp") ||
-            id_lower.contains("fp.cpi") ||
-            id_lower.contains("sl.uem") ||
-            id_lower.contains("fr.inr") ||
-            id_lower.contains("ne.trd") ||
-            id_lower.contains("gc.rev") ||
-            id_lower.contains("gc.xpn")
+            name_lower.contains("gdp")
+                || name_lower.contains("gross domestic product")
+                || name_lower.contains("inflation")
+                || name_lower.contains("unemployment")
+                || name_lower.contains("interest rate")
+                || name_lower.contains("exchange rate")
+                || name_lower.contains("trade")
+                || name_lower.contains("debt")
+                || name_lower.contains("revenue")
+                || name_lower.contains("expenditure")
+                || name_lower.contains("current account")
+                || name_lower.contains("balance of payments")
+                || id_lower.contains("ny.gdp")
+                || id_lower.contains("fp.cpi")
+                || id_lower.contains("sl.uem")
+                || id_lower.contains("fr.inr")
+                || id_lower.contains("ne.trd")
+                || id_lower.contains("gc.rev")
+                || id_lower.contains("gc.xpn")
         })
         .collect();
 
@@ -177,7 +191,6 @@ async fn store_world_bank_series(
         crawl_error_message: None,
     };
 
-    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series)
-        .await?;
+    EconomicSeries::get_or_create(pool, &series_info.series_id, *source_id, &new_series).await?;
     Ok(())
 }
