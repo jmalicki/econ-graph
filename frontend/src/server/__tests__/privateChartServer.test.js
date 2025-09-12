@@ -5,6 +5,9 @@
  * endpoints for the MCP server integration.
  */
 
+// Set test environment
+process.env.NODE_ENV = 'test';
+
 const request = require('supertest');
 const app = require('../privateChartServer');
 
@@ -107,7 +110,6 @@ describe('Private Chart API Server', () => {
     it('should reject request without internal request header', async () => {
       const response = await request(app)
         .post('/api/private/chart/generate')
-        .set('X-MCP-Server-Request', 'true')
         .send(validChartRequest);
 
       expect(response.status).toBe(403);
@@ -174,7 +176,7 @@ describe('Private Chart API Server', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('No series data provided');
+      expect(response.body.error).toContain('Invalid chart request');
     });
 
     it('should handle multiple series data', async () => {
@@ -255,9 +257,7 @@ describe('Private Chart API Server', () => {
     });
 
     it('should reject health check without internal request header', async () => {
-      const response = await request(app)
-        .get('/api/private/chart/health')
-        .set('X-MCP-Server-Request', 'true');
+      const response = await request(app).get('/api/private/chart/health');
 
       expect(response.status).toBe(403);
       expect(response.body.success).toBe(false);

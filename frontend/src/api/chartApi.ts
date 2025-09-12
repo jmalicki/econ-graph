@@ -242,9 +242,12 @@ export async function generateChartImage(chartConfig: ChartConfiguration): Promi
 /**
  * Validate chart request
  */
-export function validateChartRequest(request: any): request is ChartRequest {
+export function validateChartRequest(request: any): boolean {
+  if (!request) {
+    return false;
+  }
+
   return (
-    request &&
     Array.isArray(request.seriesData) &&
     request.seriesData.length > 0 &&
     typeof request.chartType === 'string' &&
