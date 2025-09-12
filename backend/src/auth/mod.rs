@@ -16,6 +16,13 @@ pub mod integration_tests;
 #[cfg(test)]
 pub mod comprehensive_integration_tests;
 
+#[cfg(test)]
+pub mod handlers_tests;
+
+#[cfg(test)]
+pub mod middleware_tests;
+
+
 pub use handlers::*;
 pub use middleware::*;
 pub use models::*;

@@ -80,6 +80,10 @@ async-trait = "0.1"
 # Diesel migrations
 diesel_migrations = "2.1"
 
+[features]
+# Feature to enable disabled test files for future development
+disabled_tests = []
+
 [dev-dependencies]
 # Testing
 tokio-test = "0.4"

@@ -9,8 +9,9 @@ pub mod queue_service;
 pub mod search_service;
 pub mod series_service;
 
-// #[cfg(test)]
-// mod __tests__;
+#[cfg(test)]
+pub mod search_service_tests;
+
 
 pub use collaboration_service::*;
 pub use comprehensive_series_catalog::*;
