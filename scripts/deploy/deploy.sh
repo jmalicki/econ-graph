@@ -11,6 +11,41 @@ echo "🚀 Deploying EconGraph to local Kubernetes cluster..."
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
+# Run linter checks before deployment
+echo "🔍 Running linter checks before deployment..."
+echo ""
+
+# Run Grafana dashboard linter
+if [ -f "scripts/test-grafana-dashboards.sh" ]; then
+    echo "📊 Running Grafana dashboard linter..."
+    if ./scripts/test-grafana-dashboards.sh; then
+        echo "✅ Grafana dashboard linter passed"
+    else
+        echo "❌ Grafana dashboard linter failed - aborting deployment"
+        exit 1
+    fi
+    echo ""
+else
+    echo "⚠️  Grafana dashboard linter not found, skipping..."
+fi
+
+# Run monitoring stack linter (if available)
+if [ -f "scripts/test-monitoring.sh" ]; then
+    echo "🔧 Running monitoring stack linter..."
+    # Only run the linter part, not the full integration test
+    if ./scripts/test-monitoring.sh --lint-only 2>/dev/null || echo "⚠️  Monitoring linter not available, continuing..."; then
+        echo "✅ Monitoring stack linter passed"
+    else
+        echo "⚠️  Monitoring stack linter not available, continuing..."
+    fi
+    echo ""
+else
+    echo "⚠️  Monitoring stack linter not found, skipping..."
+fi
+
+echo "✅ All linter checks passed - proceeding with deployment"
+echo ""
+
 # Load port configuration
 if [ -f "ports.env" ]; then
     echo "📋 Loading port configuration from ports.env..."

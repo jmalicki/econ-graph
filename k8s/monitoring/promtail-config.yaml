@@ -13,24 +13,38 @@ data:
     clients:
       - url: http://loki-service:3100/loki/api/v1/push
     scrape_configs:
-    - job_name: econ-graph-logs
-      static_configs:
-      - targets:
-        - localhost
-        labels:
-          job: econ-graph-logs
-          app: econ-graph-backend
-          namespace: econ-graph
-          container: backend
-          __path__: /var/log/pods/econ-graph_econ-graph-backend-7bf6cfdbbb-8bg9q_b4ee8f92-bc07-4252-b5aa-01a69cbc5ad4/backend/0.log
-      - targets:
-        - localhost
-        labels:
-          job: econ-graph-logs
-          app: econ-graph-backend
-          namespace: econ-graph
-          container: backend
-          __path__: /var/log/pods/econ-graph_econ-graph-backend-7bf6cfdbbb-qdxtp_a76eb053-ef91-4a66-9ee8-c7fd3a1e5275/backend/0.log
+    - job_name: kubernetes-pods
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - econ-graph
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_controller_name]
+        regex: econ-graph-backend.*
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: __host__
+      - action: replace
+        replacement: /var/log/pods/$1/$2/$3/*.log
+        separator: /
+        source_labels: [__meta_kubernetes_pod_namespace, __meta_kubernetes_pod_name, __meta_kubernetes_pod_uid]
+        target_label: __path__
+      - action: replace
+        source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - action: replace
+        source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+      - action: replace
+        source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - action: replace
+        source_labels: [__meta_kubernetes_pod_container_name]
+        target_label: container
+      - action: replace
+        source_labels: [__meta_kubernetes_pod_controller_name]
+        target_label: app
       pipeline_stages:
       - regex:
           expression: '^(?P<timestamp>\S+) (?P<stream>stdout|stderr) (?P<flags>\S+) (?P<content>.*)$'

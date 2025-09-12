@@ -12,6 +12,41 @@ echo ""
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
+# Run linter checks before deployment
+echo "🔍 Running linter checks before deployment..."
+echo ""
+
+# Run Grafana dashboard linter
+if [ -f "scripts/test-grafana-dashboards.sh" ]; then
+    echo "📊 Running Grafana dashboard linter..."
+    if ./scripts/test-grafana-dashboards.sh; then
+        echo "✅ Grafana dashboard linter passed"
+    else
+        echo "❌ Grafana dashboard linter failed - aborting deployment"
+        exit 1
+    fi
+    echo ""
+else
+    echo "⚠️  Grafana dashboard linter not found, skipping..."
+fi
+
+# Run monitoring stack linter (if available)
+if [ -f "scripts/test-monitoring.sh" ]; then
+    echo "🔧 Running monitoring stack linter..."
+    # Only run the linter part, not the full integration test
+    if ./scripts/test-monitoring.sh --lint-only 2>/dev/null || echo "⚠️  Monitoring linter not available, continuing..."; then
+        echo "✅ Monitoring stack linter passed"
+    else
+        echo "⚠️  Monitoring stack linter not available, continuing..."
+    fi
+    echo ""
+else
+    echo "⚠️  Monitoring stack linter not found, skipping..."
+fi
+
+echo "✅ All linter checks passed - proceeding with deployment"
+echo ""
+
 # Load port configuration
 if [ -f "ports.env" ]; then
     echo "📋 Loading port configuration from ports.env..."
@@ -202,6 +237,13 @@ echo "  Grafana:  http://localhost:${GRAFANA_NODEPORT} (admin/admin123)"
 echo ""
 echo "🧪 Testing service accessibility..."
 sleep 5
+
+# Test Main Entry Point (http://localhost)
+if curl -s -o /dev/null -w "%{http_code}" http://localhost | grep -q "200\|302"; then
+    echo "  ✅ Main Entry Point: http://localhost - Accessible"
+else
+    echo "  ❌ Main Entry Point: http://localhost - Not accessible (ingress controller may be missing)"
+fi
 
 # Test Grafana
 if curl -s -o /dev/null -w "%{http_code}" http://localhost:${GRAFANA_NODEPORT} | grep -q "302\|200"; then

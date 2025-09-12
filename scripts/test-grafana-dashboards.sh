@@ -407,8 +407,24 @@ validate_k8s_deployment() {
         fi
     done
 
-    # Check for required deployments
-    local required_deployments=("grafana" "loki" "prometheus")
+    # Check for Grafana StatefulSet (not Deployment)
+    if kubectl get statefulset "grafana" -n econ-graph >/dev/null 2>&1; then
+        local ready_replicas=$(kubectl get statefulset "grafana" -n econ-graph -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+        local desired_replicas=$(kubectl get statefulset "grafana" -n econ-graph -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
+
+        if [ "$ready_replicas" = "$desired_replicas" ] && [ "$ready_replicas" -gt 0 ]; then
+            print_status "SUCCESS" "✅ StatefulSet 'grafana' is ready ($ready_replicas/$desired_replicas)"
+        else
+            print_status "WARNING" "⚠️  StatefulSet 'grafana' not ready ($ready_replicas/$desired_replicas)"
+            errors=$((errors + 1))
+        fi
+    else
+        print_status "ERROR" "❌ StatefulSet 'grafana' missing from cluster"
+        errors=$((errors + 1))
+    fi
+
+    # Check for required deployments (loki and prometheus)
+    local required_deployments=("loki" "prometheus")
     for deployment in "${required_deployments[@]}"; do
         if kubectl get deployment "$deployment" -n econ-graph >/dev/null 2>&1; then
             local ready_replicas=$(kubectl get deployment "$deployment" -n econ-graph -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
