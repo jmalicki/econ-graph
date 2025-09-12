@@ -156,7 +156,7 @@ diesel::table! {
         last_crawl_at -> Nullable<Timestamptz>,
         crawl_status -> Nullable<Varchar>,
         crawl_error_message -> Nullable<Text>,
-        api_documentation_url -> Nullable<Varchar>,
+        api_documentation_url -> Varchar,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }

@@ -88,7 +88,7 @@ mod tests {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
-            api_documentation_url: Some("https://fred.stlouisfed.org/docs/api/fred/".to_string()),
+            api_documentation_url: "https://fred.stlouisfed.org/docs/api/fred/".to_string(),
         };
         let data_source = DataSource::create(&pool, new_data_source)
             .await
@@ -390,7 +390,7 @@ pub async fn create_demo_data_for_ui(
         is_enabled: true,
         requires_admin_approval: false,
         crawl_frequency_hours: 24,
-        api_documentation_url: Some("https://fred.stlouisfed.org/docs/api/fred/".to_string()),
+        api_documentation_url: "https://fred.stlouisfed.org/docs/api/fred/".to_string(),
     };
     let data_source = DataSource::create(pool, new_data_source).await?;
 
