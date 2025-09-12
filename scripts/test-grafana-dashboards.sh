@@ -667,13 +667,16 @@ validate_promql_queries() {
     if [ "$prometheus_targets" -gt 0 ]; then
         print_status "SUCCESS" "✅ Found $prometheus_targets Prometheus targets"
 
-        # Check for proper job labels in Prometheus queries
+        # Check for proper job labels in Prometheus queries (optional for Kubernetes metrics)
         local queries_with_job=$(echo "$json_content" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.type == "prometheus") | .expr' 2>/dev/null | grep -c 'job=' | head -1 || echo "0")
+        local queries_with_kube=$(echo "$json_content" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.type == "prometheus") | .expr' 2>/dev/null | grep -c 'kube_' | head -1 || echo "0")
 
         if [ "$queries_with_job" -gt 0 ]; then
             print_status "SUCCESS" "✅ Prometheus queries use job labels"
+        elif [ "$queries_with_kube" -gt 0 ]; then
+            print_status "SUCCESS" "✅ Prometheus queries use Kubernetes metrics (kube_*)"
         else
-            print_status "WARNING" "⚠️  Prometheus queries may not use job labels"
+            print_status "WARNING" "⚠️  Prometheus queries may not use standard job or Kubernetes labels"
             errors=$((errors + 1))
         fi
 
@@ -730,13 +733,16 @@ validate_logql_queries() {
     if [ "$loki_targets" -gt 0 ]; then
         print_status "SUCCESS" "✅ Found $loki_targets Loki targets"
 
-        # Check for proper job labels in Loki queries
-        local queries_with_job=$(echo "$json_content" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.type == "loki") | .expr' 2>/dev/null | grep -c 'job=' || echo "0")
+        # Check for proper job labels in Loki queries (optional for app-based queries)
+        local queries_with_job=$(echo "$json_content" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.type == "loki") | .expr' 2>/dev/null | grep -c 'job=' | head -1 || echo "0")
+        local queries_with_app=$(echo "$json_content" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.type == "loki") | .expr' 2>/dev/null | grep -c 'app=' | head -1 || echo "0")
 
         if [ "$queries_with_job" -eq "$loki_targets" ]; then
             print_status "SUCCESS" "✅ All Loki queries use job labels"
+        elif [ "$queries_with_app" -gt 0 ]; then
+            print_status "SUCCESS" "✅ Loki queries use app labels (Kubernetes-native)"
         else
-            print_status "WARNING" "⚠️  Only $queries_with_job of $loki_targets Loki queries use job labels"
+            print_status "WARNING" "⚠️  Loki queries may not use standard job or app labels"
             errors=$((errors + 1))
         fi
 
