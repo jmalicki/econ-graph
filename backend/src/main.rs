@@ -49,7 +49,20 @@ async fn graphql_handler(
     >,
     request: async_graphql::Request,
 ) -> Result<GraphQLResponse, Infallible> {
-    Ok(GraphQLResponse::from(schema.execute(request).await))
+    let start_time = std::time::Instant::now();
+
+    // Extract operation info for metrics before consuming request
+    let operation_name_clone = request.operation_name.clone();
+    let operation_type = operation_name_clone.as_deref().unwrap_or("unknown");
+    let operation_name = operation_name_clone.as_deref().unwrap_or("anonymous");
+
+    let response = schema.execute(request).await;
+
+    // Record GraphQL query metrics
+    let duration = start_time.elapsed().as_secs_f64();
+    metrics::record_graphql_query(operation_type, operation_name, duration, 0.0); // Complexity not yet calculated
+
+    Ok(GraphQLResponse::from(response))
 }
 
 async fn graphql_playground() -> Result<impl warp::Reply, Infallible> {
@@ -59,6 +72,9 @@ async fn graphql_playground() -> Result<impl warp::Reply, Infallible> {
 }
 
 async fn health_check() -> Result<impl warp::Reply, Infallible> {
+    // Record health check metrics
+    metrics::record_http_request("GET", "/health", 200, 0.0);
+
     Ok(warp::reply::json(&json!({
         "status": "healthy",
         "service": "econ-graph-backend",
@@ -67,6 +83,9 @@ async fn health_check() -> Result<impl warp::Reply, Infallible> {
 }
 
 async fn root_handler() -> Result<impl warp::Reply, Infallible> {
+    // Record root endpoint metrics
+    metrics::record_http_request("GET", "/", 200, 0.0);
+
     let html = r#"
 <!DOCTYPE html>
 <html>
@@ -103,6 +122,11 @@ async fn root_handler() -> Result<impl warp::Reply, Infallible> {
         <div class="endpoint">
             <div><span class="method">GET</span> <code>/health</code></div>
             <p><a href="/health">Health check endpoint</a> - API status and version info</p>
+        </div>
+
+        <div class="endpoint">
+            <div><span class="method">GET</span> <code>/metrics</code></div>
+            <p><a href="/metrics">Prometheus metrics endpoint</a> - Application metrics for monitoring</p>
         </div>
 
         <h2>🚀 Quick Start</h2>
@@ -277,7 +301,7 @@ async fn main() -> AppResult<()> {
                 // Create authenticated GraphQL context
                 let auth_context = std::sync::Arc::new(graphql::context::GraphQLContext::new(user));
                 let auth_schema = graphql::schema::create_schema_with_auth(pool.clone(), auth_context);
-                
+
                 Ok::<_, Infallible>(GraphQLResponse::from(auth_schema.execute(request).await))
             },
         );
@@ -290,6 +314,11 @@ async fn main() -> AppResult<()> {
     // Health check
     let health_filter = warp::path("health").and(warp::get()).and_then(health_check);
 
+    // Metrics endpoint for Prometheus
+    let metrics_filter = warp::path("metrics")
+        .and(warp::get())
+        .and_then(metrics::metrics_handler);
+
     // Root endpoint
     let root_filter = warp::path::end().and(warp::get()).and_then(root_handler);
 
@@ -301,9 +330,15 @@ async fn main() -> AppResult<()> {
         .or(graphql_filter)
         .or(playground_filter)
         .or(health_filter)
+        .or(metrics_filter)
         .or(auth_filter)
         .with(cors)
         .with(warp::trace::request());
+
+    // Initialize metrics
+    info!("📊 Initializing Prometheus metrics...");
+    let _metrics = &metrics::METRICS; // Initialize metrics
+    info!("✅ Prometheus metrics initialized");
 
     let port = config.server.port;
     info!("🌐 Server starting on http://0.0.0.0:{}", port);
@@ -315,10 +350,15 @@ async fn main() -> AppResult<()> {
         "❤️  Health check available at http://localhost:{}/health",
         port
     );
+    info!(
+        "📊 Prometheus metrics available at http://localhost:{}/metrics",
+        port
+    );
     info!("🔗 API endpoints:");
     info!("  - POST/GET /graphql - GraphQL API");
     info!("  - GET /playground - GraphQL Playground");
     info!("  - GET /health - Health check");
+    info!("  - GET /metrics - Prometheus metrics");
     info!("  - GET / - API documentation");
 
     // Start the server
