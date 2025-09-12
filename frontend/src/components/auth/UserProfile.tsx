@@ -43,6 +43,7 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useAuth, User } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface UserProfileProps {
   open: boolean;
@@ -51,6 +52,7 @@ interface UserProfileProps {
 
 const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
   const { user, updateProfile, signOut, error, clearError } = useAuth();
+  const { setTheme, currentTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<User>>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -93,13 +95,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
     (field: string) => (event: any) => {
       if (field.startsWith('preferences.')) {
         const prefField = field.replace('preferences.', '');
+        const newValue = event.target.value;
+
         setFormData(prev => ({
           ...prev,
           preferences: {
             ...prev.preferences,
-            [prefField]: event.target.value,
+            [prefField]: newValue,
           } as User['preferences'],
         }));
+
+        // If theme is being changed, update it immediately
+        if (prefField === 'theme') {
+          setTheme(newValue as 'light' | 'dark');
+        }
       } else {
         setFormData(prev => ({
           ...prev,
@@ -107,7 +116,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
         }));
       }
     },
-    []
+    [setTheme]
   );
 
   const handleSave = useCallback(async () => {
@@ -267,9 +276,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                 <FormControl fullWidth>
                   <InputLabel>Theme</InputLabel>
                   <Select
-                    value={formData.preferences?.theme || 'light'}
+                    value={formData.preferences?.theme || currentTheme}
                     onChange={handleSelectChange('preferences.theme')}
-                    disabled={!isEditing}
                     label='Theme'
                   >
                     <MenuItem value='light'>Light</MenuItem>
@@ -282,7 +290,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                   <Select
                     value={formData.preferences?.defaultChartType || 'line'}
                     onChange={handleSelectChange('preferences.defaultChartType')}
-                    disabled={!isEditing}
                     label='Default Chart Type'
                   >
                     <MenuItem value='line'>Line Chart</MenuItem>
@@ -297,7 +304,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                     <Switch
                       checked={formData.preferences?.notifications ?? true}
                       onChange={handlePreferenceChange('notifications')}
-                      disabled={!isEditing}
                     />
                   }
                   label='Email Notifications'
@@ -308,11 +314,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                     <Switch
                       checked={formData.preferences?.collaborationEnabled ?? true}
                       onChange={handlePreferenceChange('collaborationEnabled')}
-                      disabled={!isEditing}
                     />
                   }
                   label='Enable Chart Collaboration'
                 />
+              </Box>
+
+              {/* Save Preferences Button */}
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant='contained'
+                  startIcon={<SaveIcon />}
+                  onClick={handleSave}
+                  size='small'
+                >
+                  Save Preferences
+                </Button>
               </Box>
             </CardContent>
           </Card>
