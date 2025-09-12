@@ -3,7 +3,6 @@
  * PURPOSE: Provide authenticated user context to GraphQL resolvers
  * This enables proper authorization for admin operations
  */
-
 use crate::models::User;
 use async_graphql::{Context, Error, Result};
 use std::sync::Arc;

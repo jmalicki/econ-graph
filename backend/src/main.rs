@@ -284,7 +284,13 @@ async fn main() -> AppResult<()> {
                         if auth_str.starts_with("Bearer ") {
                             let token = auth_str.trim_start_matches("Bearer ");
                             // Validate token and get user
-                            match crate::models::User::validate_token(&pool, token, &config.jwt_secret).await {
+                            match crate::models::User::validate_token(
+                                &pool,
+                                token,
+                                &config.jwt_secret,
+                            )
+                            .await
+                            {
                                 Ok(user) => Some(user),
                                 Err(_) => None, // Invalid token, continue without user
                             }
@@ -300,7 +306,8 @@ async fn main() -> AppResult<()> {
 
                 // Create authenticated GraphQL context
                 let auth_context = std::sync::Arc::new(graphql::context::GraphQLContext::new(user));
-                let auth_schema = graphql::schema::create_schema_with_auth(pool.clone(), auth_context);
+                let auth_schema =
+                    graphql::schema::create_schema_with_auth(pool.clone(), auth_context);
 
                 Ok::<_, Infallible>(GraphQLResponse::from(auth_schema.execute(request).await))
             },

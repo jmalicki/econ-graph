@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod crawl_queue;
 pub mod data_point;
 pub mod data_source;
@@ -5,7 +6,6 @@ pub mod economic_series;
 pub mod global_analysis;
 pub mod search;
 pub mod user;
-pub mod admin;
 
 pub use crawl_queue::*;
 pub use data_point::*;
