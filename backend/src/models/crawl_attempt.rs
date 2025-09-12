@@ -450,3 +450,175 @@ impl Default for CrawlStatistics {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::TestContainer;
+
+    #[tokio::test]
+    async fn test_new_crawl_attempt_default() {
+        let attempt = NewCrawlAttempt::default();
+
+        assert_eq!(attempt.crawl_method, "api");
+        assert_eq!(attempt.data_found, Some(false));
+        assert_eq!(attempt.new_data_points, Some(0));
+        assert_eq!(attempt.success, Some(false));
+        assert_eq!(attempt.retry_count, Some(0));
+        assert!(attempt.attempted_at.is_some());
+        assert!(attempt.completed_at.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_crawl_statistics_default() {
+        let stats = CrawlStatistics::default();
+
+        assert_eq!(stats.total_attempts, 0);
+        assert_eq!(stats.successful_attempts, 0);
+        assert_eq!(stats.data_found_attempts, 0);
+        assert_eq!(stats.success_rate, 0.0);
+        assert_eq!(stats.data_found_rate, 0.0);
+        assert_eq!(stats.recommended_crawl_frequency_hours, 24);
+        assert!(stats.avg_freshness_hours.is_none());
+        assert!(stats.avg_response_time_ms.is_none());
+        assert!(stats.last_attempt.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_crawl_attempt_create_and_retrieve() {
+        let container = TestContainer::new().await;
+        let pool = container.pool();
+
+        // Create a test series first
+        use crate::models::{DataSource, EconomicSeries, NewDataSource, NewEconomicSeries};
+        use chrono::NaiveDate;
+
+        let data_source = DataSource::create(
+            &pool,
+            NewDataSource {
+                name: "Test Crawl Source".to_string(),
+                description: Some("Test source for crawl attempts".to_string()),
+                base_url: "https://test-crawl.example.com/api".to_string(),
+                api_key_required: false,
+                rate_limit_per_minute: 100,
+                is_visible: true,
+                is_enabled: true,
+                requires_admin_approval: false,
+                crawl_frequency_hours: 24,
+                api_documentation_url: Some("https://test-crawl.example.com/docs".to_string()),
+            },
+        )
+        .await
+        .expect("Should create data source");
+
+        let series = EconomicSeries::create(
+            &pool,
+            &NewEconomicSeries {
+                title: "Test Crawl Series".to_string(),
+                description: Some("Test series for crawl attempts".to_string()),
+                external_id: "TEST_CRAWL_001".to_string(),
+                source_id: data_source.id,
+                frequency: "Monthly".to_string(),
+                units: Some("Test Units".to_string()),
+                seasonal_adjustment: Some("Not Seasonally Adjusted".to_string()),
+                first_discovered_at: Some(chrono::Utc::now()),
+                last_crawled_at: None,
+                first_missing_date: None,
+                crawl_status: None,
+                crawl_error_message: None,
+                start_date: Some(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap()),
+                end_date: Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()),
+                is_active: true,
+            },
+        )
+        .await
+        .expect("Should create economic series");
+
+        // Create a crawl attempt
+        let new_attempt = NewCrawlAttempt {
+            series_id: series.id,
+            attempted_at: Some(chrono::Utc::now()),
+            completed_at: None,
+            crawl_method: "api".to_string(),
+            crawl_url: Some("https://test-crawl.example.com/api/series/TEST_CRAWL_001".to_string()),
+            http_status_code: None,
+            data_found: Some(false),
+            new_data_points: Some(0),
+            latest_data_date: None,
+            data_freshness_hours: None,
+            success: Some(false),
+            error_type: None,
+            error_message: None,
+            retry_count: Some(0),
+            response_time_ms: None,
+            data_size_bytes: None,
+            rate_limit_remaining: None,
+            user_agent: Some("EconGraph-Crawler/1.0".to_string()),
+            request_headers: None,
+            response_headers: None,
+        };
+
+        let attempt = CrawlAttempt::create(&pool, &new_attempt)
+            .await
+            .expect("Should create crawl attempt");
+
+        assert_eq!(attempt.series_id, series.id);
+        assert_eq!(attempt.crawl_method, "api");
+        assert!(!attempt.data_found);
+        assert!(!attempt.success);
+        assert_eq!(attempt.retry_count, 0);
+
+        // Test retrieving attempts by series ID
+        let attempts = CrawlAttempt::get_by_series_id(&pool, &series.id)
+            .await
+            .expect("Should get crawl attempts");
+
+        assert_eq!(attempts.len(), 1);
+        assert_eq!(attempts[0].id, attempt.id);
+
+        // Test updating completion
+        let updated_attempt = CrawlAttempt::update_completion(
+            &pool,
+            &attempt.id,
+            true,                                                // success
+            true,                                                // data_found
+            5,                                                   // new_data_points
+            Some(NaiveDate::from_ymd_opt(2024, 12, 1).unwrap()), // latest_data_date
+            Some(24),                                            // data_freshness_hours
+            None,                                                // error_type
+            None,                                                // error_message
+            Some(1500),                                          // response_time_ms
+            Some(2048),                                          // data_size_bytes
+        )
+        .await
+        .expect("Should update crawl attempt");
+
+        assert!(updated_attempt.success);
+        assert!(updated_attempt.data_found);
+        assert_eq!(updated_attempt.new_data_points, 5);
+        assert_eq!(updated_attempt.response_time_ms, Some(1500));
+        assert_eq!(updated_attempt.data_size_bytes, Some(2048));
+        assert!(updated_attempt.completed_at.is_some());
+
+        // Test getting success rate
+        let success_rate = CrawlAttempt::get_success_rate(&pool, &series.id, 30)
+            .await
+            .expect("Should get success rate");
+
+        assert_eq!(success_rate, 1.0); // 100% success rate
+
+        // Test getting crawl statistics
+        let stats = CrawlAttempt::get_crawl_statistics(&pool, &series.id)
+            .await
+            .expect("Should get crawl statistics");
+
+        assert_eq!(stats.total_attempts, 1);
+        assert_eq!(stats.successful_attempts, 1);
+        assert_eq!(stats.data_found_attempts, 1);
+        assert_eq!(stats.success_rate, 1.0);
+        assert_eq!(stats.data_found_rate, 1.0);
+        assert_eq!(stats.avg_freshness_hours, Some(24.0));
+        assert_eq!(stats.avg_response_time_ms, Some(1500.0));
+        assert!(stats.last_attempt.is_some());
+    }
+}
