@@ -7,8 +7,8 @@ diesel::table! {
         user_id -> Uuid,
         content -> Text,
         is_resolved -> Nullable<Bool>,
-        created_at -> Timestamptz,
-        updated_at -> Timestamptz,
+        created_at -> Nullable<Timestamptz>,
+        updated_at -> Nullable<Timestamptz>,
     }
 }
 
@@ -22,13 +22,13 @@ diesel::table! {
         annotation_value -> Nullable<Numeric>,
         title -> Varchar,
         description -> Nullable<Text>,
-        color -> Varchar,
+        color -> Nullable<Varchar>,
         annotation_type -> Nullable<Varchar>,
-        is_visible -> Bool,
+        is_visible -> Nullable<Bool>,
         is_pinned -> Nullable<Bool>,
         tags -> Nullable<Array<Nullable<Text>>>,
-        created_at -> Timestamptz,
-        updated_at -> Timestamptz,
+        created_at -> Nullable<Timestamptz>,
+        updated_at -> Nullable<Timestamptz>,
     }
 }
 
@@ -40,7 +40,7 @@ diesel::table! {
         invited_by -> Nullable<Uuid>,
         role -> Nullable<Varchar>,
         permissions -> Nullable<Jsonb>,
-        created_at -> Timestamptz,
+        created_at -> Nullable<Timestamptz>,
         last_accessed_at -> Nullable<Timestamptz>,
     }
 }
@@ -92,7 +92,7 @@ diesel::table! {
         crawl_url -> Nullable<Text>,
         http_status_code -> Nullable<Integer>,
         data_found -> Bool,
-        new_data_points -> Nullable<Integer>,
+        new_data_points -> Integer,
         latest_data_date -> Nullable<Date>,
         data_freshness_hours -> Nullable<Integer>,
         success -> Bool,
