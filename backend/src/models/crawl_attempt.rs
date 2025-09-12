@@ -33,7 +33,7 @@ pub struct CrawlAttempt {
 
     // Data freshness tracking
     pub data_found: bool,
-    pub new_data_points: i32,
+    pub new_data_points: Option<i32>,
     pub latest_data_date: Option<NaiveDate>,
     pub data_freshness_hours: Option<i32>,
 
@@ -41,7 +41,7 @@ pub struct CrawlAttempt {
     pub success: bool,
     pub error_type: Option<String>,
     pub error_message: Option<String>,
-    pub retry_count: i32,
+    pub retry_count: Option<i32>,
 
     // Performance metrics
     pub response_time_ms: Option<i32>,
@@ -506,7 +506,7 @@ mod tests {
                 is_enabled: true,
                 requires_admin_approval: false,
                 crawl_frequency_hours: 24,
-                api_documentation_url: "https://test-crawl.example.com/docs".to_string(),
+                api_documentation_url: Some("https://test-crawl.example.com/docs".to_string()),
             },
         )
         .await
@@ -567,7 +567,7 @@ mod tests {
         assert_eq!(attempt.crawl_method, "api");
         assert!(!attempt.data_found);
         assert!(!attempt.success);
-        assert_eq!(attempt.retry_count, 0);
+        assert_eq!(attempt.retry_count, Some(0));
 
         // Test retrieving attempts by series ID
         let attempts = CrawlAttempt::get_by_series_id(&pool, &series.id)
@@ -596,7 +596,7 @@ mod tests {
 
         assert!(updated_attempt.success);
         assert!(updated_attempt.data_found);
-        assert_eq!(updated_attempt.new_data_points, 5);
+        assert_eq!(updated_attempt.new_data_points, Some(5));
         assert_eq!(updated_attempt.response_time_ms, Some(1500));
         assert_eq!(updated_attempt.data_size_bytes, Some(2048));
         assert!(updated_attempt.completed_at.is_some());

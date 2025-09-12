@@ -46,7 +46,7 @@ async fn test_complete_graphql_workflow() {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://e2e-test.example.com/docs".to_string(),
+            api_documentation_url: Some("https://e2e-test.example.com/docs".to_string()),
         },
     )
     .await
@@ -279,7 +279,7 @@ async fn test_search_integration_workflow() {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://search-test.example.com/docs".to_string(),
+            api_documentation_url: Some("https://search-test.example.com/docs".to_string()),
         },
     )
     .await
@@ -454,7 +454,7 @@ async fn test_data_transformation_workflow() {
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
             rate_limit_per_minute: 1000,
-            api_documentation_url: "https://transform-test.example.com/docs".to_string(),
+            api_documentation_url: Some("https://transform-test.example.com/docs".to_string()),
         },
     )
     .await

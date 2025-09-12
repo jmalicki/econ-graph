@@ -24,13 +24,13 @@ pub struct EconomicSeries {
     pub start_date: Option<NaiveDate>,
     pub end_date: Option<NaiveDate>,
     pub is_active: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub first_discovered_at: Option<DateTime<Utc>>,
     pub last_crawled_at: Option<DateTime<Utc>>,
     pub first_missing_date: Option<NaiveDate>,
     pub crawl_status: Option<String>,
     pub crawl_error_message: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }
 
 /// New economic series for insertion

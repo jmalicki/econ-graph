@@ -17,6 +17,8 @@ pub struct DataSource {
     pub base_url: String,
     pub api_key_required: bool,
     pub rate_limit_per_minute: i32,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub is_visible: bool,
     pub is_enabled: bool,
     pub requires_admin_approval: bool,
@@ -24,9 +26,7 @@ pub struct DataSource {
     pub last_crawl_at: Option<DateTime<Utc>>,
     pub crawl_status: Option<String>,
     pub crawl_error_message: Option<String>,
-    pub api_documentation_url: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub api_documentation_url: Option<String>,
 }
 
 /// New data source for insertion
@@ -47,7 +47,7 @@ pub struct NewDataSource {
     pub requires_admin_approval: bool,
     pub crawl_frequency_hours: i32,
     #[validate(url)]
-    pub api_documentation_url: String,
+    pub api_documentation_url: Option<String>,
 }
 
 /// Data source update model
@@ -84,7 +84,7 @@ impl DataSource {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 6,
-            api_documentation_url: "https://fred.stlouisfed.org/docs/api/fred/".to_string(),
+            api_documentation_url: Some("https://fred.stlouisfed.org/docs/api/fred/".to_string()),
         }
     }
 
@@ -103,8 +103,9 @@ impl DataSource {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 12,
-            api_documentation_url: "https://www.bls.gov/developers/api_signature_v2.htm"
-                .to_string(),
+            api_documentation_url: Some(
+                "https://www.bls.gov/developers/api_signature_v2.htm".to_string(),
+            ),
         }
     }
 
@@ -122,8 +123,9 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://www.census.gov/data/developers/data-sets.html"
-                .to_string(),
+            api_documentation_url: Some(
+                "https://www.census.gov/data/developers/data-sets.html".to_string(),
+            ),
         }
     }
 
@@ -141,7 +143,7 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures".to_string(),
+            api_documentation_url: Some("https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures".to_string()),
         }
     }
 
@@ -159,8 +161,9 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://apps.bea.gov/api/bea_web_service_api_user_guide.htm"
-                .to_string(),
+            api_documentation_url: Some(
+                "https://apps.bea.gov/api/bea_web_service_api_user_guide.htm".to_string(),
+            ),
         }
     }
 
@@ -178,7 +181,9 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://data.imf.org/en/Resource-Pages/IMF-API".to_string(),
+            api_documentation_url: Some(
+                "https://data.imf.org/en/Resource-Pages/IMF-API".to_string(),
+            ),
         }
     }
 
@@ -265,7 +270,7 @@ impl Default for NewDataSource {
             is_enabled: false,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://example.com/api/docs".to_string(),
+            api_documentation_url: Some("https://example.com/api/docs".to_string()),
         }
     }
 }
@@ -343,7 +348,7 @@ mod _inline_tests {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://api.example.com/docs".to_string(),
+            api_documentation_url: Some("https://api.example.com/docs".to_string()),
         };
 
         // Verify valid configuration passes validation
@@ -363,7 +368,7 @@ mod _inline_tests {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://example.com/api/docs".to_string(),
+            api_documentation_url: Some("https://example.com/api/docs".to_string()),
         };
 
         assert!(
@@ -382,7 +387,7 @@ mod _inline_tests {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://example.com/api/docs".to_string(),
+            api_documentation_url: Some("https://example.com/api/docs".to_string()),
         };
 
         assert!(

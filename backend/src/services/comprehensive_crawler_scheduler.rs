@@ -218,7 +218,7 @@ impl ComprehensiveCrawlerScheduler {
 
             // Recently failed series get retry priority
             if let Some(last_attempt) = &stats.last_attempt {
-                if !last_attempt.success && last_attempt.retry_count < 3 {
+                if !last_attempt.success && last_attempt.retry_count.unwrap_or(0) < 3 {
                     priority += 300;
                 }
             }
