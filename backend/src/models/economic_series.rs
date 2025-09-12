@@ -356,4 +356,3 @@ mod _inline_tests {
 
 #[cfg(test)]
 mod tests;
-
