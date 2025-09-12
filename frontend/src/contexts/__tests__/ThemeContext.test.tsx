@@ -19,16 +19,7 @@ jest.mock('../AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
+// localStorage mock is now handled globally in setupTests.ts
 
 // Test component that uses the theme context
 const TestComponent: React.FC = () => {
@@ -59,14 +50,17 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 describe('ThemeContext', () => {
   beforeEach(() => {
-    localStorageMock.getItem.mockClear();
-    localStorageMock.setItem.mockClear();
-    localStorageMock.removeItem.mockClear();
-    localStorageMock.clear.mockClear();
+    // Reset localStorage mock for each test
+    jest.clearAllMocks();
+
+    // Clear any existing localStorage state
+    if (window.localStorage.clear) {
+      window.localStorage.clear();
+    }
   });
 
   it('should initialize with light theme by default', () => {
-    localStorageMock.getItem.mockReturnValue(null);
+    (window.localStorage.getItem as jest.Mock).mockReturnValue(null);
 
     render(
       <TestWrapper>
@@ -78,7 +72,7 @@ describe('ThemeContext', () => {
   });
 
   it('should load theme from localStorage', async () => {
-    localStorageMock.getItem.mockReturnValue('dark');
+    (window.localStorage.getItem as jest.Mock).mockReturnValue('dark');
 
     render(
       <TestWrapper>
@@ -93,7 +87,7 @@ describe('ThemeContext', () => {
   });
 
   it('should toggle theme correctly', async () => {
-    localStorageMock.getItem.mockReturnValue('light');
+    (window.localStorage.getItem as jest.Mock).mockReturnValue('light');
 
     render(
       <TestWrapper>
@@ -114,11 +108,11 @@ describe('ThemeContext', () => {
       expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
     });
 
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'dark');
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'dark');
   });
 
   it('should set theme to light', async () => {
-    localStorageMock.getItem.mockReturnValue('dark');
+    (window.localStorage.getItem as jest.Mock).mockReturnValue('dark');
 
     render(
       <TestWrapper>
@@ -139,11 +133,11 @@ describe('ThemeContext', () => {
       expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
     });
 
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'light');
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'light');
   });
 
   it('should set theme to dark', async () => {
-    localStorageMock.getItem.mockReturnValue('light');
+    (window.localStorage.getItem as jest.Mock).mockReturnValue('light');
 
     render(
       <TestWrapper>
@@ -164,7 +158,7 @@ describe('ThemeContext', () => {
       expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
     });
 
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'dark');
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('theme', 'dark');
   });
 
   it('should throw error when used outside ThemeProvider', () => {
