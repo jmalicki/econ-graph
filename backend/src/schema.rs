@@ -201,8 +201,8 @@ diesel::table! {
         user_id -> Uuid,
         token_hash -> Varchar,
         expires_at -> Timestamptz,
-        created_at -> Nullable<Timestamptz>,
-        last_used_at -> Nullable<Timestamptz>,
+        created_at -> Timestamptz,
+        last_used_at -> Timestamptz,
         user_agent -> Nullable<Text>,
         ip_address -> Nullable<Text>,
     }
@@ -219,14 +219,16 @@ diesel::table! {
         password_hash -> Nullable<Varchar>,
         role -> Varchar,
         organization -> Nullable<Varchar>,
-        theme -> Nullable<Varchar>,
-        default_chart_type -> Nullable<Varchar>,
-        notifications_enabled -> Nullable<Bool>,
-        collaboration_enabled -> Nullable<Bool>,
-        is_active -> Nullable<Bool>,
-        email_verified -> Nullable<Bool>,
-        created_at -> Nullable<Timestamptz>,
-        updated_at -> Nullable<Timestamptz>,
+        #[max_length = 20]
+        theme -> Varchar,
+        #[max_length = 50]
+        default_chart_type -> Varchar,
+        notifications_enabled -> Bool,
+        collaboration_enabled -> Bool,
+        is_active -> Bool,
+        email_verified -> Bool,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
         last_login_at -> Nullable<Timestamptz>,
     }
 }
