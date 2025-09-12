@@ -77,7 +77,7 @@ describe('ThemeContext', () => {
     expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
   });
 
-  it('should load theme from localStorage', () => {
+  it('should load theme from localStorage', async () => {
     localStorageMock.getItem.mockReturnValue('dark');
 
     render(
@@ -86,7 +86,10 @@ describe('ThemeContext', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
+    // Wait for the theme to be loaded from localStorage
+    await waitFor(() => {
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
+    });
   });
 
   it('should toggle theme correctly', async () => {
@@ -98,7 +101,10 @@ describe('ThemeContext', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+    // Wait for initial theme to load
+    await waitFor(() => {
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+    });
 
     act(() => {
       screen.getByTestId('toggle-theme').click();
@@ -120,6 +126,11 @@ describe('ThemeContext', () => {
       </TestWrapper>
     );
 
+    // Wait for initial theme to load from localStorage
+    await waitFor(() => {
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
+    });
+
     act(() => {
       screen.getByTestId('set-light').click();
     });
@@ -139,6 +150,11 @@ describe('ThemeContext', () => {
         <TestComponent />
       </TestWrapper>
     );
+
+    // Wait for initial theme to load from localStorage
+    await waitFor(() => {
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+    });
 
     act(() => {
       screen.getByTestId('set-dark').click();
