@@ -1,12 +1,8 @@
-# Copyright (c) 2024 EconGraph. All rights reserved.
-# Licensed under the Microsoft Reference Source License (MS-RSL).
-# See LICENSE file for complete terms and conditions.
-
 [package]
 name = "econ-graph-backend"
 version = "0.1.0"
 edition = "2021"
-license = "MIT"
+license = "MS-PL"
 
 [dependencies]
 # Web framework
@@ -93,6 +89,21 @@ diesel_migrations = "=2.2.0"
 rust-mcp-sdk = "0.1"
 rust-mcp-schema = "0.1"
 
+# CLI argument parsing
+clap = { version = "4.0", features = ["derive"] }
+
+# Random number generation
+rand = "0.8"
+
+
+[[bin]]
+name = "econ-graph-backend"
+path = "src/main.rs"
+
+[[bin]]
+name = "crawler"
+path = "src/bin/crawler.rs"
+
 [dev-dependencies]
 # Testing
 tokio-test = "0.4"
@@ -100,7 +111,7 @@ mockito = "1.2"
 tempfile = "3.8"
 
 # Integration testing with real databases
-testcontainers = "0.25"
+testcontainers = { version = "0.25", features = ["blocking"] }
 testcontainers-modules = { version = "0.13", features = ["postgres"] }
 
 # Additional testing utilities
