@@ -47,6 +47,10 @@
     "resize-observer-polyfill": "1.5.1",
     "typescript": "^4.9.5"
   },
+  "privateChartApiDependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -57,6 +61,7 @@
     "prettier-check": "prettier --check 'src/**/*.{js,ts,tsx,css}'",
     "prettier-fix": "prettier --write 'src/**/*.{js,ts,tsx,css}'",
     "typecheck": "tsc --noEmit",
+    "start-private-chart-api": "node src/server/privateChartServer.js",
     "eslint-check": "eslint src --ext .ts,.tsx",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

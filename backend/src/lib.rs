@@ -5,6 +5,7 @@ pub mod database;
 pub mod error;
 pub mod graphql;
 pub mod metrics;
+pub mod mcp_server;
 pub mod models;
 pub mod schema;
 pub mod services;
