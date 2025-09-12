@@ -55,6 +55,10 @@ url = "2.5"
 anyhow = "1.0"
 thiserror = "1.0"
 
+# Metrics and monitoring
+prometheus = "0.14"
+once_cell = "1.19"
+
 # Validation
 validator = { version = "0.19", features = ["derive"] }
 

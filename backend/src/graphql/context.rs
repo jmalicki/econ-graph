@@ -30,7 +30,7 @@ impl GraphQLContext {
     /// Check if the current user has admin role
     pub fn require_admin(&self) -> Result<&User> {
         let user = self.current_user()?;
-        
+
         match user.role.as_str() {
             "admin" | "super_admin" => Ok(user),
             _ => Err(Error::new("Admin role required")),
@@ -40,7 +40,7 @@ impl GraphQLContext {
     /// Check if the current user has super admin role
     pub fn require_super_admin(&self) -> Result<&User> {
         let user = self.current_user()?;
-        
+
         match user.role.as_str() {
             "super_admin" => Ok(user),
             _ => Err(Error::new("Super admin role required")),
@@ -50,48 +50,48 @@ impl GraphQLContext {
     /// Check if the current user can manage the specified user
     pub fn can_manage_user(&self, target_user_id: uuid::Uuid) -> Result<&User> {
         let user = self.current_user()?;
-        
+
         // Super admins can manage anyone
         if user.role == "super_admin" {
             return Ok(user);
         }
-        
+
         // Admins can manage anyone except other admins/super admins
         if user.role == "admin" {
             // For now, allow admins to manage anyone
             // In a more restrictive system, you might check the target user's role
             return Ok(user);
         }
-        
+
         // Users can only manage themselves
         if user.id == target_user_id {
             return Ok(user);
         }
-        
+
         Err(Error::new("Insufficient permissions to manage this user"))
     }
 }
 
 /// Helper function to get the current user from GraphQL context
-pub fn current_user(ctx: &Context<'_>) -> Result<&User> {
+pub fn current_user<'a>(ctx: &'a Context<'a>) -> Result<&'a User> {
     let context = ctx.data::<Arc<GraphQLContext>>()?;
     context.current_user()
 }
 
 /// Helper function to require admin role from GraphQL context
-pub fn require_admin(ctx: &Context<'_>) -> Result<&User> {
+pub fn require_admin<'a>(ctx: &'a Context<'a>) -> Result<&'a User> {
     let context = ctx.data::<Arc<GraphQLContext>>()?;
     context.require_admin()
 }
 
 /// Helper function to require super admin role from GraphQL context
-pub fn require_super_admin(ctx: &Context<'_>) -> Result<&User> {
+pub fn require_super_admin<'a>(ctx: &'a Context<'a>) -> Result<&'a User> {
     let context = ctx.data::<Arc<GraphQLContext>>()?;
     context.require_super_admin()
 }
 
 /// Helper function to check if user can manage another user
-pub fn can_manage_user(ctx: &Context<'_>, target_user_id: uuid::Uuid) -> Result<&User> {
+pub fn can_manage_user<'a>(ctx: &'a Context<'a>, target_user_id: uuid::Uuid) -> Result<&'a User> {
     let context = ctx.data::<Arc<GraphQLContext>>()?;
     context.can_manage_user(target_user_id)
 }
