@@ -2,10 +2,10 @@
 //!
 //! Tests include crawling local file:// URLs for testing purposes
 
-use crate::database::create_pool;
 use crate::error::AppResult;
 use crate::models::{DataSource, NewDataSource, NewSeriesMetadata, SeriesMetadata};
 use crate::services::crawler::{CatalogDownloader, SeriesDownloader};
+use crate::test_utils::TestContainer;
 use reqwest::Client;
 use tempfile::TempDir;
 use tokio::fs::File;
@@ -121,33 +121,22 @@ async fn test_file_url_crawling() -> AppResult<()> {
 
 #[tokio::test]
 async fn test_crawler_with_database() -> AppResult<()> {
-    // This test requires a database connection
-    // Skip if no database is available
-    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgresql://postgres:password@localhost:5432/econ_graph_test".to_string()
-    });
-
-    let pool = match create_pool(&database_url).await {
-        Ok(pool) => pool,
-        Err(_) => {
-            println!("Skipping database test - no database available");
-            return Ok(());
-        }
-    };
+    let container = TestContainer::new().await;
+    let pool = &container.pool;
 
     // Create test data source
-    let data_source = create_test_data_source(&pool).await?;
+    let data_source = create_test_data_source(pool).await?;
 
     // Create test series metadata
-    let series_metadata = create_test_series_metadata(&pool, data_source.id).await?;
+    let series_metadata = create_test_series_metadata(pool, data_source.id).await?;
 
     // Test that we can find the data source by name
-    let found_source = DataSource::find_by_name(&pool, "Test Data Source").await?;
+    let found_source = DataSource::find_by_name(pool, "Test Data Source").await?;
     assert_eq!(found_source.id, data_source.id);
 
     // Test that we can find the series metadata
     let found_metadata =
-        SeriesMetadata::find_by_external_id(&pool, data_source.id, "TEST_SERIES_001").await?;
+        SeriesMetadata::find_by_external_id(pool, data_source.id, "TEST_SERIES_001").await?;
     assert!(found_metadata.is_some());
     let metadata = found_metadata.unwrap();
     assert_eq!(metadata.title, "Test Economic Series");
