@@ -18,7 +18,6 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
-  Link,
 } from '@mui/material';
 import {
   OpenInNew,
@@ -75,7 +74,7 @@ export default function MonitoringPage() {
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [dashboards, setDashboards] = useState<DashboardInfo[]>([]);
-  const [systemStatus, setSystemStatus] = useState({
+  const [systemStatus] = useState({
     overall: 'healthy' as 'healthy' | 'warning' | 'error',
     services: {
       backend: 'healthy',
