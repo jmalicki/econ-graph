@@ -1,0 +1,10 @@
+{
+  "name": "econ-graph-dev-server",
+  "version": "1.0.0",
+  "description": "Development server for EconGraph frontend",
+  "private": true,
+  "scripts": {
+    "start": "npx serve -s ../build -l 18473"
+  },
+  "dependencies": {}
+}
