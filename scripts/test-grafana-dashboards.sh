@@ -3,6 +3,10 @@
 # Grafana Dashboard Validation Test Suite
 # This script validates Grafana dashboard JSON files for common issues
 # that cause "Dashboard title cannot be empty" and other loading errors
+#
+# IMPORTANT: This linter validates LOCAL YAML/JSON files only.
+# It does NOT contact the Kubernetes cluster or check running services.
+# All validation is performed against the source files in the repository.
 
 set -e
 

@@ -13,35 +13,32 @@ data:
     clients:
       - url: http://loki-service:3100/loki/api/v1/push
     scrape_configs:
-    - job_name: kubernetes-pods
-      kubernetes_sd_configs:
-      - role: pod
-        namespaces:
-          names:
-          - econ-graph
-      relabel_configs:
-      # Keep only pods from econ-graph namespace
-      - source_labels: [__meta_kubernetes_namespace]
-        action: keep
-        regex: econ-graph
-      # Set the log path
-      - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
-        action: replace
-        target_label: __path__
-        replacement: /var/log/pods/$1/$2/0.log
-      # Add labels
-      - source_labels: [__meta_kubernetes_pod_label_app]
-        action: replace
-        target_label: app
-      - source_labels: [__meta_kubernetes_pod_name]
-        action: replace
-        target_label: pod
-      - source_labels: [__meta_kubernetes_pod_container_name]
-        action: replace
-        target_label: container
-      - source_labels: [__meta_kubernetes_namespace]
-        action: replace
-        target_label: namespace
-      - source_labels: [__meta_kubernetes_pod_node_name]
-        action: replace
-        target_label: node
+    - job_name: econ-graph-logs
+      static_configs:
+      - targets:
+        - localhost
+        labels:
+          job: econ-graph-logs
+          app: econ-graph-backend
+          namespace: econ-graph
+          container: backend
+          __path__: /var/log/pods/econ-graph_econ-graph-backend-7bf6cfdbbb-8bg9q_b4ee8f92-bc07-4252-b5aa-01a69cbc5ad4/backend/0.log
+      - targets:
+        - localhost
+        labels:
+          job: econ-graph-logs
+          app: econ-graph-backend
+          namespace: econ-graph
+          container: backend
+          __path__: /var/log/pods/econ-graph_econ-graph-backend-7bf6cfdbbb-qdxtp_a76eb053-ef91-4a66-9ee8-c7fd3a1e5275/backend/0.log
+      pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\S+) (?P<stream>stdout|stderr) (?P<flags>\S+) (?P<content>.*)$'
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+      - labels:
+          stream:
+          flags:
+      - output:
+          source: content

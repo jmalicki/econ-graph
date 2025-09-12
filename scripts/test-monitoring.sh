@@ -83,6 +83,30 @@ check_pod_status() {
     done
 }
 
+# Function to check Grafana uniqueness
+check_grafana_uniqueness() {
+    print_status "INFO" "Checking Grafana instance uniqueness..."
+
+    # Count Grafana pods
+    local grafana_pods=$(kubectl get pods -n $NAMESPACE -l app=grafana --no-headers | wc -l)
+
+    if [ "$grafana_pods" -eq 0 ]; then
+        print_status "ERROR" "No Grafana pods found"
+        return 1
+    elif [ "$grafana_pods" -eq 1 ]; then
+        print_status "SUCCESS" "Exactly 1 Grafana pod found (correct)"
+        return 0
+    else
+        print_status "ERROR" "Found $grafana_pods Grafana pods - should be exactly 1 to avoid data loss and configuration conflicts"
+        print_status "ERROR" "Multiple Grafana instances can cause:"
+        print_status "ERROR" "  - Data loss (different persistent volumes)"
+        print_status "ERROR" "  - Configuration inconsistencies (different datasource UIDs)"
+        print_status "ERROR" "  - Load balancing issues"
+        print_status "ERROR" "  - Resource waste"
+        return 1
+    fi
+}
+
 # Function to generate test activity
 generate_test_activity() {
     print_status "INFO" "Generating test activity..."
@@ -432,6 +456,83 @@ test_prometheus_metrics() {
     fi
 }
 
+# Function to check for Grafana dashboard errors
+check_grafana_dashboard_errors() {
+    print_status "INFO" "Checking for Grafana dashboard errors..."
+
+    local failed=0
+
+    # Get list of dashboards
+    local dashboards_response=$(curl -s -b /tmp/grafana_cookies.txt "$GRAFANA_URL/api/search?query=econgraph" 2>/dev/null)
+
+    if [ -z "$dashboards_response" ] || [ "$dashboards_response" = "[]" ]; then
+        print_status "ERROR" "No EconGraph dashboards found"
+        return 1
+    fi
+
+    # Extract dashboard UIDs
+    local dashboard_uids=$(echo "$dashboards_response" | jq -r '.[].uid' 2>/dev/null)
+
+    for uid in $dashboard_uids; do
+        if [ -n "$uid" ] && [ "$uid" != "null" ]; then
+            print_status "INFO" "Checking dashboard with UID: $uid"
+
+            # Get dashboard details
+            local dashboard_response=$(curl -s -b /tmp/grafana_cookies.txt "$GRAFANA_URL/api/dashboards/uid/$uid" 2>/dev/null)
+
+            if [ -n "$dashboard_response" ]; then
+                # Check for datasource errors in the dashboard JSON
+                local datasource_errors=$(echo "$dashboard_response" | jq -r '.dashboard.panels[]?.targets[]?.datasource.uid // empty' 2>/dev/null | grep -v "null" | sort -u)
+
+                if [ -n "$datasource_errors" ]; then
+                    print_status "INFO" "Dashboard $uid uses datasource UIDs: $(echo $datasource_errors | tr '\n' ' ')"
+
+                    # Check if any datasource UIDs are not found
+                    local datasources_response=$(curl -s -b /tmp/grafana_cookies.txt "$GRAFANA_URL/api/datasources" 2>/dev/null)
+                    local available_uids=$(echo "$datasources_response" | jq -r '.[].uid' 2>/dev/null | sort -u)
+
+                    for required_uid in $datasource_errors; do
+                        if ! echo "$available_uids" | grep -q "^$required_uid$"; then
+                            print_status "ERROR" "Dashboard $uid references missing datasource UID: $required_uid"
+                            print_status "ERROR" "Available datasource UIDs: $(echo $available_uids | tr '\n' ' ')"
+                            failed=1
+                        else
+                            print_status "SUCCESS" "Dashboard $uid datasource UID $required_uid is available"
+                        fi
+                    done
+                else
+                    print_status "WARNING" "Dashboard $uid has no datasource references found"
+                fi
+
+                # Check for panel errors by looking for error states in the dashboard
+                local panel_errors=$(echo "$dashboard_response" | jq -r '.dashboard.panels[]? | select(.error != null) | .title' 2>/dev/null)
+                if [ -n "$panel_errors" ]; then
+                    print_status "ERROR" "Dashboard $uid has panels with errors: $panel_errors"
+                    failed=1
+                fi
+
+                # Check for datasource not found errors in panel targets
+                local datasource_not_found=$(echo "$dashboard_response" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.uid == "loki-uid" or .datasource.uid == "prometheus-uid") | select(.datasource.uid != null) | .datasource.uid' 2>/dev/null | sort -u)
+                if [ -n "$datasource_not_found" ]; then
+                    print_status "INFO" "Dashboard $uid references expected datasource UIDs: $(echo $datasource_not_found | tr '\n' ' ')"
+                fi
+
+            else
+                print_status "ERROR" "Could not retrieve dashboard details for UID: $uid"
+                failed=1
+            fi
+        fi
+    done
+
+    if [ $failed -eq 1 ]; then
+        print_status "ERROR" "Dashboard error checks failed - there are datasource or panel errors"
+        return 1
+    else
+        print_status "SUCCESS" "No dashboard errors detected"
+        return 0
+    fi
+}
+
 # Function to test Grafana dashboard data
 test_grafana_dashboard_data() {
     print_status "INFO" "Testing comprehensive Grafana dashboard data integration..."
@@ -536,6 +637,11 @@ main() {
     check_pod_status "grafana" "Running" || exit 1
     echo
 
+    # Step 1.5: Check Grafana uniqueness
+    print_status "INFO" "Step 1.5: Checking Grafana instance uniqueness"
+    check_grafana_uniqueness || exit 1
+    echo
+
     # Step 2: Wait for services
     print_status "INFO" "Step 2: Waiting for services to be ready"
     wait_for_service "Backend" "$BACKEND_URL" || exit 1
@@ -583,13 +689,26 @@ main() {
     print_status "INFO" "Step 8: Testing Grafana dashboard data integration"
     if test_grafana_dashboard_data; then
         print_status "SUCCESS" "Grafana dashboards are working with real data!"
+    else
+        print_status "ERROR" "❌ GRAFANA DASHBOARD TESTS FAILED!"
+        print_status "ERROR" "Dashboards are not working properly - check configuration"
+        print_status "INFO" "Grafana URL: $GRAFANA_URL (admin/admin)"
+        print_status "INFO" "Backend URL: $BACKEND_URL"
+        exit 1
+    fi
+    echo
+
+    # Step 9: Check for dashboard errors (exclamation point in triangle)
+    print_status "INFO" "Step 9: Checking for Grafana dashboard errors"
+    if check_grafana_dashboard_errors; then
+        print_status "SUCCESS" "No dashboard errors detected!"
         echo
         print_status "SUCCESS" "🎉 ALL TESTS PASSED! Monitoring stack is fully functional."
         print_status "INFO" "Grafana URL: $GRAFANA_URL (admin/admin)"
         print_status "INFO" "Backend URL: $BACKEND_URL"
     else
-        print_status "ERROR" "❌ GRAFANA DASHBOARD TESTS FAILED!"
-        print_status "ERROR" "Dashboards are not working properly - check configuration"
+        print_status "ERROR" "❌ DASHBOARD ERROR CHECKS FAILED!"
+        print_status "ERROR" "Dashboards have datasource or panel errors - check the exclamation point warnings"
         print_status "INFO" "Grafana URL: $GRAFANA_URL (admin/admin)"
         print_status "INFO" "Backend URL: $BACKEND_URL"
         exit 1

@@ -92,10 +92,33 @@ kubectl apply -f k8s/monitoring/
 
 # Ensure Grafana dashboards are properly configured
 echo "📋 Configuring Grafana dashboards..."
-kubectl create configmap grafana-dashboards \
-  --from-file=grafana-dashboards/econgraph-overview.json \
-  --from-file=k8s/monitoring/grafana-logging-dashboard.yaml \
-  --dry-run=client -o yaml | kubectl apply -f -
+# Create ConfigMap with proper JSON embedding to avoid truncation
+cat > /tmp/grafana-dashboards.yaml << 'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: econ-graph
+  labels:
+    grafana_dashboard: "1"
+data:
+  econgraph-overview.json: |
+EOF
+
+# Append the full JSON content with proper indentation
+cat grafana-dashboards/econgraph-overview.json | sed 's/^/    /' >> /tmp/grafana-dashboards.yaml
+
+# Add the logging dashboard
+cat >> /tmp/grafana-dashboards.yaml << 'EOF'
+  logging-dashboard.json: |
+EOF
+
+# Extract and append the JSON content from the YAML file
+yq eval '.data.dashboard' k8s/monitoring/grafana-logging-dashboard.yaml | sed 's/^/    /' >> /tmp/grafana-dashboards.yaml
+
+# Apply the ConfigMap
+kubectl apply -f /tmp/grafana-dashboards.yaml
+rm -f /tmp/grafana-dashboards.yaml
 
 # Wait for all pods to be ready
 echo "⏳ Waiting for all pods to be ready..."
