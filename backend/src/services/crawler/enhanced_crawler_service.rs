@@ -45,7 +45,7 @@ impl EnhancedCrawlerService {
 
         // Create crawl attempt record
         let new_attempt = NewCrawlAttempt {
-            series_id: Some(*series_id),
+            series_id: *series_id,
             attempted_at: Some(start_time),
             crawl_method: "api".to_string(),
             crawl_url: Some(self.build_crawl_url(source_name, external_id)),

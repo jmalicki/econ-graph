@@ -68,7 +68,7 @@ diesel::table! {
 diesel::table! {
     crawl_attempts (id) {
         id -> Uuid,
-        series_id -> Nullable<Uuid>,
+        series_id -> Uuid,
         attempted_at -> Timestamptz,
         completed_at -> Nullable<Timestamptz>,
         crawl_method -> Varchar,
@@ -386,6 +386,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    user_data_source_preferences (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        data_source_id -> Uuid,
+        is_visible -> Bool,
+        is_favorite -> Bool,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Uuid,
         #[max_length = 255]
@@ -421,6 +433,7 @@ diesel::joinable!(annotation_comments -> chart_annotations (annotation_id));
 diesel::joinable!(annotation_comments -> users (user_id));
 diesel::joinable!(audit_logs -> users (user_id));
 diesel::joinable!(chart_annotations -> users (user_id));
+diesel::joinable!(crawl_attempts -> economic_series (series_id));
 diesel::joinable!(data_points -> economic_series (series_id));
 diesel::joinable!(economic_series -> data_sources (source_id));
 diesel::joinable!(event_country_impacts -> countries (country_id));
@@ -429,6 +442,8 @@ diesel::joinable!(global_economic_events -> countries (primary_country_id));
 diesel::joinable!(global_economic_indicators -> countries (country_id));
 diesel::joinable!(global_indicator_data -> global_economic_indicators (indicator_id));
 diesel::joinable!(series_metadata -> data_sources (source_id));
+diesel::joinable!(user_data_source_preferences -> data_sources (data_source_id));
+diesel::joinable!(user_data_source_preferences -> users (user_id));
 diesel::joinable!(user_sessions -> users (user_id));
 diesel::joinable!(security_events -> users (user_id));
 
@@ -452,6 +467,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     security_events,
     series_metadata,
     trade_relationships,
+    user_data_source_preferences,
     user_sessions,
     users,
 );
