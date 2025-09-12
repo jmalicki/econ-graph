@@ -1000,10 +1000,14 @@ pub struct CreateUserInput {
     pub email: String,
     /// Display name
     pub name: String,
+    /// Password (for email-based users)
+    pub password: Option<String>,
     /// User role
     pub role: String,
     /// Organization (optional)
     pub organization: Option<String>,
+    /// Whether account is active
+    pub is_active: Option<bool>,
     /// Whether to send welcome email
     pub send_welcome_email: Option<bool>,
 }
@@ -1011,12 +1015,24 @@ pub struct CreateUserInput {
 /// Input for updating a user (admin only)
 #[derive(InputObject)]
 pub struct UpdateUserInput {
+    /// Email address
+    pub email: Option<String>,
     /// Display name (optional)
     pub name: Option<String>,
+    /// Avatar URL (optional)
+    pub avatar_url: Option<String>,
     /// User role (optional)
     pub role: Option<String>,
     /// Organization (optional)
     pub organization: Option<String>,
+    /// UI theme preference
+    pub theme: Option<String>,
+    /// Default chart type preference
+    pub default_chart_type: Option<String>,
+    /// Whether notifications are enabled
+    pub notifications_enabled: Option<bool>,
+    /// Whether collaboration features are enabled
+    pub collaboration_enabled: Option<bool>,
     /// Whether account is active (optional)
     pub is_active: Option<bool>,
     /// Whether email is verified (optional)
@@ -1026,18 +1042,16 @@ pub struct UpdateUserInput {
 /// Input for filtering users (admin only)
 #[derive(InputObject)]
 pub struct UserFilterInput {
-    /// Search term for name or email
-    pub search: Option<String>,
     /// Filter by role
     pub role: Option<String>,
-    /// Filter by status (active/inactive)
-    pub status: Option<String>,
     /// Filter by organization
     pub organization: Option<String>,
-    /// Created after date
-    pub created_after: Option<DateTime<Utc>>,
-    /// Created before date
-    pub created_before: Option<DateTime<Utc>>,
+    /// Filter by active status
+    pub is_active: Option<bool>,
+    /// Filter by email verified status
+    pub email_verified: Option<bool>,
+    /// Search term for name or email
+    pub search_query: Option<String>,
 }
 
 /// Input for filtering audit logs (admin only)
@@ -1073,14 +1087,10 @@ pub struct UserSessionType {
     pub id: ID,
     /// User ID
     pub user_id: ID,
-    /// User name
-    pub user_name: String,
-    /// User email
-    pub user_email: String,
     /// Session creation time
     pub created_at: DateTime<Utc>,
     /// Last activity time
-    pub last_used_at: Option<DateTime<Utc>>,
+    pub last_activity: DateTime<Utc>,
     /// Session expiration time
     pub expires_at: DateTime<Utc>,
     /// User agent string
@@ -1096,38 +1106,10 @@ pub struct UserSessionType {
 pub struct SystemHealthType {
     /// Overall system status
     pub status: String,
-    /// List of service statuses
-    pub services: Vec<ServiceStatusType>,
     /// System metrics
     pub metrics: SystemMetricsType,
     /// Last updated timestamp
     pub last_updated: DateTime<Utc>,
-}
-
-/// GraphQL representation of service status
-#[derive(Clone, SimpleObject)]
-pub struct ServiceStatusType {
-    /// Service name
-    pub name: String,
-    /// Service status (running/stopped/degraded)
-    pub status: String,
-    /// Service uptime
-    pub uptime: String,
-    /// Service version
-    pub version: String,
-    /// Resource utilization
-    pub resources: ServiceResourcesType,
-}
-
-/// GraphQL representation of service resources
-#[derive(Clone, SimpleObject)]
-pub struct ServiceResourcesType {
-    /// CPU usage percentage
-    pub cpu_percent: f64,
-    /// Memory usage percentage
-    pub memory_percent: f64,
-    /// Disk usage percentage
-    pub disk_percent: f64,
 }
 
 /// GraphQL representation of system metrics
