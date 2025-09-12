@@ -288,6 +288,11 @@ async fn simulate_fred_crawl(
         start_date: None,
         end_date: None,
         is_active: true,
+        first_discovered_at: Some(chrono::Utc::now()),
+        last_crawled_at: None,
+        first_missing_date: None,
+        crawl_status: None,
+        crawl_error_message: None,
     };
 
     let series =
@@ -376,6 +381,10 @@ pub async fn create_demo_data_for_ui(
         base_url: "https://fred.stlouisfed.org/".to_string(),
         api_key_required: true,
         rate_limit_per_minute: 120,
+        is_visible: true,
+        is_enabled: true,
+        requires_admin_approval: false,
+        crawl_frequency_hours: 24,
     };
     let data_source = DataSource::create(pool, new_data_source).await?;
 

@@ -17,6 +17,13 @@ pub struct DataSource {
     pub base_url: String,
     pub api_key_required: bool,
     pub rate_limit_per_minute: i32,
+    pub is_visible: bool,
+    pub is_enabled: bool,
+    pub requires_admin_approval: bool,
+    pub crawl_frequency_hours: i32,
+    pub last_crawl_at: Option<DateTime<Utc>>,
+    pub crawl_status: Option<String>,
+    pub crawl_error_message: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -34,6 +41,10 @@ pub struct NewDataSource {
     pub api_key_required: bool,
     #[validate(range(min = 1, max = 10000))]
     pub rate_limit_per_minute: i32,
+    pub is_visible: bool,
+    pub is_enabled: bool,
+    pub requires_admin_approval: bool,
+    pub crawl_frequency_hours: i32,
 }
 
 /// Data source update model
@@ -64,6 +75,10 @@ impl DataSource {
             base_url: "https://api.stlouisfed.org/fred".to_string(),
             api_key_required: true,
             rate_limit_per_minute: 120,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 6,
         }
     }
 
@@ -78,6 +93,10 @@ impl DataSource {
             base_url: "https://api.bls.gov/publicAPI/v2".to_string(),
             api_key_required: true,
             rate_limit_per_minute: 500,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 12,
         }
     }
 
@@ -91,6 +110,10 @@ impl DataSource {
             base_url: "https://api.census.gov/data".to_string(),
             api_key_required: true,
             rate_limit_per_minute: 500,
+            is_visible: false,
+            is_enabled: false,
+            requires_admin_approval: true,
+            crawl_frequency_hours: 24,
         }
     }
 
@@ -104,6 +127,44 @@ impl DataSource {
             base_url: "https://api.worldbank.org/v2".to_string(),
             api_key_required: false,
             rate_limit_per_minute: 1000,
+            is_visible: false,
+            is_enabled: false,
+            requires_admin_approval: true,
+            crawl_frequency_hours: 24,
+        }
+    }
+
+    /// Create BEA source
+    pub fn bea() -> NewDataSource {
+        NewDataSource {
+            name: "Bureau of Economic Analysis (BEA)".to_string(),
+            description: Some(
+                "U.S. economic statistics including GDP, NIPA, ITA, and Regional data".to_string(),
+            ),
+            base_url: "https://apps.bea.gov/api/data".to_string(),
+            api_key_required: true,
+            rate_limit_per_minute: 1000,
+            is_visible: false,
+            is_enabled: false,
+            requires_admin_approval: true,
+            crawl_frequency_hours: 24,
+        }
+    }
+
+    /// Create IMF source
+    pub fn imf() -> NewDataSource {
+        NewDataSource {
+            name: "International Monetary Fund (IMF)".to_string(),
+            description: Some(
+                "Global economic and financial data including IFS, BOP, GFS, and WEO".to_string(),
+            ),
+            base_url: "https://dataservices.imf.org/REST/SDMX_JSON.svc".to_string(),
+            api_key_required: false,
+            rate_limit_per_minute: 1000,
+            is_visible: false,
+            is_enabled: false,
+            requires_admin_approval: true,
+            crawl_frequency_hours: 24,
         }
     }
 
@@ -186,6 +247,10 @@ impl Default for NewDataSource {
             base_url: String::new(),
             api_key_required: false,
             rate_limit_per_minute: 60,
+            is_visible: false,
+            is_enabled: false,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         }
     }
 }
