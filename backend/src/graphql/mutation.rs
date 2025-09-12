@@ -133,6 +133,78 @@ impl Mutation {
 
         Ok(true)
     }
+
+    // Admin User Management Mutations
+
+    /// Create a new user (admin only)
+    async fn create_user(&self, ctx: &Context<'_>, input: CreateUserInput) -> Result<UserType> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+
+        // Create user logic would go here
+        // For now, return a placeholder
+        Err(Error::new("User creation not yet implemented"))
+    }
+
+    /// Update user information (admin only)
+    async fn update_user(
+        &self,
+        ctx: &Context<'_>,
+        id: ID,
+        input: UpdateUserInput,
+    ) -> Result<UserType> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+        let user_id = uuid::Uuid::parse_str(&id)?;
+
+        // Update user logic would go here
+        // For now, return a placeholder
+        Err(Error::new("User update not yet implemented"))
+    }
+
+    /// Delete a user (admin only)
+    async fn delete_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+        let user_id = uuid::Uuid::parse_str(&id)?;
+
+        // Delete user logic would go here
+        // For now, return a placeholder
+        Err(Error::new("User deletion not yet implemented"))
+    }
+
+    /// Suspend a user account (admin only)
+    async fn suspend_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+        let user_id = uuid::Uuid::parse_str(&id)?;
+
+        // Suspend user logic would go here
+        // For now, return a placeholder
+        Err(Error::new("User suspension not yet implemented"))
+    }
+
+    /// Activate a user account (admin only)
+    async fn activate_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+        let user_id = uuid::Uuid::parse_str(&id)?;
+
+        // Activate user logic would go here
+        // For now, return a placeholder
+        Err(Error::new("User activation not yet implemented"))
+    }
+
+    /// Force logout a user (admin only)
+    async fn force_logout_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
+        // TODO: Add admin role check
+        let pool = ctx.data::<DatabasePool>()?;
+        let user_id = uuid::Uuid::parse_str(&id)?;
+
+        // Force logout logic would go here
+        // For now, return a placeholder
+        Err(Error::new("Force logout not yet implemented"))
+    }
 }
 
 #[cfg(test)]
