@@ -103,7 +103,8 @@ impl DataSource {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 12,
-            api_documentation_url: "https://www.bls.gov/developers/api_signature_v2.htm".to_string(),
+            api_documentation_url: "https://www.bls.gov/developers/api_signature_v2.htm"
+                .to_string(),
         }
     }
 
@@ -121,7 +122,8 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://www.census.gov/data/developers/data-sets.html".to_string(),
+            api_documentation_url: "https://www.census.gov/data/developers/data-sets.html"
+                .to_string(),
         }
     }
 
@@ -157,7 +159,8 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
-            api_documentation_url: "https://apps.bea.gov/api/bea_web_service_api_user_guide.htm".to_string(),
+            api_documentation_url: "https://apps.bea.gov/api/bea_web_service_api_user_guide.htm"
+                .to_string(),
         }
     }
 

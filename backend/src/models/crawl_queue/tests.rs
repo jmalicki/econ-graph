@@ -73,7 +73,7 @@ async fn test_basic_queue_operations() {
         is_enabled: true,
         requires_admin_approval: false,
         crawl_frequency_hours: 24,
-        api_documentation_url: Some("https://queue.example.com/docs".to_string()),
+        api_documentation_url: "https://queue.example.com/docs".to_string(),
     };
 
     let source: DataSource = diesel::insert_into(data_sources::table)
