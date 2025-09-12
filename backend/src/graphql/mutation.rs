@@ -1,6 +1,9 @@
 use async_graphql::*;
 
-use crate::{database::DatabasePool, graphql::types::*};
+use crate::{
+    database::DatabasePool,
+    graphql::{context::require_admin, types::*},
+};
 
 /// Root mutation object
 pub struct Mutation;
@@ -138,7 +141,8 @@ impl Mutation {
 
     /// Create a new user (admin only)
     async fn create_user(&self, ctx: &Context<'_>, input: CreateUserInput) -> Result<UserType> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
         // Create user logic would go here
@@ -153,7 +157,8 @@ impl Mutation {
         id: ID,
         input: UpdateUserInput,
     ) -> Result<UserType> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
         let user_id = uuid::Uuid::parse_str(&id)?;
 
@@ -164,7 +169,8 @@ impl Mutation {
 
     /// Delete a user (admin only)
     async fn delete_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
         let user_id = uuid::Uuid::parse_str(&id)?;
 
@@ -175,7 +181,8 @@ impl Mutation {
 
     /// Suspend a user account (admin only)
     async fn suspend_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
         let user_id = uuid::Uuid::parse_str(&id)?;
 
@@ -186,7 +193,8 @@ impl Mutation {
 
     /// Activate a user account (admin only)
     async fn activate_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
         let user_id = uuid::Uuid::parse_str(&id)?;
 
@@ -197,7 +205,8 @@ impl Mutation {
 
     /// Force logout a user (admin only)
     async fn force_logout_user(&self, ctx: &Context<'_>, id: ID) -> Result<bool> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
         let user_id = uuid::Uuid::parse_str(&id)?;
 

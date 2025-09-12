@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     database::DatabasePool,
-    graphql::types::*,
+    graphql::{context::require_admin, types::*},
     models::search::SearchParams,
     services::{search_service::SearchService, series_service},
 };
@@ -380,7 +380,8 @@ impl Query {
         filter: Option<UserFilterInput>,
         pagination: Option<PaginationInput>,
     ) -> Result<UserConnection> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
         // Get users logic would go here
@@ -403,7 +404,8 @@ impl Query {
         ctx: &Context<'_>,
         user_id: Option<ID>,
     ) -> Result<Vec<UserSessionType>> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
         // Get user sessions logic would go here
@@ -413,7 +415,8 @@ impl Query {
 
     /// Get active user sessions (admin only)
     async fn active_sessions(&self, ctx: &Context<'_>) -> Result<Vec<UserSessionType>> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
         // Get active sessions logic would go here
@@ -423,7 +426,8 @@ impl Query {
 
     /// Get system health metrics (admin only)
     async fn system_health(&self, ctx: &Context<'_>) -> Result<SystemHealthType> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
         // Get system health logic would go here
@@ -451,7 +455,8 @@ impl Query {
         ctx: &Context<'_>,
         limit: Option<i32>,
     ) -> Result<Vec<SecurityEventType>> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
         // Get security events logic would go here
@@ -466,7 +471,8 @@ impl Query {
         filter: Option<AuditLogFilterInput>,
         pagination: Option<PaginationInput>,
     ) -> Result<AuditLogConnection> {
-        // TODO: Add admin role check
+        // Require admin role
+        let _admin_user = require_admin(ctx)?;
         let pool = ctx.data::<DatabasePool>()?;
 
         // Get audit logs logic would go here
