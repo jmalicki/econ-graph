@@ -120,8 +120,7 @@ pub async fn discover_unstats_series(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::database::create_pool;
-    use crate::test_utils::DatabaseTestExt;
+    use crate::test_utils::TestContainer;
     use tokio;
 
     #[tokio::test]
@@ -144,9 +143,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_discover_unstats_series_integration() {
-        let container = DatabaseTestExt::new().await;
-        let pool = create_pool(&container.database_url).await;
-        let discovered_series = discover_unstats_series(&Client::new(), &pool).await;
+        let container = TestContainer::new().await;
+        let pool = &container.pool;
+        let discovered_series = discover_unstats_series(&Client::new(), pool).await;
         assert!(discovered_series.is_ok());
         let series_ids = discovered_series.unwrap();
         assert!(!series_ids.is_empty());
