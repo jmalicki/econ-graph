@@ -608,14 +608,14 @@ mod tests {
             .await
             .map_err(|e| AppError::database_error(format!("Failed to get connection: {}", e)))?;
 
-        // Generate unique test identifiers to avoid conflicts
-        let test_id = Uuid::new_v4().to_string()[..1].to_string();
+        // Generate unique test identifiers to avoid conflicts with migration data
+        let test_id = Uuid::new_v4().to_string()[..8].to_string(); // Use 8 chars for better uniqueness
 
-        // Create test countries using NewCountry structs
+        // Create test countries using NewCountry structs with TEST prefix to avoid conflicts
         let country_a = NewCountry {
-            iso_code: format!("US{}", test_id),
-            iso_code_2: format!("U{}", test_id),
-            name: format!("United States {}", test_id),
+            iso_code: format!("T{}", &test_id[..2]), // T + 2 chars = 3 total
+            iso_code_2: format!("T{}", &test_id[..1]), // T + 1 char = 2 total
+            name: format!("TEST United States {}", test_id),
             region: "North America".to_string(),
             sub_region: Some("Northern America".to_string()),
             income_group: Some("High income".to_string()),
@@ -629,9 +629,9 @@ mod tests {
         };
 
         let country_b = NewCountry {
-            iso_code: format!("CN{}", test_id),
-            iso_code_2: format!("C{}", test_id),
-            name: format!("China {}", test_id),
+            iso_code: format!("C{}", &test_id[..2]), // C + 2 chars = 3 total
+            iso_code_2: format!("C{}", &test_id[..1]), // C + 1 char = 2 total
+            name: format!("TEST China {}", test_id),
             region: "Asia".to_string(),
             sub_region: Some("Eastern Asia".to_string()),
             income_group: Some("Upper middle income".to_string()),
@@ -645,9 +645,9 @@ mod tests {
         };
 
         let country_c = NewCountry {
-            iso_code: format!("DE{}", test_id),
-            iso_code_2: format!("D{}", test_id),
-            name: format!("Germany {}", test_id),
+            iso_code: format!("G{}", &test_id[..2]), // G + 2 chars = 3 total
+            iso_code_2: format!("G{}", &test_id[..1]), // G + 1 char = 2 total
+            name: format!("TEST Germany {}", test_id),
             region: "Europe".to_string(),
             sub_region: Some("Western Europe".to_string()),
             income_group: Some("High income".to_string()),
@@ -780,7 +780,7 @@ mod tests {
 
         // Create global economic event with unique name to avoid conflicts with migration data
         let event = NewGlobalEconomicEvent {
-            name: format!("Test COVID-19 Pandemic {}", test_id),
+            name: format!("TEST COVID-19 Pandemic {}", test_id),
             description: Some("Global economic disruption from COVID-19".to_string()),
             event_type: "Pandemic".to_string(),
             severity: "Critical".to_string(),
@@ -830,6 +830,7 @@ mod tests {
     #[serial]
     async fn test_get_countries_with_economic_data() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
@@ -850,8 +851,8 @@ mod tests {
             .find(|c| c.country.id == country_a_id)
             .expect("Should find USA country");
 
-        assert!(usa_country.country.name.starts_with("United States"));
-        assert!(usa_country.country.iso_code.starts_with("US"));
+        assert!(usa_country.country.name.starts_with("TEST United States"));
+        assert!(usa_country.country.iso_code.starts_with("T"));
         assert!(usa_country.latest_gdp.is_some(), "Should have GDP data");
         assert!(
             usa_country.latest_gdp_growth.is_some(),
@@ -871,6 +872,7 @@ mod tests {
     #[serial]
     async fn test_calculate_country_correlations() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
@@ -909,6 +911,7 @@ mod tests {
     #[serial]
     async fn test_get_correlation_network() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
@@ -988,6 +991,7 @@ mod tests {
     #[serial]
     async fn test_get_global_events_with_impacts() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
@@ -1010,7 +1014,7 @@ mod tests {
         // Find our test event among all events
         let test_event = result
             .iter()
-            .find(|e| e.event.name.starts_with("Test COVID-19 Pandemic"))
+            .find(|e| e.event.name.starts_with("TEST COVID-19 Pandemic"))
             .expect("Should find our test event");
 
         println!("Event name: {}", test_event.event.name);
@@ -1037,6 +1041,7 @@ mod tests {
     #[serial]
     async fn test_event_insertion_only() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
         let mut conn = pool.get().await.expect("Failed to get connection");
 
@@ -1071,6 +1076,7 @@ mod tests {
     #[serial]
     async fn test_direct_event_query() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
         let mut conn = pool.get().await.expect("Failed to get connection");
 
@@ -1082,7 +1088,7 @@ mod tests {
         // Query events directly from database - look for our test event
         use crate::schema::global_economic_events::dsl::*;
         let events = global_economic_events
-            .filter(name.like("Test COVID-19 Pandemic%"))
+            .filter(name.like("TEST COVID-19 Pandemic%"))
             .load::<GlobalEconomicEvent>(&mut conn)
             .await
             .expect("Failed to query events");
@@ -1097,6 +1103,7 @@ mod tests {
     #[serial]
     async fn test_get_global_events_with_filters() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
@@ -1121,7 +1128,7 @@ mod tests {
         // Verify results - find our test event
         let test_event = result
             .iter()
-            .find(|e| e.event.name.starts_with("Test COVID-19 Pandemic"))
+            .find(|e| e.event.name.starts_with("TEST COVID-19 Pandemic"))
             .expect("Should find our test event within the date range");
 
         assert!(test_event.event.start_date >= start_filter.unwrap());
@@ -1142,6 +1149,7 @@ mod tests {
     #[serial]
     async fn test_calculate_economic_health_score() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
@@ -1173,6 +1181,7 @@ mod tests {
     #[serial]
     async fn test_trade_partners_retrieval() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
@@ -1202,7 +1211,7 @@ mod tests {
             .find(|p| p.country.id == country_b_id)
             .expect("Should find China as trade partner");
 
-        assert!(china_partner.country.name.starts_with("China"));
+        assert!(china_partner.country.name.starts_with("TEST China"));
         assert!(china_partner.trade_value_usd > BigDecimal::from(0));
         assert!(china_partner.trade_intensity > 0.0);
         assert!(!china_partner.relationship_type.is_empty());
@@ -1216,6 +1225,7 @@ mod tests {
         // For now, we'll test with invalid parameters that should cause errors
 
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Test with invalid date range (end before start)
@@ -1242,6 +1252,7 @@ mod tests {
     #[serial]
     async fn test_correlation_network_centrality_calculation() {
         let container = TestContainer::new().await;
+        container.clean_database().await; // Clean database to avoid test pollution
         let pool = container.pool();
 
         // Setup test data
