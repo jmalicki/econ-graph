@@ -323,6 +323,10 @@ mod _inline_tests {
             base_url: "https://api.example.com".to_string(),
             api_key_required: false,
             rate_limit_per_minute: 100,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         };
 
         // Verify valid configuration passes validation
@@ -338,6 +342,10 @@ mod _inline_tests {
             base_url: "not-a-url".to_string(), // Invalid URL format
             api_key_required: false,
             rate_limit_per_minute: 100,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         };
 
         assert!(
@@ -352,6 +360,10 @@ mod _inline_tests {
             base_url: "https://api.example.com".to_string(),
             api_key_required: false,
             rate_limit_per_minute: 50000, // Unrealistically high rate limit
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         };
 
         assert!(

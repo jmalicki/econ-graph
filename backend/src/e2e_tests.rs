@@ -42,6 +42,10 @@ async fn test_complete_graphql_workflow() {
             base_url: "https://e2e-test.example.com/api".to_string(),
             api_key_required: false,
             rate_limit_per_minute: 1000,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         },
     )
     .await
@@ -57,6 +61,11 @@ async fn test_complete_graphql_workflow() {
             units: Some("Percent".to_string()),
             frequency: "Monthly".to_string(),
             seasonal_adjustment: Some("Not Seasonally Adjusted".to_string()),
+            first_discovered_at: Some(chrono::Utc::now()),
+            last_crawled_at: None,
+            first_missing_date: None,
+            crawl_status: None,
+            crawl_error_message: None,
             start_date: Some(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap()),
             end_date: Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()),
             is_active: true,
@@ -265,6 +274,10 @@ async fn test_search_integration_workflow() {
             base_url: "https://search-test.example.com/api".to_string(),
             api_key_required: false,
             rate_limit_per_minute: 1000,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         },
     )
     .await
@@ -309,6 +322,11 @@ async fn test_search_integration_workflow() {
                 seasonal_adjustment: None,
                 start_date: Some(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap()),
                 end_date: Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()),
+                first_discovered_at: Some(chrono::Utc::now()),
+                last_crawled_at: None,
+                first_missing_date: None,
+                crawl_status: None,
+                crawl_error_message: None,
                 is_active: true,
             },
         )
@@ -429,6 +447,10 @@ async fn test_data_transformation_workflow() {
             description: Some("Data source for transformation testing".to_string()),
             base_url: "https://transform-test.example.com/api".to_string(),
             api_key_required: false,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
             rate_limit_per_minute: 1000,
         },
     )
@@ -448,6 +470,11 @@ async fn test_data_transformation_workflow() {
             start_date: Some(NaiveDate::from_ymd_opt(2023, 1, 1).unwrap()),
             end_date: Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()),
             is_active: true,
+            first_discovered_at: Some(chrono::Utc::now()),
+            last_crawled_at: None,
+            first_missing_date: None,
+            crawl_status: None,
+            crawl_error_message: None,
         },
     )
     .await

@@ -166,6 +166,10 @@ impl TestContainer {
             base_url: "https://test.example.com".to_string(),
             api_key_required: false,
             rate_limit_per_minute: 100,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         };
 
         diesel_async::RunQueryDsl::execute(

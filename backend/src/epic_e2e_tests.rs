@@ -84,6 +84,10 @@ mod tests {
             base_url: "https://fred.stlouisfed.org/".to_string(),
             api_key_required: true,
             rate_limit_per_minute: 120,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
+            crawl_frequency_hours: 24,
         };
         let data_source = DataSource::create(&pool, new_data_source)
             .await
