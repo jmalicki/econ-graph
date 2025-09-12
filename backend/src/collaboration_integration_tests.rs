@@ -8,12 +8,12 @@
 mod tests {
     use crate::{
         error::AppResult,
-        models::{NewUser, User},
+        models::user::{NewUser, User},
         services::{collaboration_service::PermissionLevel, CollaborationService},
         test_utils::TestContainer,
     };
     use bigdecimal::BigDecimal;
-    use chrono::{NaiveDate, Utc};
+    use chrono::NaiveDate;
     use diesel::prelude::*;
     use diesel_async::RunQueryDsl;
     use std::str::FromStr;

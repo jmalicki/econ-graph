@@ -10,9 +10,8 @@ mod tests {
     use crate::auth::services::AuthService;
     use crate::test_utils::TestContainer;
     use serde_json::json;
-    use std::collections::HashMap;
+
     use uuid::Uuid;
-    use warp::test;
 
     /// Test authentication service creation
     #[tokio::test]

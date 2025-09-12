@@ -5,11 +5,10 @@
 //! All metrics are exposed via the /metrics endpoint for Prometheus scraping.
 
 use prometheus::{
-    Encoder, Histogram, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge,
-    IntGaugeVec, Opts, Registry, TextEncoder,
+    Histogram, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, Opts, Registry,
+    TextEncoder,
 };
 use std::sync::Arc;
-use warp::http::StatusCode;
 use warp::Reply;
 
 /// Global metrics registry for the application
@@ -393,8 +392,6 @@ pub fn increment_uptime(seconds: u64) {
 mod tests {
     use super::*;
     use serial_test::serial;
-    use std::time::Duration;
-    use tokio::time::sleep;
 
     /// Create a test-specific metrics instance with isolated registry
     fn create_test_metrics() -> anyhow::Result<AppMetrics> {

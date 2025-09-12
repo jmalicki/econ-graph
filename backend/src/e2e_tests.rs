@@ -4,11 +4,7 @@
 
 use bigdecimal::BigDecimal;
 use chrono::NaiveDate;
-use serde_json::json;
 use serial_test::serial;
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::time::sleep;
 
 use crate::models::{
     DataPoint, DataSource, EconomicSeries, NewDataPoint, NewDataSource, NewEconomicSeries,
@@ -578,7 +574,6 @@ async fn test_data_transformation_workflow() {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn test_e2e_test_module_structure() {

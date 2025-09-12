@@ -2,18 +2,13 @@
 // PURPOSE: Test queue operations with real PostgreSQL database including SKIP LOCKED
 // This ensures the crawler queue system works correctly with concurrent processing
 
-use crate::db_test;
 use crate::models::{
     crawl_queue::{CrawlQueueItem, NewCrawlQueueItem, QueuePriority, QueueStatus},
     data_source::{DataSource, NewDataSource},
 };
 use crate::schema::{crawl_queue, data_sources};
-use crate::test_utils::{DatabaseTestExt, TestContainer};
-use chrono::{NaiveDateTime, Utc};
-use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use std::sync::Arc;
-use uuid::Uuid;
 
 // Simple unit tests that don't require complex database integration
 #[cfg(test)]

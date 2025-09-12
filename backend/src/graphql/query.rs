@@ -5,7 +5,6 @@ use uuid::Uuid;
 use crate::{
     database::DatabasePool,
     graphql::types::*,
-    models::search::SearchParams,
     services::{search_service::SearchService, series_service},
 };
 use std::sync::Arc;

@@ -13,7 +13,7 @@ mod tests {
     use diesel::prelude::*;
     use diesel_async::RunQueryDsl;
     use serial_test::serial;
-    use std::sync::Arc;
+
     use uuid::Uuid;
 
     #[tokio::test]

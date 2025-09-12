@@ -2,9 +2,6 @@
 // PURPOSE: Test search functionality, spelling correction, and synonym support
 // These tests verify the comprehensive search capabilities of the economic data platform
 
-use crate::db_test;
-use crate::test_utils::{DatabaseTestExt, TestContainer};
-use std::sync::Arc;
 // SearchService import disabled - not needed for unit tests
 // use crate::services::search_service::SearchService;
 use crate::models::search::{SearchParams, SearchSortOrder};

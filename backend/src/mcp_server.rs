@@ -695,7 +695,7 @@ pub async fn mcp_handler(
 mod tests {
     use super::*;
     use crate::test_utils::TestContainer;
-    use diesel_async::RunQueryDsl;
+
     use serial_test::serial;
 
     #[tokio::test]
@@ -773,7 +773,7 @@ mod tests {
             "Failed to get database connection"
         );
 
-        let mut conn = connection_result.unwrap();
+        let conn = connection_result.unwrap();
 
         // Test that we can get a connection (connection is already established above)
         // This verifies the testcontainer database is working properly

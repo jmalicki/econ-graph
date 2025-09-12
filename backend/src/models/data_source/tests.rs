@@ -2,10 +2,7 @@
 // PURPOSE: Test data source operations with real PostgreSQL database
 // This ensures the data source model works correctly with all expected operations
 
-use crate::db_test;
-use crate::models::data_source::{DataSource, NewDataSource, UpdateDataSource};
-use crate::test_utils::{DatabaseTestExt, TestContainer};
-use std::sync::Arc;
+use crate::models::data_source::{NewDataSource, UpdateDataSource};
 
 // Simple unit tests that don't require complex database integration
 #[cfg(test)]

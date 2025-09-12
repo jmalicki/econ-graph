@@ -19,7 +19,7 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 // Deadpool-diesel replaced with bb8 and diesel-async
 // use deadpool_diesel::postgres::{Manager, Pool};
 use once_cell::sync::Lazy;
-use testcontainers::{runners::AsyncRunner, ContainerAsync, Image};
+use testcontainers::{runners::AsyncRunner, ContainerAsync};
 use testcontainers_modules::postgres::Postgres;
 use tokio::sync::Mutex;
 
@@ -113,7 +113,6 @@ impl TestContainer {
     pub async fn clean_database(&self) {
         let mut conn = self.pool.get().await.expect("Failed to get connection");
 
-        use diesel_async::RunQueryDsl;
         // REQUIREMENT: Clean database state between tests
         // Truncate all tables in reverse dependency order
         diesel_async::RunQueryDsl::execute(
@@ -155,7 +154,6 @@ impl TestContainer {
     /// Insert test data for common test scenarios
     pub async fn seed_test_data(&self) {
         use crate::schema::data_sources;
-        use diesel_async::RunQueryDsl;
 
         let mut conn = self.pool.get().await.expect("Failed to get connection");
 
@@ -267,7 +265,6 @@ impl DatabaseTestExt for DatabasePool {
     async fn execute_count(&self, query: &str) -> i64 {
         let mut conn = self.get().await.expect("Failed to get connection");
 
-        use diesel_async::RunQueryDsl;
         diesel_async::RunQueryDsl::execute(diesel::sql_query(query), &mut conn)
             .await
             .map(|count| count as i64)
@@ -281,8 +278,6 @@ impl DatabaseTestExt for DatabasePool {
     }
 
     async fn table_row_count(&self, table_name: &str) -> i64 {
-        use diesel_async::RunQueryDsl;
-
         let mut conn = self.get().await.expect("Failed to get connection");
         let query = format!("SELECT COUNT(*) FROM {}", table_name);
 
@@ -314,7 +309,7 @@ mod tests {
         let container = TestContainer::new().await;
 
         // Test basic query
-        use diesel_async::RunQueryDsl;
+
         let mut conn = container
             .pool()
             .get()

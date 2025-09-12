@@ -2,14 +2,8 @@
 // PURPOSE: Test series operations with real PostgreSQL database
 // This ensures the economic series data model works correctly with all expected operations
 
-use crate::db_test;
-use crate::models::{
-    data_source::{DataSource, NewDataSource},
-    economic_series::{EconomicSeries, NewEconomicSeries, SeriesFrequency},
-};
-use crate::test_utils::{DatabaseTestExt, TestContainer};
+use crate::models::economic_series::{NewEconomicSeries, SeriesFrequency};
 use chrono::NaiveDate;
-use std::sync::Arc;
 use uuid::Uuid;
 
 // Simple unit tests that don't require complex database integration

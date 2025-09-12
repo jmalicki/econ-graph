@@ -2,16 +2,9 @@
 // PURPOSE: Test data point operations with real PostgreSQL database including BigDecimal precision
 // This ensures the data point model works correctly with economic time series data
 
-use crate::db_test;
-use crate::models::{
-    data_point::{DataPoint, NewDataPoint},
-    data_source::{DataSource, NewDataSource},
-    economic_series::{EconomicSeries, NewEconomicSeries},
-};
-use crate::test_utils::{DatabaseTestExt, TestContainer};
+use crate::models::data_point::{DataPoint, NewDataPoint};
 use bigdecimal::BigDecimal;
 use chrono::NaiveDate;
-use std::sync::Arc;
 use uuid::Uuid;
 
 // Simple unit tests that don't require complex database integration

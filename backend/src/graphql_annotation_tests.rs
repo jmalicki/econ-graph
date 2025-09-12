@@ -7,14 +7,14 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        database::{create_pool, DatabasePool},
+        database::DatabasePool,
         error::AppResult,
         graphql::create_schema_with_data,
-        models::{NewUser, User},
+        models::user::{NewUser, User},
         test_utils::TestContainer,
     };
     use async_graphql::{Request, Variables};
-    use chrono::NaiveDate;
+
     use diesel::prelude::*;
     use diesel_async::RunQueryDsl;
     use serde_json::json;
