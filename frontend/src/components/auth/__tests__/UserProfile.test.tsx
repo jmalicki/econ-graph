@@ -140,7 +140,7 @@ describe('UserProfile Preferences', () => {
       </TestWrapper>
     );
 
-    // Find the theme select by its label
+    // Find the theme select by its label (now properly associated)
     const themeSelect = screen.getByLabelText('Theme');
     expect(themeSelect).not.toBeDisabled();
 
@@ -160,7 +160,7 @@ describe('UserProfile Preferences', () => {
       </TestWrapper>
     );
 
-    // Find the chart type select by its label
+    // Find the chart type select by its label (now properly associated)
     const chartTypeSelect = screen.getByLabelText('Default Chart Type');
     expect(chartTypeSelect).not.toBeDisabled();
 
@@ -248,7 +248,8 @@ describe('UserProfile Preferences', () => {
     const themeSelect = screen.getByLabelText('Theme');
     fireEvent.mouseDown(themeSelect);
 
-    expect(screen.getByText('Light')).toBeInTheDocument();
+    // Check that both options are available in the dropdown
+    expect(screen.getAllByText('Light')).toHaveLength(2); // One in input, one in dropdown
     expect(screen.getByText('Dark')).toBeInTheDocument();
   });
 
@@ -264,7 +265,8 @@ describe('UserProfile Preferences', () => {
     const chartTypeSelect = screen.getByLabelText('Default Chart Type');
     fireEvent.mouseDown(chartTypeSelect);
 
-    expect(screen.getByText('Line Chart')).toBeInTheDocument();
+    // Check that all options are available in the dropdown
+    expect(screen.getAllByText('Line Chart')).toHaveLength(2); // One in input, one in dropdown
     expect(screen.getByText('Area Chart')).toBeInTheDocument();
     expect(screen.getByText('Bar Chart')).toBeInTheDocument();
     expect(screen.getByText('Candlestick')).toBeInTheDocument();

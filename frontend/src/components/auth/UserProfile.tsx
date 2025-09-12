@@ -274,8 +274,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <FormControl fullWidth>
-                  <InputLabel>Theme</InputLabel>
+                  <InputLabel id='theme-select-label'>Theme</InputLabel>
                   <Select
+                    labelId='theme-select-label'
+                    id='theme-select'
                     value={formData.preferences?.theme || currentTheme}
                     onChange={handleSelectChange('preferences.theme')}
                     label='Theme'
@@ -286,8 +288,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ open, onClose }) => {
                 </FormControl>
 
                 <FormControl fullWidth>
-                  <InputLabel>Default Chart Type</InputLabel>
+                  <InputLabel id='chart-type-select-label'>Default Chart Type</InputLabel>
                   <Select
+                    labelId='chart-type-select-label'
+                    id='chart-type-select'
                     value={formData.preferences?.defaultChartType || 'line'}
                     onChange={handleSelectChange('preferences.defaultChartType')}
                     label='Default Chart Type'
