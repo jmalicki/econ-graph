@@ -1,71 +1,112 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Test Sidebar Fix', () => {
-  test('check if sidebar is now visible', async ({ page }) => {
+  test('check if sidebar is now visible and accessible', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
     // Take a screenshot to see what's actually visible
     await page.screenshot({ path: 'sidebar-debug.png', fullPage: true });
 
-    // Check if sidebar is visible
-    const sidebar = page.locator('[role="navigation"][aria-label="Main navigation"]');
-    console.log('Sidebar visible:', await sidebar.isVisible());
+    // Check if sidebar is visible using new accessibility attributes
+    // Handle both desktop and mobile implementations
+    const desktopSidebar = page.locator('[data-testid="sidebar-desktop"]');
+    const mobileSidebar = page.locator('.MuiDrawer-paper');
 
-    // Check if drawer paper is visible
-    const drawerPaper = page.locator('.MuiDrawer-paper');
-    console.log('Drawer paper visible:', await drawerPaper.isVisible());
+    const isDesktop = await desktopSidebar.isVisible();
+    const isMobile = await mobileSidebar.isVisible();
 
-    // Check for About button
-    const aboutButton = page.getByRole('button', { name: /about/i });
-    console.log('About button visible:', await aboutButton.isVisible());
-
-    // Check for Button elements specifically
-    const buttons = await page.locator('button').all();
-    console.log('Button count:', buttons.length);
-    for (let i = 0; i < buttons.length; i++) {
-      const button = buttons[i];
-      const text = await button.textContent();
-      const isVisible = await button.isVisible();
-      console.log(`  Button ${i}: "${text}" (visible: ${isVisible})`);
-    }
-
-    // Check for ListItemButton elements specifically (old implementation)
-    const listItemButtons = await page.locator('.MuiListItemButton-root').all();
-    console.log('ListItemButton count:', listItemButtons.length);
-
-    // Try different selectors for About
-    const aboutSelectors = [
-      page.getByRole('button', { name: /about/i }),
-      page.getByText('About').first(),
-      page.locator('[role="navigation"] >> text=About').first(),
-      page.locator('.MuiListItemButton-root:has-text("About")'),
-    ];
-
-    let clicked = false;
-    for (let i = 0; i < aboutSelectors.length; i++) {
-      const selector = aboutSelectors[i];
-      const isVisible = await selector.isVisible();
-      const isClickable = await selector.isEnabled().catch(() => false);
-      console.log(`Selector ${i}: visible=${isVisible}, clickable=${isClickable}`);
-
-      if (isVisible || isClickable) {
-        try {
-          await selector.click({ timeout: 1000 });
-          await page.waitForTimeout(500);
-          if (page.url().includes('/about')) {
-            console.log(`Successfully navigated to About page using selector ${i}!`);
-            clicked = true;
-            break;
-          }
-        } catch (e) {
-          console.log(`Selector ${i} click failed:`, e.message);
-        }
+    if (isDesktop) {
+      console.log('Desktop sidebar detected');
+      await expect(desktopSidebar).toBeVisible();
+    } else if (isMobile) {
+      console.log('Mobile sidebar detected');
+      await expect(mobileSidebar).toBeVisible();
+    } else {
+      // Try to open mobile sidebar if it's not visible
+      const menuButton = page.locator('[aria-label="Open navigation menu"]');
+      if (await menuButton.isVisible()) {
+        await menuButton.click();
+        await page.waitForTimeout(500);
+        await expect(mobileSidebar).toBeVisible();
+        console.log('Mobile sidebar opened and visible');
       }
     }
 
-    if (!clicked) {
-      console.log('All About selectors failed');
-    }
+    console.log('Sidebar visible:', isDesktop || isMobile);
+
+    // Check sidebar content structure
+    const sidebarContent = page.locator('[data-testid="sidebar-content"]');
+    await expect(sidebarContent).toBeVisible();
+    console.log('Sidebar content visible:', await sidebarContent.isVisible());
+
+    // Check sidebar header
+    const sidebarHeader = page.locator('[data-testid="sidebar-header"]');
+    await expect(sidebarHeader).toBeVisible();
+    console.log('Sidebar header visible:', await sidebarHeader.isVisible());
+
+    // Check sidebar title
+    const sidebarTitle = page.locator('[data-testid="sidebar-title"]');
+    await expect(sidebarTitle).toBeVisible();
+    await expect(sidebarTitle).toHaveText('EconGraph');
+    console.log('Sidebar title visible:', await sidebarTitle.isVisible());
+
+    // Check navigation sections
+    const primaryNav = page.locator('[data-testid="sidebar-primary-nav"]');
+    await expect(primaryNav).toBeVisible();
+    console.log('Primary navigation visible:', await primaryNav.isVisible());
+
+    const secondaryNav = page.locator('[data-testid="sidebar-secondary-nav"]');
+    await expect(secondaryNav).toBeVisible();
+    console.log('Secondary navigation visible:', await secondaryNav.isVisible());
+
+    // Check specific navigation items using new data-testid attributes
+    const dashboardNav = page.locator('[data-testid="sidebar-nav-dashboard"]');
+    await expect(dashboardNav).toBeVisible();
+    console.log('Dashboard nav visible:', await dashboardNav.isVisible());
+
+    const aboutNav = page.locator('[data-testid="sidebar-nav-about"]');
+    await expect(aboutNav).toBeVisible();
+    console.log('About nav visible:', await aboutNav.isVisible());
+
+    // Test navigation functionality
+    await aboutNav.click();
+    await page.waitForTimeout(500);
+
+    // Verify navigation worked
+    expect(page.url()).toContain('/about');
+    console.log('Successfully navigated to About page!');
+
+    // Test keyboard navigation
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const exploreNav = page.locator('[data-testid="sidebar-nav-explore-series"]');
+    await expect(exploreNav).toBeVisible();
+
+    // Focus and use keyboard navigation
+    await exploreNav.focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(500);
+
+    expect(page.url()).toContain('/explore');
+    console.log('Successfully navigated to Explore page using keyboard!');
+  });
+
+  test('check sidebar accessibility attributes', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Check that navigation items have proper ARIA attributes
+    const aboutNav = page.locator('[data-testid="sidebar-nav-about"]');
+    await expect(aboutNav).toHaveAttribute('role', 'button');
+    await expect(aboutNav).toHaveAttribute('tabindex', '0');
+    await expect(aboutNav).toHaveAttribute('aria-label', 'Navigate to About: About EconGraph');
+
+    // Check that current page is marked with aria-current
+    const dashboardNav = page.locator('[data-testid="sidebar-nav-dashboard"]');
+    await expect(dashboardNav).toHaveAttribute('aria-current', 'page');
+
+    console.log('All accessibility attributes are properly set!');
   });
 });

@@ -86,6 +86,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {items.map(item => (
         <div
           key={item.path}
+          data-testid={`sidebar-nav-${item.text.toLowerCase().replace(/\s+/g, '-')}`}
+          role='button'
+          tabIndex={0}
+          aria-label={`Navigate to ${item.text}: ${item.description}`}
+          aria-current={location.pathname === item.path ? 'page' : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -106,6 +111,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             boxSizing: 'border-box',
           }}
           onClick={() => handleNavigation(item.path)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleNavigation(item.path);
+            }
+          }}
         >
           <div
             style={{
@@ -120,6 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           </div>
           <div style={{ flex: 1 }}>
             <div
+              data-testid={`sidebar-nav-${item.text.toLowerCase().replace(/\s+/g, '-')}-title`}
               style={{
                 fontSize: '0.875rem',
                 fontWeight: location.pathname === item.path ? 600 : 400,
@@ -129,6 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
               {item.text}
             </div>
             <div
+              data-testid={`sidebar-nav-${item.text.toLowerCase().replace(/\s+/g, '-')}-description`}
               style={{
                 fontSize: '0.75rem',
                 color:
@@ -147,9 +160,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   );
 
   const drawerContent = (
-    <div style={{ overflow: 'auto', height: '100%', position: 'relative' }}>
+    <div
+      data-testid='sidebar-content'
+      style={{ overflow: 'auto', height: '100%', position: 'relative' }}
+    >
       {/* Sidebar header */}
       <Box
+        data-testid='sidebar-header'
         sx={{
           p: 2,
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
@@ -158,23 +175,24 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
           <TrendingUpIcon sx={{ mr: 1 }} />
-          <Typography variant='h6' sx={{ fontWeight: 600 }}>
+          <Typography data-testid='sidebar-title' variant='h6' sx={{ fontWeight: 600 }}>
             EconGraph
           </Typography>
         </Box>
-        <Typography variant='body2' sx={{ opacity: 0.8 }}>
+        <Typography data-testid='sidebar-subtitle' variant='body2' sx={{ opacity: 0.8 }}>
           Economic Data Visualization
         </Typography>
       </Box>
 
       {/* Navigation items */}
-      <div style={{ paddingTop: '16px' }}>
-        {renderNavigationItems(navigationItems)}
-        {renderNavigationItems(secondaryItems, true)}
+      <div data-testid='sidebar-navigation' style={{ paddingTop: '16px' }}>
+        <div data-testid='sidebar-primary-nav'>{renderNavigationItems(navigationItems)}</div>
+        <div data-testid='sidebar-secondary-nav'>{renderNavigationItems(secondaryItems, true)}</div>
       </div>
 
       {/* Footer info */}
       <Box
+        data-testid='sidebar-footer'
         sx={{
           position: 'absolute',
           bottom: 0,
@@ -185,7 +203,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           backgroundColor: theme.palette.background.paper,
         }}
       >
-        <Typography variant='caption' color='text.secondary'>
+        <Typography data-testid='sidebar-footer-text' variant='caption' color='text.secondary'>
           Built with modern web technologies
         </Typography>
       </Box>
@@ -226,6 +244,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   return (
     <div
+      data-testid='sidebar-desktop'
       style={{
         width: `${drawerWidth}px`,
         flexShrink: 0,
