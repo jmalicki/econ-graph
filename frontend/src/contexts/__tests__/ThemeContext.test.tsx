@@ -7,7 +7,17 @@
 import React from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import { ThemeProvider, useTheme } from '../ThemeContext';
-import { AuthProvider } from '../AuthContext';
+
+// Mock the AuthContext
+jest.mock('../AuthContext', () => ({
+  useAuth: () => ({
+    user: null, // No user in tests to avoid user preference interference
+    isAuthenticated: false,
+    login: jest.fn(),
+    logout: jest.fn(),
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 
 // Mock localStorage
 const localStorageMock = {
@@ -40,13 +50,11 @@ const TestComponent: React.FC = () => {
   );
 };
 
-// Wrapper component that provides both contexts
+// Wrapper component that provides theme context
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AuthProvider>
-    <ThemeProvider>
-      {children}
-    </ThemeProvider>
-  </AuthProvider>
+  <ThemeProvider>
+    {children}
+  </ThemeProvider>
 );
 
 describe('ThemeContext', () => {

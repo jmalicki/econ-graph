@@ -237,8 +237,6 @@ describe('UserProfile Preferences', () => {
   });
 
   it('should show all available theme options', async () => {
-    const user = userEvent.setup();
-
     render(
       <TestWrapper>
         <UserProfile open={true} onClose={jest.fn()} />
@@ -254,8 +252,6 @@ describe('UserProfile Preferences', () => {
   });
 
   it('should show all available chart type options', async () => {
-    const user = userEvent.setup();
-
     render(
       <TestWrapper>
         <UserProfile open={true} onClose={jest.fn()} />
