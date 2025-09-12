@@ -3,7 +3,6 @@
  * PURPOSE: Provide audit logging and security event tracking for admin interface
  * This enables comprehensive admin functionality with audit trails and security monitoring
  */
-
 use crate::database::DatabasePool;
 use crate::error::{AppError, AppResult};
 use crate::schema::{audit_logs, security_events};
