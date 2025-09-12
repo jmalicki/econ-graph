@@ -24,6 +24,7 @@ pub struct DataSource {
     pub last_crawl_at: Option<DateTime<Utc>>,
     pub crawl_status: Option<String>,
     pub crawl_error_message: Option<String>,
+    pub api_documentation_url: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -45,6 +46,8 @@ pub struct NewDataSource {
     pub is_enabled: bool,
     pub requires_admin_approval: bool,
     pub crawl_frequency_hours: i32,
+    #[validate(url)]
+    pub api_documentation_url: Option<String>,
 }
 
 /// Data source update model
@@ -60,6 +63,8 @@ pub struct UpdateDataSource {
     pub api_key_required: Option<bool>,
     #[validate(range(min = 1, max = 10000))]
     pub rate_limit_per_minute: Option<i32>,
+    #[validate(url)]
+    pub api_documentation_url: Option<String>,
     pub updated_at: DateTime<Utc>,
 }
 
@@ -79,6 +84,7 @@ impl DataSource {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 6,
+            api_documentation_url: Some("https://fred.stlouisfed.org/docs/api/fred/".to_string()),
         }
     }
 
@@ -97,6 +103,9 @@ impl DataSource {
             is_enabled: true,
             requires_admin_approval: false,
             crawl_frequency_hours: 12,
+            api_documentation_url: Some(
+                "https://www.bls.gov/developers/api_signature_v2.htm".to_string(),
+            ),
         }
     }
 
@@ -114,6 +123,9 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
+            api_documentation_url: Some(
+                "https://www.census.gov/data/developers/data-sets.html".to_string(),
+            ),
         }
     }
 
@@ -131,6 +143,7 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
+            api_documentation_url: Some("https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures".to_string()),
         }
     }
 
@@ -148,6 +161,9 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
+            api_documentation_url: Some(
+                "https://apps.bea.gov/api/bea_web_service_api_user_guide.htm".to_string(),
+            ),
         }
     }
 
@@ -165,6 +181,9 @@ impl DataSource {
             is_enabled: false,
             requires_admin_approval: true,
             crawl_frequency_hours: 24,
+            api_documentation_url: Some(
+                "https://data.imf.org/en/Resource-Pages/IMF-API".to_string(),
+            ),
         }
     }
 
@@ -251,6 +270,7 @@ impl Default for NewDataSource {
             is_enabled: false,
             requires_admin_approval: false,
             crawl_frequency_hours: 24,
+            api_documentation_url: None,
         }
     }
 }
@@ -263,6 +283,7 @@ impl Default for UpdateDataSource {
             base_url: None,
             api_key_required: None,
             rate_limit_per_minute: None,
+            api_documentation_url: None,
             updated_at: Utc::now(),
         }
     }

@@ -16,6 +16,7 @@ ALTER TABLE data_sources ADD COLUMN crawl_frequency_hours INTEGER NOT NULL DEFAU
 ALTER TABLE data_sources ADD COLUMN last_crawl_at TIMESTAMPTZ;
 ALTER TABLE data_sources ADD COLUMN crawl_status VARCHAR(50) DEFAULT 'pending';
 ALTER TABLE data_sources ADD COLUMN crawl_error_message TEXT;
+ALTER TABLE data_sources ADD COLUMN api_documentation_url VARCHAR(500);
 
 -- Add indexes for performance
 CREATE INDEX idx_data_sources_visible ON data_sources(is_visible);

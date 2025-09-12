@@ -48,6 +48,7 @@ mod simple_tests {
             base_url: Some("https://api.updated.com".to_string()),
             api_key_required: Some(true),
             rate_limit_per_minute: Some(200),
+            api_documentation_url: Some("https://api.updated.com/docs".to_string()),
             updated_at: chrono::Utc::now(),
         };
 
