@@ -668,7 +668,7 @@ validate_promql_queries() {
         print_status "SUCCESS" "✅ Found $prometheus_targets Prometheus targets"
 
         # Check for proper job labels in Prometheus queries
-        local queries_with_job=$(echo "$json_content" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.type == "prometheus") | .expr' 2>/dev/null | grep -c 'job=' || echo "0")
+        local queries_with_job=$(echo "$json_content" | jq -r '.dashboard.panels[]?.targets[]? | select(.datasource.type == "prometheus") | .expr' 2>/dev/null | grep -c 'job=' | head -1 || echo "0")
 
         if [ "$queries_with_job" -gt 0 ]; then
             print_status "SUCCESS" "✅ Prometheus queries use job labels"
