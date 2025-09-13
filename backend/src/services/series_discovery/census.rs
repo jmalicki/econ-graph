@@ -109,6 +109,241 @@ pub struct BdsDataPoint {
     pub variable: String,
 }
 
+/// Census API query builder for BDS dataset
+#[derive(Debug, Clone)]
+pub struct CensusQueryBuilder {
+    base_url: String,
+    dataset_path: String,
+    variables: Vec<String>,
+    geography: Option<String>,
+    time_range: Option<(i32, i32)>,
+    api_key: Option<String>,
+}
+
+impl CensusQueryBuilder {
+    /// Create a new query builder for BDS dataset
+    pub fn new() -> Self {
+        Self {
+            base_url: "https://api.census.gov/data".to_string(),
+            dataset_path: "timeseries/bds".to_string(),
+            variables: Vec::new(),
+            geography: None,
+            time_range: None,
+            api_key: None,
+        }
+    }
+
+    /// Set the dataset path (default: timeseries/bds)
+    pub fn dataset(mut self, path: &str) -> Self {
+        self.dataset_path = path.to_string();
+        self
+    }
+
+    /// Add variables to retrieve
+    pub fn variables(mut self, vars: &[String]) -> Self {
+        self.variables = vars.to_vec();
+        self
+    }
+
+    /// Add a single variable
+    pub fn variable(mut self, var: &str) -> Self {
+        self.variables.push(var.to_string());
+        self
+    }
+
+    /// Set geography level (us, state, county, metro, cbsa)
+    pub fn geography(mut self, geo: &str) -> Self {
+        self.geography = Some(geo.to_string());
+        self
+    }
+
+    /// Set time range (start_year, end_year)
+    pub fn time_range(mut self, start_year: i32, end_year: i32) -> Self {
+        self.time_range = Some((start_year, end_year));
+        self
+    }
+
+    /// Set API key (optional for most Census endpoints)
+    pub fn api_key(mut self, key: &str) -> Self {
+        self.api_key = Some(key.to_string());
+        self
+    }
+
+    /// Build the final query URL
+    pub fn build_url(&self) -> AppResult<String> {
+        if self.variables.is_empty() {
+            return Err(AppError::ValidationError(
+                "At least one variable must be specified".to_string()
+            ));
+        }
+
+        let mut url = format!("{}/{}", self.base_url, self.dataset_path);
+        let mut params = Vec::new();
+
+        // Add variables (required)
+        let get_params = self.variables.join(",");
+        params.push(format!("get={}", get_params));
+
+        // Add geography (required for BDS)
+        if let Some(geo) = &self.geography {
+            params.push(format!("for={}", geo));
+        } else {
+            // Default to US level for BDS
+            params.push("for=us".to_string());
+        }
+
+        // Add time range if specified
+        if let Some((start_year, end_year)) = &self.time_range {
+            params.push(format!("YEAR={}:{}", start_year, end_year));
+        } else {
+            // Default to recent years for BDS
+            params.push("YEAR=2020:2022".to_string());
+        }
+
+        // Add API key if provided
+        if let Some(key) = &self.api_key {
+            params.push(format!("key={}", key));
+        }
+
+        url.push('?');
+        url.push_str(&params.join("&"));
+
+        Ok(url)
+    }
+
+    /// Execute the query and return raw response
+    pub async fn execute(&self, client: &Client) -> AppResult<Vec<Vec<String>>> {
+        let url = self.build_url()?;
+
+        let response = client.get(&url).send().await.map_err(|e| {
+            AppError::ExternalApiError(format!("Census query request failed: {}", e))
+        })?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let error_text = response.text().await.unwrap_or_default();
+            return Err(AppError::ExternalApiError(format!(
+                "Census API returned status {}: {}",
+                status, error_text
+            )));
+        }
+
+        let data: Vec<Vec<String>> = response.json().await.map_err(|e| {
+            AppError::ExternalApiError(format!("Failed to parse Census response: {}", e))
+        })?;
+
+        Ok(data)
+    }
+
+    /// Execute query and parse into structured BDS data points
+    pub async fn execute_structured(&self, client: &Client) -> AppResult<Vec<BdsDataPoint>> {
+        let raw_data = self.execute(client).await?;
+
+        if raw_data.len() < 2 {
+            return Err(AppError::ExternalApiError(
+                "Invalid Census response: expected at least header and data rows".to_string()
+            ));
+        }
+
+        let headers = &raw_data[0];
+        let data_rows = &raw_data[1..];
+
+        // Find indices of key columns - handle Census API quirks
+        let year_idx = headers.iter().position(|h| h.to_lowercase() == "year")
+            .ok_or_else(|| AppError::ExternalApiError("YEAR column not found in response".to_string()))?;
+
+        // Census API returns geography as the last column with numeric codes
+        let geo_idx = headers.len() - 1;
+
+        let mut data_points = Vec::new();
+
+        for row in data_rows {
+            if row.len() != headers.len() {
+                continue; // Skip malformed rows
+            }
+
+            // Parse year
+            let year = row[year_idx].parse::<i32>().unwrap_or(0);
+
+            // Map geography code to text (Census API returns numeric codes)
+            let geography_code = &row[geo_idx];
+            let geography = match geography_code.as_str() {
+                "1" => "us",
+                "2" => "state",
+                "3" => "county",
+                "4" => "metro",
+                "5" => "cbsa",
+                _ => geography_code, // Use the code as-is if unknown
+            };
+
+            // Parse each variable column (skip YEAR and geography columns)
+            for (i, header) in headers.iter().enumerate() {
+                if i == year_idx || i == geo_idx {
+                    continue; // Skip year and geography columns
+                }
+
+                // Skip duplicate YEAR columns (Census API sometimes returns multiple YEAR columns)
+                if header.to_lowercase() == "year" {
+                    continue;
+                }
+
+                let value = if row[i].is_empty() || row[i] == "null" {
+                    None
+                } else {
+                    row[i].parse::<f64>().ok()
+                };
+
+                data_points.push(BdsDataPoint {
+                    year,
+                    value,
+                    geography: geography.to_string(),
+                    variable: header.clone(),
+                });
+            }
+        }
+
+        Ok(data_points)
+    }
+}
+
+impl Default for CensusQueryBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Convenience function to fetch BDS data using the query builder
+pub async fn fetch_bds_data(
+    client: &Client,
+    variables: &[String],
+    geography: &str,
+    start_year: i32,
+    end_year: i32,
+    api_key: &Option<String>,
+) -> AppResult<Vec<BdsDataPoint>> {
+    let mut query = CensusQueryBuilder::new()
+        .variables(variables)
+        .geography(geography)
+        .time_range(start_year, end_year);
+
+    if let Some(key) = api_key {
+        query = query.api_key(key);
+    }
+
+    query.execute_structured(client).await
+}
+
+/// Fetch sample BDS data for testing and validation
+pub async fn fetch_bds_sample_data(client: &Client) -> AppResult<Vec<BdsDataPoint>> {
+    let variables = vec![
+        "ESTAB".to_string(),    // Establishments
+        "FIRM".to_string(),     // Firms
+        "YEAR".to_string(),     // Year (required)
+    ];
+
+    fetch_bds_data(client, &variables, "us", 2020, 2022, &None).await
+}
+
 /// Discover Census series using the Census Data API with BDS focus
 pub async fn discover_census_series(
     client: &Client,
