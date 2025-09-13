@@ -93,6 +93,7 @@ kubectl apply -f k8s/manifests/frontend-service.yaml
 kubectl apply -f k8s/manifests/admin-frontend-deployment.yaml
 kubectl apply -f k8s/manifests/admin-frontend-service.yaml
 kubectl apply -f k8s/manifests/ingress.yaml
+kubectl apply -f k8s/manifests/admin-ingress.yaml
 
 # Deploy chart API service (internal only)
 echo "📊 Deploying chart API service..."

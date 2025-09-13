@@ -5,6 +5,8 @@ metadata:
   namespace: econ-graph
   labels:
     app: econ-graph-admin-frontend
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
 spec:
   type: NodePort
   ports:
