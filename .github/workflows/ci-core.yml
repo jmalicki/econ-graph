@@ -1251,11 +1251,52 @@ jobs:
       env:
         REACT_APP_GRAPHQL_ENDPOINT: http://localhost:8080/graphql
 
+  e2e-dependencies:
+    name: E2E Dependencies Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: []
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Cache dev-server dependencies
+      uses: actions/cache@v4
+      with:
+        path: frontend/dev-server/node_modules
+        key: ${{ runner.os }}-dev-server-npm-${{ hashFiles('frontend/dev-server/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-dev-server-npm-
+
+    - name: Install dev-server dependencies
+      working-directory: frontend/dev-server
+      run: npm ci
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+
+    - name: Install Playwright browsers
+      working-directory: frontend
+      run: npx playwright install --with-deps
+
   comprehensive-e2e:
     name: Comprehensive End-to-End Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [backend-smoke-tests, frontend-integration-tests, backend-integration-tests]
+    needs: [backend-smoke-tests, frontend-integration-tests, backend-integration-tests, e2e-dependencies]
 
     services:
       postgres:
@@ -1322,14 +1363,6 @@ jobs:
     - name: Install frontend dependencies
       working-directory: frontend
       run: npm ci
-
-    - name: Install dev-server dependencies
-      working-directory: frontend/dev-server
-      run: npm ci
-
-    - name: Install Playwright browsers
-      working-directory: frontend
-      run: npx playwright install --with-deps
 
     - name: Build frontend
       working-directory: frontend
