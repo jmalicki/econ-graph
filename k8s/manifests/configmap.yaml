@@ -35,7 +35,7 @@ data:
   REACT_APP_ADMIN_API_URL: "http://localhost"
   REACT_APP_ADMIN_GRAPHQL_URL: "/graphql"
   REACT_APP_ADMIN_WS_URL: "ws://localhost/graphql"
-  REACT_APP_GRAFANA_URL: "http://localhost:30001"
+  REACT_APP_GRAFANA_URL: "http://localhost:30002"
 
   # Environment
   NODE_ENV: "development"
