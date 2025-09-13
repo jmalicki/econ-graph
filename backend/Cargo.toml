@@ -98,6 +98,10 @@ name = "econ-graph-backend"
 path = "src/main.rs"
 
 [[bin]]
+name = "test_census_api"
+path = "test_census_api.rs"
+
+[[bin]]
 name = "crawler"
 path = "src/bin/crawler.rs"
 
