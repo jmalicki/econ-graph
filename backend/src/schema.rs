@@ -314,6 +314,24 @@ diesel::table! {
 }
 
 diesel::table! {
+    security_events (id) {
+        id -> Uuid,
+        event_type -> Varchar,
+        user_id -> Nullable<Uuid>,
+        user_email -> Nullable<Varchar>,
+        severity -> Varchar,
+        ip_address -> Nullable<Text>,
+        user_agent -> Nullable<Text>,
+        description -> Text,
+        metadata -> Nullable<Jsonb>,
+        resolved -> Nullable<Bool>,
+        resolved_by -> Nullable<Uuid>,
+        resolved_at -> Nullable<Timestamptz>,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     series_metadata (id) {
         id -> Uuid,
         source_id -> Uuid,
@@ -354,6 +372,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    user_data_source_preferences (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        data_source_id -> Uuid,
+        is_visible -> Bool,
+        is_favorite -> Bool,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     user_sessions (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -364,36 +394,6 @@ diesel::table! {
         last_used_at -> Timestamptz,
         user_agent -> Nullable<Text>,
         ip_address -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    security_events (id) {
-        id -> Uuid,
-        event_type -> Varchar,
-        user_id -> Nullable<Uuid>,
-        user_email -> Nullable<Varchar>,
-        severity -> Varchar,
-        ip_address -> Nullable<Text>,
-        user_agent -> Nullable<Text>,
-        description -> Text,
-        metadata -> Nullable<Jsonb>,
-        resolved -> Nullable<Bool>,
-        resolved_by -> Nullable<Uuid>,
-        resolved_at -> Nullable<Timestamptz>,
-        created_at -> Timestamptz,
-    }
-}
-
-diesel::table! {
-    user_data_source_preferences (id) {
-        id -> Uuid,
-        user_id -> Uuid,
-        data_source_id -> Uuid,
-        is_visible -> Bool,
-        is_favorite -> Bool,
-        created_at -> Timestamptz,
-        updated_at -> Timestamptz,
     }
 }
 
