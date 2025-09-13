@@ -13,6 +13,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+  /* Skip debug tests in CI for performance */
+  testIgnore: process.env.CI ? ['**/debug-*.spec.ts'] : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [['html', { open: 'never' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
