@@ -48,6 +48,13 @@ spec:
             name: econ-graph-backend-service
             port:
               number: 9876
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: econ-graph-admin-frontend-service
+            port:
+              number: 3001
       - path: /
         pathType: Prefix
         backend:

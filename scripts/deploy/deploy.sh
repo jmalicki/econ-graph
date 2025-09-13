@@ -90,6 +90,8 @@ kubectl apply -f k8s/manifests/backend-deployment.yaml
 kubectl apply -f k8s/manifests/backend-service.yaml
 kubectl apply -f k8s/manifests/frontend-deployment.yaml
 kubectl apply -f k8s/manifests/frontend-service.yaml
+kubectl apply -f k8s/manifests/admin-frontend-deployment.yaml
+kubectl apply -f k8s/manifests/admin-frontend-service.yaml
 kubectl apply -f k8s/manifests/ingress.yaml
 
 # Deploy chart API service (internal only)
@@ -120,6 +122,10 @@ kubectl wait --for=condition=available --timeout=300s deployment/econ-graph-back
 # Wait for frontend deployment
 echo "Waiting for frontend deployment..."
 kubectl wait --for=condition=available --timeout=300s deployment/econ-graph-frontend -n econ-graph
+
+# Wait for admin frontend deployment
+echo "Waiting for admin frontend deployment..."
+kubectl wait --for=condition=available --timeout=300s deployment/econ-graph-admin-frontend -n econ-graph
 
 # Wait for chart API service deployment
 echo "Waiting for chart API service deployment..."
@@ -194,6 +200,7 @@ echo "✅ Deployment completed successfully!"
 echo ""
 echo "🌐 Application URLs:"
 echo "  Frontend: http://localhost:${FRONTEND_NODEPORT}"
+echo "  Admin UI: http://localhost:${FRONTEND_NODEPORT}/admin"
 echo "  Backend:  http://localhost:${BACKEND_NODEPORT}"
 echo "  GraphQL:  http://localhost:${FRONTEND_NODEPORT}/graphql"
 echo "  Playground: http://localhost:${FRONTEND_NODEPORT}/playground"
@@ -204,6 +211,7 @@ echo "  kubectl get pods -n econ-graph"
 echo "  kubectl get services -n econ-graph"
 echo "  kubectl logs -f deployment/econ-graph-backend -n econ-graph"
 echo "  kubectl logs -f deployment/econ-graph-frontend -n econ-graph"
+echo "  kubectl logs -f deployment/econ-graph-admin-frontend -n econ-graph"
 echo "  kubectl logs -f deployment/chart-api-service -n econ-graph"
 echo ""
 echo "🔒 Internal Services (not exposed externally):"
