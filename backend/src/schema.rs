@@ -16,9 +16,13 @@ diesel::table! {
     audit_logs (id) {
         id -> Uuid,
         user_id -> Uuid,
+        #[max_length = 255]
         user_name -> Varchar,
+        #[max_length = 100]
         action -> Varchar,
+        #[max_length = 50]
         resource_type -> Varchar,
+        #[max_length = 255]
         resource_id -> Nullable<Varchar>,
         ip_address -> Nullable<Text>,
         user_agent -> Nullable<Text>,
@@ -66,34 +70,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    crawl_attempts (id) {
-        id -> Uuid,
-        series_id -> Uuid,
-        attempted_at -> Timestamptz,
-        completed_at -> Nullable<Timestamptz>,
-        crawl_method -> Varchar,
-        crawl_url -> Nullable<Text>,
-        http_status_code -> Nullable<Int4>,
-        data_found -> Bool,
-        new_data_points -> Nullable<Int4>,
-        latest_data_date -> Nullable<Date>,
-        data_freshness_hours -> Nullable<Int4>,
-        success -> Bool,
-        error_type -> Nullable<Varchar>,
-        error_message -> Nullable<Text>,
-        retry_count -> Nullable<Int4>,
-        response_time_ms -> Nullable<Int4>,
-        data_size_bytes -> Nullable<Int4>,
-        rate_limit_remaining -> Nullable<Int4>,
-        user_agent -> Nullable<Text>,
-        request_headers -> Nullable<Jsonb>,
-        response_headers -> Nullable<Jsonb>,
-        created_at -> Timestamptz,
-        updated_at -> Timestamptz,
-    }
-}
-
-diesel::table! {
     countries (id) {
         id -> Uuid,
         #[max_length = 3]
@@ -135,6 +111,36 @@ diesel::table! {
         p_value -> Nullable<Numeric>,
         is_significant -> Bool,
         calculated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    crawl_attempts (id) {
+        id -> Uuid,
+        series_id -> Uuid,
+        attempted_at -> Timestamptz,
+        completed_at -> Nullable<Timestamptz>,
+        #[max_length = 50]
+        crawl_method -> Varchar,
+        crawl_url -> Nullable<Text>,
+        http_status_code -> Nullable<Int4>,
+        data_found -> Bool,
+        new_data_points -> Nullable<Int4>,
+        latest_data_date -> Nullable<Date>,
+        data_freshness_hours -> Nullable<Int4>,
+        success -> Bool,
+        #[max_length = 50]
+        error_type -> Nullable<Varchar>,
+        error_message -> Nullable<Text>,
+        retry_count -> Nullable<Int4>,
+        response_time_ms -> Nullable<Int4>,
+        data_size_bytes -> Nullable<Int4>,
+        rate_limit_remaining -> Nullable<Int4>,
+        user_agent -> Nullable<Text>,
+        request_headers -> Nullable<Jsonb>,
+        response_headers -> Nullable<Jsonb>,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
     }
 }
 
@@ -316,9 +322,12 @@ diesel::table! {
 diesel::table! {
     security_events (id) {
         id -> Uuid,
+        #[max_length = 50]
         event_type -> Varchar,
         user_id -> Nullable<Uuid>,
+        #[max_length = 255]
         user_email -> Nullable<Varchar>,
+        #[max_length = 20]
         severity -> Varchar,
         ip_address -> Nullable<Text>,
         user_agent -> Nullable<Text>,

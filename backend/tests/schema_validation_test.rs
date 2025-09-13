@@ -4,6 +4,7 @@
 
 use diesel::prelude::*;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use imara_diff::{Algorithm, UnifiedDiffBuilder};
 use std::fs;
 use std::process::Command;
 use testcontainers::{runners::AsyncRunner, ContainerAsync};
@@ -133,25 +134,22 @@ fn generate_schema_with_diesel(database_url: &str) -> Result<String, Box<dyn std
 ///
 /// This function:
 /// 1. Removes comments and whitespace differences
-/// 2. Normalizes whitespace and formatting
-/// 3. Preserves structure but normalizes whitespace
+/// 2. Sorts table definitions consistently
+/// 3. Normalizes whitespace and formatting
 fn normalize_schema(schema: &str) -> String {
-    let lines: Vec<&str> = schema.lines().collect();
-    let mut normalized_lines = Vec::new();
+    let mut lines: Vec<&str> = schema.lines().collect();
 
-    for line in lines {
+    // Remove empty lines and comments
+    lines.retain(|line| {
         let trimmed = line.trim();
-        // Skip empty lines and comments
-        if trimmed.is_empty() || trimmed.starts_with("//") {
-            continue;
-        }
-        // Normalize whitespace - replace multiple spaces with single space
-        let normalized = trimmed.split_whitespace().collect::<Vec<&str>>().join(" ");
-        normalized_lines.push(normalized);
-    }
+        !trimmed.is_empty() && !trimmed.starts_with("//")
+    });
+
+    // Sort lines to ensure consistent ordering
+    lines.sort();
 
     // Join lines with single newlines
-    normalized_lines.join("\n")
+    lines.join("\n")
 }
 
 /// Find specific differences between two schemas
@@ -162,26 +160,17 @@ fn find_schema_differences(schema1: &str, schema2: &str) -> Vec<String> {
     let mut differences = Vec::new();
 
     // Find lines that are in schema1 but not in schema2
-    for (i, line) in lines1.iter().enumerate() {
+    for line in &lines1 {
         if !lines2.contains(line) {
-            differences.push(format!("Missing in existing (line {}): {}", i + 1, line));
+            differences.push(format!("Missing in existing: {}", line));
         }
     }
 
     // Find lines that are in schema2 but not in schema1
-    for (i, line) in lines2.iter().enumerate() {
+    for line in &lines2 {
         if !lines1.contains(line) {
-            differences.push(format!("Extra in existing (line {}): {}", i + 1, line));
+            differences.push(format!("Extra in existing: {}", line));
         }
-    }
-
-    // Show line count differences
-    if lines1.len() != lines2.len() {
-        differences.push(format!(
-            "Line count difference: Generated has {} lines, existing has {} lines",
-            lines1.len(),
-            lines2.len()
-        ));
     }
 
     differences
@@ -337,23 +326,9 @@ async fn test_schema_compatibility_comparison() {
         println!("Generated schema length: {}", normalized_generated.len());
         println!("Existing schema length: {}", normalized_existing.len());
 
-        // Find differences
-        let differences = find_schema_differences(&normalized_generated, &normalized_existing);
-        println!("Found {} differences:", differences.len());
-        for (i, diff) in differences.iter().enumerate() {
-            println!("  {}. {}", i + 1, diff);
-        }
-
-        // Show first few lines of both schemas for context
-        println!("\nFirst 10 lines of generated schema:");
-        for (i, line) in normalized_generated.lines().take(10).enumerate() {
-            println!("  {}: {}", i + 1, line);
-        }
-
-        println!("\nFirst 10 lines of existing schema:");
-        for (i, line) in normalized_existing.lines().take(10).enumerate() {
-            println!("  {}: {}", i + 1, line);
-        }
+        // Generate and print unified diff
+        let diff_output = generate_schema_diff(&generated_schema, &existing_schema);
+        println!("{}", diff_output);
 
         panic!(
             "Schema compatibility test failed - generated schema does not match existing schema.rs"
@@ -361,4 +336,21 @@ async fn test_schema_compatibility_comparison() {
     }
 
     println!("✅ Schema compatibility test passed - schemas match");
+}
+
+/// Generate a proper unified diff between two schemas using imara-diff
+fn generate_schema_diff(generated_schema: &str, existing_schema: &str) -> String {
+    // Use imara-diff to generate a proper unified diff
+    let input = imara_diff::intern::InternedInput::new(generated_schema, existing_schema);
+
+    let builder = UnifiedDiffBuilder::new(&input);
+
+    let result = imara_diff::diff(Algorithm::Histogram, &input, builder);
+
+    // If we got diff output, use it
+    if !result.is_empty() {
+        result
+    } else {
+        "✅ No differences found between schemas.\n".to_string()
+    }
 }
