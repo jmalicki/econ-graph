@@ -70,12 +70,30 @@ pub async fn discover_world_bank_series(
 
     println!("Starting World Bank series discovery...");
 
-    // Strategy 1: Get indicators from Economy & Growth topic (ID 3)
-    let topic_indicators = fetch_indicators_by_topic(client, "3").await?;
-    println!(
-        "Found {} indicators from Economy & Growth topic",
-        topic_indicators.len()
-    );
+    // Strategy 1: Get indicators from multiple economic topics
+    let mut topic_indicators = Vec::new();
+    
+    // Economy & Growth (ID 3)
+    let economy_indicators = fetch_indicators_by_topic(client, "3").await?;
+    println!("Found {} indicators from Economy & Growth topic", economy_indicators.len());
+    topic_indicators.extend(economy_indicators);
+    
+    // Financial Sector (ID 7)
+    let financial_indicators = fetch_indicators_by_topic(client, "7").await?;
+    println!("Found {} indicators from Financial Sector topic", financial_indicators.len());
+    topic_indicators.extend(financial_indicators);
+    
+    // Trade (ID 11) - if available
+    if let Ok(trade_indicators) = fetch_indicators_by_topic(client, "11").await {
+        println!("Found {} indicators from Trade topic", trade_indicators.len());
+        topic_indicators.extend(trade_indicators);
+    }
+    
+    // Remove duplicates from topic indicators
+    topic_indicators.sort_by(|a, b| a.id.cmp(&b.id));
+    topic_indicators.dedup_by(|a, b| a.id == b.id);
+    
+    println!("Total unique indicators from all topics: {}", topic_indicators.len());
 
     // Strategy 2: Get key economic indicators by direct lookup
     let key_indicators = fetch_key_economic_indicators(client).await?;
