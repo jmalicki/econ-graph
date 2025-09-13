@@ -133,22 +133,25 @@ fn generate_schema_with_diesel(database_url: &str) -> Result<String, Box<dyn std
 ///
 /// This function:
 /// 1. Removes comments and whitespace differences
-/// 2. Sorts table definitions consistently
-/// 3. Normalizes whitespace and formatting
+/// 2. Normalizes whitespace and formatting
+/// 3. Preserves structure but normalizes whitespace
 fn normalize_schema(schema: &str) -> String {
-    let mut lines: Vec<&str> = schema.lines().collect();
+    let lines: Vec<&str> = schema.lines().collect();
+    let mut normalized_lines = Vec::new();
 
-    // Remove empty lines and comments
-    lines.retain(|line| {
+    for line in lines {
         let trimmed = line.trim();
-        !trimmed.is_empty() && !trimmed.starts_with("//")
-    });
-
-    // Sort lines to ensure consistent ordering
-    lines.sort();
+        // Skip empty lines and comments
+        if trimmed.is_empty() || trimmed.starts_with("//") {
+            continue;
+        }
+        // Normalize whitespace - replace multiple spaces with single space
+        let normalized = trimmed.split_whitespace().collect::<Vec<&str>>().join(" ");
+        normalized_lines.push(normalized);
+    }
 
     // Join lines with single newlines
-    lines.join("\n")
+    normalized_lines.join("\n")
 }
 
 /// Find specific differences between two schemas
@@ -159,17 +162,26 @@ fn find_schema_differences(schema1: &str, schema2: &str) -> Vec<String> {
     let mut differences = Vec::new();
 
     // Find lines that are in schema1 but not in schema2
-    for line in &lines1 {
+    for (i, line) in lines1.iter().enumerate() {
         if !lines2.contains(line) {
-            differences.push(format!("Missing in existing: {}", line));
+            differences.push(format!("Missing in existing (line {}): {}", i + 1, line));
         }
     }
 
     // Find lines that are in schema2 but not in schema1
-    for line in &lines2 {
+    for (i, line) in lines2.iter().enumerate() {
         if !lines1.contains(line) {
-            differences.push(format!("Extra in existing: {}", line));
+            differences.push(format!("Extra in existing (line {}): {}", i + 1, line));
         }
+    }
+
+    // Show line count differences
+    if lines1.len() != lines2.len() {
+        differences.push(format!(
+            "Line count difference: Generated has {} lines, existing has {} lines",
+            lines1.len(),
+            lines2.len()
+        ));
     }
 
     differences
@@ -327,8 +339,20 @@ async fn test_schema_compatibility_comparison() {
 
         // Find differences
         let differences = find_schema_differences(&normalized_generated, &normalized_existing);
-        for diff in differences {
-            println!("Difference: {}", diff);
+        println!("Found {} differences:", differences.len());
+        for (i, diff) in differences.iter().enumerate() {
+            println!("  {}. {}", i + 1, diff);
+        }
+
+        // Show first few lines of both schemas for context
+        println!("\nFirst 10 lines of generated schema:");
+        for (i, line) in normalized_generated.lines().take(10).enumerate() {
+            println!("  {}: {}", i + 1, line);
+        }
+
+        println!("\nFirst 10 lines of existing schema:");
+        for (i, line) in normalized_existing.lines().take(10).enumerate() {
+            println!("  {}: {}", i + 1, line);
         }
 
         panic!(
