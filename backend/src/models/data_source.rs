@@ -118,11 +118,11 @@ impl DataSource {
                 "Demographic and economic data from the U.S. Census Bureau".to_string(),
             ),
             base_url: "https://api.census.gov/data".to_string(),
-            api_key_required: true,
+            api_key_required: false, // Census API doesn't require authentication
             rate_limit_per_minute: 500,
-            is_visible: false,
-            is_enabled: false,
-            requires_admin_approval: true,
+            is_visible: true,
+            is_enabled: true,
+            requires_admin_approval: false,
             crawl_frequency_hours: 24,
             api_documentation_url: Some(
                 "https://www.census.gov/data/developers/data-sets.html".to_string(),
