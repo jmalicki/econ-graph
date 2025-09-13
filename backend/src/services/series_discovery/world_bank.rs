@@ -55,7 +55,7 @@ struct WorldBankIndicatorMetadata {
 }
 
 /// Discover World Bank series using the World Bank Indicators API
-/// 
+///
 /// This function implements a comprehensive discovery mechanism that:
 /// 1. Fetches indicators from multiple sources (topics, pagination, direct lookup)
 /// 2. Validates that indicators have actual data
@@ -72,21 +72,32 @@ pub async fn discover_world_bank_series(
 
     // Strategy 1: Get indicators from Economy & Growth topic (ID 3)
     let topic_indicators = fetch_indicators_by_topic(client, "3").await?;
-    println!("Found {} indicators from Economy & Growth topic", topic_indicators.len());
+    println!(
+        "Found {} indicators from Economy & Growth topic",
+        topic_indicators.len()
+    );
 
     // Strategy 2: Get key economic indicators by direct lookup
     let key_indicators = fetch_key_economic_indicators(client).await?;
     println!("Found {} key economic indicators", key_indicators.len());
 
-    // Strategy 3: Get indicators from paginated search (limited to avoid overwhelming)
+    // Strategy 3: Get indicators from major countries (US, China, Germany, Japan, UK)
+    let country_indicators = fetch_indicators_for_major_countries(client).await?;
+    println!("Found {} indicators from major countries", country_indicators.len());
+
+    // Strategy 4: Get indicators from paginated search (limited to avoid overwhelming)
     let paginated_indicators = fetch_indicators_paginated(client, 10).await?; // First 10 pages
-    println!("Found {} indicators from paginated search", paginated_indicators.len());
+    println!(
+        "Found {} indicators from paginated search",
+        paginated_indicators.len()
+    );
 
     // Combine and deduplicate indicators
     let mut all_indicators = topic_indicators;
     all_indicators.extend(key_indicators);
+    all_indicators.extend(country_indicators);
     all_indicators.extend(paginated_indicators);
-    
+
     // Remove duplicates based on indicator ID
     all_indicators.sort_by(|a, b| a.id.cmp(&b.id));
     all_indicators.dedup_by(|a, b| a.id == b.id);
@@ -97,7 +108,7 @@ pub async fn discover_world_bank_series(
     for indicator in all_indicators {
         // Get detailed metadata for each indicator
         let detailed_metadata = fetch_indicator_metadata(client, &indicator.id).await?;
-        
+
         let series_info = WorldBankSeriesInfo {
             series_id: indicator.id.clone(),
             title: indicator.name.clone(),
@@ -150,26 +161,116 @@ async fn fetch_indicators_by_topic(
     extract_indicators_from_response(json_response)
 }
 
-/// Fetch key economic indicators by direct lookup
-async fn fetch_key_economic_indicators(
+/// Fetch indicators for major countries to discover country-specific economic data
+async fn fetch_indicators_for_major_countries(client: &Client) -> AppResult<Vec<WorldBankIndicator>> {
+    // List of major countries/regions to fetch indicators for
+    let major_countries = vec![
+        "US",   // United States
+        "CN",   // China
+        "DE",   // Germany
+        "JP",   // Japan
+        "GB",   // United Kingdom
+        "FR",   // France
+        "IT",   // Italy
+        "CA",   // Canada
+        "AU",   // Australia
+        "BR",   // Brazil
+        "IN",   // India
+        "RU",   // Russia
+        "ZA",   // South Africa
+        "MX",   // Mexico
+        "KR",   // South Korea
+    ];
+
+    let mut all_indicators = Vec::new();
+
+    for country_code in major_countries {
+        // Get a sample of indicators for this country by fetching data for a common indicator
+        // This will help us discover what indicators are available for this country
+        if let Ok(indicators) = fetch_country_indicators_sample(client, country_code).await {
+            all_indicators.extend(indicators);
+        }
+        
+        // Add delay to be polite to the API
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+    }
+
+    // Remove duplicates
+    all_indicators.sort_by(|a, b| a.id.cmp(&b.id));
+    all_indicators.dedup_by(|a, b| a.id == b.id);
+
+    Ok(all_indicators)
+}
+
+/// Fetch a sample of indicators available for a specific country
+async fn fetch_country_indicators_sample(
     client: &Client,
+    country_code: &str,
 ) -> AppResult<Vec<WorldBankIndicator>> {
-    // List of key economic indicators to fetch directly
-    let key_indicator_ids = vec![
-        "NY.GDP.MKTP.CD",     // GDP (current US$)
-        "NY.GDP.MKTP.KD.ZG",  // GDP growth (annual %)
-        "FP.CPI.TOTL.ZG",     // Inflation, consumer prices (annual %)
-        "SL.UEM.TOTL.ZS",     // Unemployment, total (% of total labor force)
-        "FR.INR.RINR",        // Real interest rate (%)
-        "NE.TRD.GNFS.ZS",     // Trade (% of GDP)
-        "GC.DOD.TOTL.GD.ZS",  // Central government debt, total (% of GDP)
-        "GC.REV.XGRT.GD.ZS",  // Tax revenue (% of GDP)
-        "GC.XPN.TOTL.GD.ZS",  // Expense (% of GDP)
-        "BN.CAB.XOKA.GD.ZS",  // Current account balance (% of GDP)
+    // Use a common economic indicator to discover what's available for this country
+    let test_indicators = vec![
+        "NY.GDP.MKTP.CD",    // GDP (current US$)
+        "FP.CPI.TOTL.ZG",    // Inflation, consumer prices (annual %)
+        "SL.UEM.TOTL.ZS",    // Unemployment, total (% of total labor force)
+        "NE.TRD.GNFS.ZS",    // Trade (% of GDP)
+        "GC.DOD.TOTL.GD.ZS", // Central government debt, total (% of GDP)
     ];
 
     let mut indicators = Vec::new();
-    
+
+    for indicator_id in test_indicators {
+        // Try to fetch data for this indicator in this country
+        let url = format!(
+            "https://api.worldbank.org/v2/country/{}/indicator/{}?format=json&per_page=1",
+            country_code, indicator_id
+        );
+
+        if let Ok(response) = client.get(&url).send().await {
+            if response.status().is_success() {
+                if let Ok(json_response) = response.json::<serde_json::Value>().await {
+                    // If we get data, this indicator is available for this country
+                    if let Some(array) = json_response.as_array() {
+                        if array.len() >= 2 && array[1].as_array().map_or(false, |arr| !arr.is_empty()) {
+                            // Create a WorldBankIndicator for this combination
+                            let indicator = WorldBankIndicator {
+                                id: indicator_id.to_string(),
+                                name: format!("{} for {}", indicator_id, country_code),
+                                source: WorldBankSource {
+                                    id: "2".to_string(),
+                                    value: "World Development Indicators".to_string(),
+                                },
+                                source_note: Some(format!("Available for country: {}", country_code)),
+                                source_organization: Some("World Bank".to_string()),
+                            };
+                            indicators.push(indicator);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(indicators)
+}
+
+/// Fetch key economic indicators by direct lookup
+async fn fetch_key_economic_indicators(client: &Client) -> AppResult<Vec<WorldBankIndicator>> {
+    // List of key economic indicators to fetch directly
+    let key_indicator_ids = vec![
+        "NY.GDP.MKTP.CD",    // GDP (current US$)
+        "NY.GDP.MKTP.KD.ZG", // GDP growth (annual %)
+        "FP.CPI.TOTL.ZG",    // Inflation, consumer prices (annual %)
+        "SL.UEM.TOTL.ZS",    // Unemployment, total (% of total labor force)
+        "FR.INR.RINR",       // Real interest rate (%)
+        "NE.TRD.GNFS.ZS",    // Trade (% of GDP)
+        "GC.DOD.TOTL.GD.ZS", // Central government debt, total (% of GDP)
+        "GC.REV.XGRT.GD.ZS", // Tax revenue (% of GDP)
+        "GC.XPN.TOTL.GD.ZS", // Expense (% of GDP)
+        "BN.CAB.XOKA.GD.ZS", // Current account balance (% of GDP)
+    ];
+
+    let mut indicators = Vec::new();
+
     for indicator_id in key_indicator_ids {
         if let Ok(indicator) = fetch_single_indicator(client, indicator_id).await {
             indicators.push(indicator);
@@ -185,7 +286,7 @@ async fn fetch_indicators_paginated(
     max_pages: usize,
 ) -> AppResult<Vec<WorldBankIndicator>> {
     let mut all_indicators = Vec::new();
-    
+
     for page in 1..=max_pages {
         let url = format!(
             "https://api.worldbank.org/v2/indicator?format=json&per_page=100&page={}",
@@ -197,7 +298,11 @@ async fn fetch_indicators_paginated(
         })?;
 
         if !response.status().is_success() {
-            println!("Warning: World Bank API returned status {} for page {}", response.status(), page);
+            println!(
+                "Warning: World Bank API returned status {} for page {}",
+                response.status(),
+                page
+            );
             continue;
         }
 
@@ -206,15 +311,15 @@ async fn fetch_indicators_paginated(
         })?;
 
         let page_indicators = extract_indicators_from_response(json_response)?;
-        
+
         // Filter for economic indicators
         let economic_indicators: Vec<WorldBankIndicator> = page_indicators
             .into_iter()
-            .filter(|indicator| is_economic_indicator(indicator))
+            .filter(is_economic_indicator)
             .collect();
 
         all_indicators.extend(economic_indicators);
-        
+
         // Add delay to be polite to the API
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
@@ -248,7 +353,7 @@ async fn fetch_single_indicator(
     })?;
 
     let indicators = extract_indicators_from_response(json_response)?;
-    
+
     indicators.into_iter().next().ok_or_else(|| {
         AppError::ExternalApiError(format!("No indicator found for ID: {}", indicator_id))
     })
@@ -261,14 +366,16 @@ fn extract_indicators_from_response(
     if let Some(array) = json_response.as_array() {
         if array.len() >= 2 {
             // Second element contains the actual data
-            Ok(serde_json::from_value::<WorldBankIndicatorsResponse>(array[1].clone())
-                .map_err(|e| {
-                    AppError::ExternalApiError(format!(
-                        "Failed to parse World Bank indicators: {}",
-                        e
-                    ))
-                })?
-                .indicator)
+            Ok(
+                serde_json::from_value::<WorldBankIndicatorsResponse>(array[1].clone())
+                    .map_err(|e| {
+                        AppError::ExternalApiError(format!(
+                            "Failed to parse World Bank indicators: {}",
+                            e
+                        ))
+                    })?
+                    .indicator,
+            )
         } else {
             Ok(Vec::new())
         }
@@ -286,28 +393,51 @@ fn is_economic_indicator(indicator: &WorldBankIndicator) -> bool {
 
     // Check for economic keywords in name
     let economic_keywords = [
-        "gdp", "gross domestic product", "inflation", "unemployment", "interest rate",
-        "exchange rate", "trade", "debt", "revenue", "expenditure", "current account",
-        "balance of payments", "economic", "financial", "monetary", "fiscal",
-        "price", "wage", "income", "consumption", "investment", "savings",
-        "export", "import", "balance", "surplus", "deficit", "budget",
+        "gdp",
+        "gross domestic product",
+        "inflation",
+        "unemployment",
+        "interest rate",
+        "exchange rate",
+        "trade",
+        "debt",
+        "revenue",
+        "expenditure",
+        "current account",
+        "balance of payments",
+        "economic",
+        "financial",
+        "monetary",
+        "fiscal",
+        "price",
+        "wage",
+        "income",
+        "consumption",
+        "investment",
+        "savings",
+        "export",
+        "import",
+        "balance",
+        "surplus",
+        "deficit",
+        "budget",
     ];
 
-    let has_economic_keyword = economic_keywords.iter().any(|keyword| {
-        name_lower.contains(keyword)
-    });
+    let has_economic_keyword = economic_keywords
+        .iter()
+        .any(|keyword| name_lower.contains(keyword));
 
     // Check for economic indicator ID patterns
     let economic_id_patterns = [
-        "ny.gdp", "fp.cpi", "sl.uem", "fr.inr", "ne.trd", "gc.rev", "gc.xpn",
-        "bn.cab", "dt.dod", "ic.tax", "ic.bus", "ic.reg", "ic.gov", "ic.lgl",
-        "ie.tic", "ie.tra", "ie.tec", "ie.eng", "ie.ene", "ie.env", "ie.hea",
-        "ie.edu", "ie.agr", "ie.fin", "ie.inf", "ie.urb", "ie.rur", "ie.gen",
+        "ny.gdp", "fp.cpi", "sl.uem", "fr.inr", "ne.trd", "gc.rev", "gc.xpn", "bn.cab", "dt.dod",
+        "ic.tax", "ic.bus", "ic.reg", "ic.gov", "ic.lgl", "ie.tic", "ie.tra", "ie.tec", "ie.eng",
+        "ie.ene", "ie.env", "ie.hea", "ie.edu", "ie.agr", "ie.fin", "ie.inf", "ie.urb", "ie.rur",
+        "ie.gen",
     ];
 
-    let has_economic_id_pattern = economic_id_patterns.iter().any(|pattern| {
-        id_lower.contains(pattern)
-    });
+    let has_economic_id_pattern = economic_id_patterns
+        .iter()
+        .any(|pattern| id_lower.contains(pattern));
 
     has_economic_keyword || has_economic_id_pattern
 }
@@ -320,7 +450,7 @@ async fn fetch_indicator_metadata(
     // For now, return default metadata since World Bank API doesn't provide
     // detailed frequency/unit information in the indicator endpoint
     // In a real implementation, we might need to fetch data samples to determine this
-    
+
     Ok(WorldBankIndicatorMetadata {
         frequency: "Annual".to_string(), // Most World Bank data is annual
         units: "Various".to_string(),    // World Bank uses various units

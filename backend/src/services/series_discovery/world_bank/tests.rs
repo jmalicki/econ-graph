@@ -23,7 +23,10 @@ async fn test_world_bank_data_source_config() -> Result<(), Box<dyn std::error::
     assert_eq!(world_bank_source.rate_limit_per_minute, 1000);
     assert_eq!(world_bank_source.base_url, "https://api.worldbank.org/v2");
     assert!(world_bank_source.description.is_some());
-    assert!(world_bank_source.description.unwrap().contains("Global economic"));
+    assert!(world_bank_source
+        .description
+        .unwrap()
+        .contains("Global economic"));
 
     Ok(())
 }
