@@ -72,28 +72,40 @@ pub async fn discover_world_bank_series(
 
     // Strategy 1: Get indicators from multiple economic topics
     let mut topic_indicators = Vec::new();
-    
+
     // Economy & Growth (ID 3)
     let economy_indicators = fetch_indicators_by_topic(client, "3").await?;
-    println!("Found {} indicators from Economy & Growth topic", economy_indicators.len());
+    println!(
+        "Found {} indicators from Economy & Growth topic",
+        economy_indicators.len()
+    );
     topic_indicators.extend(economy_indicators);
-    
+
     // Financial Sector (ID 7)
     let financial_indicators = fetch_indicators_by_topic(client, "7").await?;
-    println!("Found {} indicators from Financial Sector topic", financial_indicators.len());
+    println!(
+        "Found {} indicators from Financial Sector topic",
+        financial_indicators.len()
+    );
     topic_indicators.extend(financial_indicators);
-    
+
     // Trade (ID 11) - if available
     if let Ok(trade_indicators) = fetch_indicators_by_topic(client, "11").await {
-        println!("Found {} indicators from Trade topic", trade_indicators.len());
+        println!(
+            "Found {} indicators from Trade topic",
+            trade_indicators.len()
+        );
         topic_indicators.extend(trade_indicators);
     }
-    
+
     // Remove duplicates from topic indicators
     topic_indicators.sort_by(|a, b| a.id.cmp(&b.id));
     topic_indicators.dedup_by(|a, b| a.id == b.id);
-    
-    println!("Total unique indicators from all topics: {}", topic_indicators.len());
+
+    println!(
+        "Total unique indicators from all topics: {}",
+        topic_indicators.len()
+    );
 
     // Strategy 2: Get key economic indicators by direct lookup
     let key_indicators = fetch_key_economic_indicators(client).await?;
@@ -101,7 +113,10 @@ pub async fn discover_world_bank_series(
 
     // Strategy 3: Get indicators from major countries (US, China, Germany, Japan, UK)
     let country_indicators = fetch_indicators_for_major_countries(client).await?;
-    println!("Found {} indicators from major countries", country_indicators.len());
+    println!(
+        "Found {} indicators from major countries",
+        country_indicators.len()
+    );
 
     // Strategy 4: Get indicators from paginated search (limited to avoid overwhelming)
     let paginated_indicators = fetch_indicators_paginated(client, 10).await?; // First 10 pages
@@ -180,24 +195,26 @@ async fn fetch_indicators_by_topic(
 }
 
 /// Fetch indicators for major countries to discover country-specific economic data
-async fn fetch_indicators_for_major_countries(client: &Client) -> AppResult<Vec<WorldBankIndicator>> {
+async fn fetch_indicators_for_major_countries(
+    client: &Client,
+) -> AppResult<Vec<WorldBankIndicator>> {
     // List of major countries/regions to fetch indicators for
     let major_countries = vec![
-        "US",   // United States
-        "CN",   // China
-        "DE",   // Germany
-        "JP",   // Japan
-        "GB",   // United Kingdom
-        "FR",   // France
-        "IT",   // Italy
-        "CA",   // Canada
-        "AU",   // Australia
-        "BR",   // Brazil
-        "IN",   // India
-        "RU",   // Russia
-        "ZA",   // South Africa
-        "MX",   // Mexico
-        "KR",   // South Korea
+        "US", // United States
+        "CN", // China
+        "DE", // Germany
+        "JP", // Japan
+        "GB", // United Kingdom
+        "FR", // France
+        "IT", // Italy
+        "CA", // Canada
+        "AU", // Australia
+        "BR", // Brazil
+        "IN", // India
+        "RU", // Russia
+        "ZA", // South Africa
+        "MX", // Mexico
+        "KR", // South Korea
     ];
 
     let mut all_indicators = Vec::new();
@@ -208,7 +225,7 @@ async fn fetch_indicators_for_major_countries(client: &Client) -> AppResult<Vec<
         if let Ok(indicators) = fetch_country_indicators_sample(client, country_code).await {
             all_indicators.extend(indicators);
         }
-        
+
         // Add delay to be polite to the API
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
@@ -248,7 +265,9 @@ async fn fetch_country_indicators_sample(
                 if let Ok(json_response) = response.json::<serde_json::Value>().await {
                     // If we get data, this indicator is available for this country
                     if let Some(array) = json_response.as_array() {
-                        if array.len() >= 2 && array[1].as_array().map_or(false, |arr| !arr.is_empty()) {
+                        if array.len() >= 2
+                            && array[1].as_array().map_or(false, |arr| !arr.is_empty())
+                        {
                             // Create a WorldBankIndicator for this combination
                             let indicator = WorldBankIndicator {
                                 id: indicator_id.to_string(),
@@ -257,7 +276,10 @@ async fn fetch_country_indicators_sample(
                                     id: "2".to_string(),
                                     value: "World Development Indicators".to_string(),
                                 },
-                                source_note: Some(format!("Available for country: {}", country_code)),
+                                source_note: Some(format!(
+                                    "Available for country: {}",
+                                    country_code
+                                )),
                                 source_organization: Some("World Bank".to_string()),
                             };
                             indicators.push(indicator);
