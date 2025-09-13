@@ -130,7 +130,6 @@ pub async fn discover_world_bank_series(
     all_indicators.extend(key_indicators);
     all_indicators.extend(country_indicators);
     all_indicators.extend(paginated_indicators);
-
     // Remove duplicates based on indicator ID
     all_indicators.sort_by(|a, b| a.id.cmp(&b.id));
     all_indicators.dedup_by(|a, b| a.id == b.id);
@@ -141,7 +140,6 @@ pub async fn discover_world_bank_series(
     for indicator in all_indicators {
         // Get detailed metadata for each indicator
         let detailed_metadata = fetch_indicator_metadata(client, &indicator.id).await?;
-
         let series_info = WorldBankSeriesInfo {
             series_id: indicator.id.clone(),
             title: indicator.name.clone(),
@@ -294,23 +292,24 @@ async fn fetch_country_indicators_sample(
 }
 
 /// Fetch key economic indicators by direct lookup
-async fn fetch_key_economic_indicators(client: &Client) -> AppResult<Vec<WorldBankIndicator>> {
+async fn fetch_key_economic_indicators(
+    client: &Client,
+) -> AppResult<Vec<WorldBankIndicator>> {
     // List of key economic indicators to fetch directly
     let key_indicator_ids = vec![
-        "NY.GDP.MKTP.CD",    // GDP (current US$)
-        "NY.GDP.MKTP.KD.ZG", // GDP growth (annual %)
-        "FP.CPI.TOTL.ZG",    // Inflation, consumer prices (annual %)
-        "SL.UEM.TOTL.ZS",    // Unemployment, total (% of total labor force)
-        "FR.INR.RINR",       // Real interest rate (%)
-        "NE.TRD.GNFS.ZS",    // Trade (% of GDP)
-        "GC.DOD.TOTL.GD.ZS", // Central government debt, total (% of GDP)
-        "GC.REV.XGRT.GD.ZS", // Tax revenue (% of GDP)
-        "GC.XPN.TOTL.GD.ZS", // Expense (% of GDP)
-        "BN.CAB.XOKA.GD.ZS", // Current account balance (% of GDP)
+        "NY.GDP.MKTP.CD",     // GDP (current US$)
+        "NY.GDP.MKTP.KD.ZG",  // GDP growth (annual %)
+        "FP.CPI.TOTL.ZG",     // Inflation, consumer prices (annual %)
+        "SL.UEM.TOTL.ZS",     // Unemployment, total (% of total labor force)
+        "FR.INR.RINR",        // Real interest rate (%)
+        "NE.TRD.GNFS.ZS",     // Trade (% of GDP)
+        "GC.DOD.TOTL.GD.ZS",  // Central government debt, total (% of GDP)
+        "GC.REV.XGRT.GD.ZS",  // Tax revenue (% of GDP)
+        "GC.XPN.TOTL.GD.ZS",  // Expense (% of GDP)
+        "BN.CAB.XOKA.GD.ZS",  // Current account balance (% of GDP)
     ];
 
     let mut indicators = Vec::new();
-
     for indicator_id in key_indicator_ids {
         if let Ok(indicator) = fetch_single_indicator(client, indicator_id).await {
             indicators.push(indicator);
@@ -326,7 +325,6 @@ async fn fetch_indicators_paginated(
     max_pages: usize,
 ) -> AppResult<Vec<WorldBankIndicator>> {
     let mut all_indicators = Vec::new();
-
     for page in 1..=max_pages {
         let url = format!(
             "https://api.worldbank.org/v2/indicator?format=json&per_page=100&page={}",
@@ -355,11 +353,10 @@ async fn fetch_indicators_paginated(
         // Filter for economic indicators
         let economic_indicators: Vec<WorldBankIndicator> = page_indicators
             .into_iter()
-            .filter(is_economic_indicator)
+            .filter(|indicator| is_economic_indicator(indicator))
             .collect();
 
         all_indicators.extend(economic_indicators);
-
         // Add delay to be polite to the API
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
@@ -393,7 +390,6 @@ async fn fetch_single_indicator(
     })?;
 
     let indicators = extract_indicators_from_response(json_response)?;
-
     indicators.into_iter().next().ok_or_else(|| {
         AppError::ExternalApiError(format!("No indicator found for ID: {}", indicator_id))
     })
@@ -406,16 +402,14 @@ fn extract_indicators_from_response(
     if let Some(array) = json_response.as_array() {
         if array.len() >= 2 {
             // Second element contains the actual data
-            Ok(
-                serde_json::from_value::<WorldBankIndicatorsResponse>(array[1].clone())
-                    .map_err(|e| {
-                        AppError::ExternalApiError(format!(
-                            "Failed to parse World Bank indicators: {}",
-                            e
-                        ))
-                    })?
-                    .indicator,
-            )
+            Ok(serde_json::from_value::<WorldBankIndicatorsResponse>(array[1].clone())
+                .map_err(|e| {
+                    AppError::ExternalApiError(format!(
+                        "Failed to parse World Bank indicators: {}",
+                        e
+                    ))
+                })?
+                .indicator)
         } else {
             Ok(Vec::new())
         }
@@ -490,7 +484,6 @@ async fn fetch_indicator_metadata(
     // For now, return default metadata since World Bank API doesn't provide
     // detailed frequency/unit information in the indicator endpoint
     // In a real implementation, we might need to fetch data samples to determine this
-
     Ok(WorldBankIndicatorMetadata {
         frequency: "Annual".to_string(), // Most World Bank data is annual
         units: "Various".to_string(),    // World Bank uses various units
