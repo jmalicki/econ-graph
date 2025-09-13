@@ -58,7 +58,7 @@ pub struct SecurityEvent {
     pub user_agent: Option<String>,
     pub description: String,
     pub metadata: Option<Value>,
-    pub resolved: bool,
+    pub resolved: Option<bool>,
     pub resolved_by: Option<Uuid>,
     pub resolved_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,

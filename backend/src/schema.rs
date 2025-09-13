@@ -378,7 +378,7 @@ diesel::table! {
         user_agent -> Nullable<Text>,
         description -> Text,
         metadata -> Nullable<Jsonb>,
-        resolved -> Bool,
+        resolved -> Nullable<Bool>,
         resolved_by -> Nullable<Uuid>,
         resolved_at -> Nullable<Timestamptz>,
         created_at -> Timestamptz,
@@ -445,7 +445,6 @@ diesel::joinable!(series_metadata -> data_sources (source_id));
 diesel::joinable!(user_data_source_preferences -> data_sources (data_source_id));
 diesel::joinable!(user_data_source_preferences -> users (user_id));
 diesel::joinable!(user_sessions -> users (user_id));
-diesel::joinable!(security_events -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     annotation_comments,
