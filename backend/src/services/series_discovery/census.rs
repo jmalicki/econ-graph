@@ -173,7 +173,7 @@ impl CensusQueryBuilder {
     pub fn build_url(&self) -> AppResult<String> {
         if self.variables.is_empty() {
             return Err(AppError::ValidationError(
-                "At least one variable must be specified".to_string()
+                "At least one variable must be specified".to_string(),
             ));
         }
 
@@ -241,7 +241,7 @@ impl CensusQueryBuilder {
 
         if raw_data.len() < 2 {
             return Err(AppError::ExternalApiError(
-                "Invalid Census response: expected at least header and data rows".to_string()
+                "Invalid Census response: expected at least header and data rows".to_string(),
             ));
         }
 
@@ -249,8 +249,12 @@ impl CensusQueryBuilder {
         let data_rows = &raw_data[1..];
 
         // Find indices of key columns - handle Census API quirks
-        let year_idx = headers.iter().position(|h| h.to_lowercase() == "year")
-            .ok_or_else(|| AppError::ExternalApiError("YEAR column not found in response".to_string()))?;
+        let year_idx = headers
+            .iter()
+            .position(|h| h.to_lowercase() == "year")
+            .ok_or_else(|| {
+                AppError::ExternalApiError("YEAR column not found in response".to_string())
+            })?;
 
         // Census API returns geography as the last column with numeric codes
         let geo_idx = headers.len() - 1;
@@ -336,9 +340,9 @@ pub async fn fetch_bds_data(
 /// Fetch sample BDS data for testing and validation
 pub async fn fetch_bds_sample_data(client: &Client) -> AppResult<Vec<BdsDataPoint>> {
     let variables = vec![
-        "ESTAB".to_string(),    // Establishments
-        "FIRM".to_string(),     // Firms
-        "YEAR".to_string(),     // Year (required)
+        "ESTAB".to_string(), // Establishments
+        "FIRM".to_string(),  // Firms
+        "YEAR".to_string(),  // Year (required)
     ];
 
     fetch_bds_data(client, &variables, "us", 2020, 2022, &None).await
@@ -383,7 +387,10 @@ pub async fn discover_census_series(
         }
     }
 
-    println!("✅ Discovered {} Census series total", discovered_series.len());
+    println!(
+        "✅ Discovered {} Census series total",
+        discovered_series.len()
+    );
     Ok(discovered_series)
 }
 
@@ -405,8 +412,11 @@ async fn discover_bds_series(
     println!("🔍 Filtering economic indicators...");
     let economic_variables = filter_economic_indicators(&variables);
 
-    println!("📈 Creating series for {} economic indicators across {} geographic levels",
-             economic_variables.len(), geography.len());
+    println!(
+        "📈 Creating series for {} economic indicators across {} geographic levels",
+        economic_variables.len(),
+        geography.len()
+    );
 
     let mut discovered_series = Vec::new();
 
@@ -445,9 +455,10 @@ async fn discover_bds_series(
 async fn fetch_bds_variables(client: &Client, base_url: &str) -> AppResult<Vec<BdsVariable>> {
     let url = format!("{}/variables.json", base_url);
 
-    let response = client.get(&url).send().await.map_err(|e| {
-        AppError::ExternalApiError(format!("BDS variables request failed: {}", e))
-    })?;
+    let response =
+        client.get(&url).send().await.map_err(|e| {
+            AppError::ExternalApiError(format!("BDS variables request failed: {}", e))
+        })?;
 
     if !response.status().is_success() {
         return Err(AppError::ExternalApiError(format!(
@@ -481,9 +492,10 @@ async fn fetch_bds_variables(client: &Client, base_url: &str) -> AppResult<Vec<B
 async fn fetch_bds_geography(client: &Client, base_url: &str) -> AppResult<Vec<BdsGeography>> {
     let url = format!("{}/geography.json", base_url);
 
-    let response = client.get(&url).send().await.map_err(|e| {
-        AppError::ExternalApiError(format!("BDS geography request failed: {}", e))
-    })?;
+    let response =
+        client.get(&url).send().await.map_err(|e| {
+            AppError::ExternalApiError(format!("BDS geography request failed: {}", e))
+        })?;
 
     if !response.status().is_success() {
         return Err(AppError::ExternalApiError(format!(
@@ -512,8 +524,21 @@ async fn fetch_bds_geography(client: &Client, base_url: &str) -> AppResult<Vec<B
 /// Filter BDS variables to economic indicators
 fn filter_economic_indicators(variables: &[BdsVariable]) -> Vec<BdsVariable> {
     let economic_keywords = [
-        "estab", "firm", "job", "emp", "creation", "destruction", "net", "reallocation",
-        "birth", "death", "entry", "exit", "rate", "employment", "establishment"
+        "estab",
+        "firm",
+        "job",
+        "emp",
+        "creation",
+        "destruction",
+        "net",
+        "reallocation",
+        "birth",
+        "death",
+        "entry",
+        "exit",
+        "rate",
+        "employment",
+        "establishment",
     ];
 
     variables
@@ -523,11 +548,17 @@ fn filter_economic_indicators(variables: &[BdsVariable]) -> Vec<BdsVariable> {
             let label_lower = var.label.to_lowercase();
 
             // Skip geographic and time variables
-            if name_lower.contains("for") || name_lower.contains("in") ||
-               name_lower.contains("year") || name_lower.contains("time") ||
-               name_lower.contains("geo") || name_lower.contains("state") ||
-               name_lower.contains("county") || name_lower.contains("metro") ||
-               name_lower.contains("cbsa") || name_lower.contains("nation") {
+            if name_lower.contains("for")
+                || name_lower.contains("in")
+                || name_lower.contains("year")
+                || name_lower.contains("time")
+                || name_lower.contains("geo")
+                || name_lower.contains("state")
+                || name_lower.contains("county")
+                || name_lower.contains("metro")
+                || name_lower.contains("cbsa")
+                || name_lower.contains("nation")
+            {
                 return false;
             }
 
@@ -537,9 +568,9 @@ fn filter_economic_indicators(variables: &[BdsVariable]) -> Vec<BdsVariable> {
             }
 
             // Check if it's an economic indicator
-            economic_keywords.iter().any(|keyword| {
-                name_lower.contains(keyword) || label_lower.contains(keyword)
-            })
+            economic_keywords
+                .iter()
+                .any(|keyword| name_lower.contains(keyword) || label_lower.contains(keyword))
         })
         .cloned()
         .collect()

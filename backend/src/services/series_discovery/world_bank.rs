@@ -292,21 +292,19 @@ async fn fetch_country_indicators_sample(
 }
 
 /// Fetch key economic indicators by direct lookup
-async fn fetch_key_economic_indicators(
-    client: &Client,
-) -> AppResult<Vec<WorldBankIndicator>> {
+async fn fetch_key_economic_indicators(client: &Client) -> AppResult<Vec<WorldBankIndicator>> {
     // List of key economic indicators to fetch directly
     let key_indicator_ids = vec![
-        "NY.GDP.MKTP.CD",     // GDP (current US$)
-        "NY.GDP.MKTP.KD.ZG",  // GDP growth (annual %)
-        "FP.CPI.TOTL.ZG",     // Inflation, consumer prices (annual %)
-        "SL.UEM.TOTL.ZS",     // Unemployment, total (% of total labor force)
-        "FR.INR.RINR",        // Real interest rate (%)
-        "NE.TRD.GNFS.ZS",     // Trade (% of GDP)
-        "GC.DOD.TOTL.GD.ZS",  // Central government debt, total (% of GDP)
-        "GC.REV.XGRT.GD.ZS",  // Tax revenue (% of GDP)
-        "GC.XPN.TOTL.GD.ZS",  // Expense (% of GDP)
-        "BN.CAB.XOKA.GD.ZS",  // Current account balance (% of GDP)
+        "NY.GDP.MKTP.CD",    // GDP (current US$)
+        "NY.GDP.MKTP.KD.ZG", // GDP growth (annual %)
+        "FP.CPI.TOTL.ZG",    // Inflation, consumer prices (annual %)
+        "SL.UEM.TOTL.ZS",    // Unemployment, total (% of total labor force)
+        "FR.INR.RINR",       // Real interest rate (%)
+        "NE.TRD.GNFS.ZS",    // Trade (% of GDP)
+        "GC.DOD.TOTL.GD.ZS", // Central government debt, total (% of GDP)
+        "GC.REV.XGRT.GD.ZS", // Tax revenue (% of GDP)
+        "GC.XPN.TOTL.GD.ZS", // Expense (% of GDP)
+        "BN.CAB.XOKA.GD.ZS", // Current account balance (% of GDP)
     ];
 
     let mut indicators = Vec::new();
@@ -353,7 +351,7 @@ async fn fetch_indicators_paginated(
         // Filter for economic indicators
         let economic_indicators: Vec<WorldBankIndicator> = page_indicators
             .into_iter()
-            .filter(|indicator| is_economic_indicator(indicator))
+            .filter(is_economic_indicator)
             .collect();
 
         all_indicators.extend(economic_indicators);
@@ -402,14 +400,16 @@ fn extract_indicators_from_response(
     if let Some(array) = json_response.as_array() {
         if array.len() >= 2 {
             // Second element contains the actual data
-            Ok(serde_json::from_value::<WorldBankIndicatorsResponse>(array[1].clone())
-                .map_err(|e| {
-                    AppError::ExternalApiError(format!(
-                        "Failed to parse World Bank indicators: {}",
-                        e
-                    ))
-                })?
-                .indicator)
+            Ok(
+                serde_json::from_value::<WorldBankIndicatorsResponse>(array[1].clone())
+                    .map_err(|e| {
+                        AppError::ExternalApiError(format!(
+                            "Failed to parse World Bank indicators: {}",
+                            e
+                        ))
+                    })?
+                    .indicator,
+            )
         } else {
             Ok(Vec::new())
         }

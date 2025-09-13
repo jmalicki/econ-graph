@@ -3,8 +3,8 @@
 use crate::error::AppResult;
 use crate::models::DataSource;
 use crate::services::series_discovery::census::{
-    discover_census_series, filter_economic_indicators, BdsVariable,
-    CensusQueryBuilder, fetch_bds_data, fetch_bds_sample_data, BdsDataPoint,
+    discover_census_series, fetch_bds_data, fetch_bds_sample_data, filter_economic_indicators,
+    BdsDataPoint, BdsVariable, CensusQueryBuilder,
 };
 use crate::test_utils::TestContainer;
 use reqwest::Client;
@@ -20,7 +20,11 @@ async fn test_census_data_source_config() -> AppResult<()> {
     let census_source = DataSource::get_or_create(&pool, DataSource::census()).await?;
 
     assert_eq!(census_source.name, "U.S. Census Bureau");
-    assert!(census_source.description.as_ref().unwrap().contains("Demographic and economic data"));
+    assert!(census_source
+        .description
+        .as_ref()
+        .unwrap()
+        .contains("Demographic and economic data"));
     assert_eq!(census_source.base_url, "https://api.census.gov/data");
     assert!(!census_source.api_key_required); // Census doesn't require API key
 
@@ -137,7 +141,10 @@ async fn test_census_series_discovery_integration() -> AppResult<()> {
         .filter(|s| s.source_id == census_source.id)
         .collect();
 
-    assert!(!census_series.is_empty(), "Should have stored Census series in database");
+    assert!(
+        !census_series.is_empty(),
+        "Should have stored Census series in database"
+    );
 
     // Verify BDS series have correct metadata
     let bds_series_in_db: Vec<_> = census_series
@@ -145,7 +152,10 @@ async fn test_census_series_discovery_integration() -> AppResult<()> {
         .filter(|s| s.external_id.starts_with("CENSUS_BDS_"))
         .collect();
 
-    assert!(!bds_series_in_db.is_empty(), "Should have BDS series in database");
+    assert!(
+        !bds_series_in_db.is_empty(),
+        "Should have BDS series in database"
+    );
 
     // Check that BDS series have expected metadata
     for series in bds_series_in_db {
@@ -153,7 +163,11 @@ async fn test_census_series_discovery_integration() -> AppResult<()> {
         assert_eq!(series.units, Some("Count".to_string()));
         assert!(series.title.contains(" - ")); // Should have format "Variable - Geography"
         assert!(series.description.is_some());
-        assert!(series.description.as_ref().unwrap().contains("Business Dynamics Statistics"));
+        assert!(series
+            .description
+            .as_ref()
+            .unwrap()
+            .contains("Business Dynamics Statistics"));
     }
 
     Ok(())
@@ -170,7 +184,11 @@ async fn test_census_series_metadata_storage() -> AppResult<()> {
 
     // Verify data source properties
     assert_eq!(census_source.name, "U.S. Census Bureau");
-    assert!(census_source.description.as_ref().unwrap().contains("Demographic and economic data"));
+    assert!(census_source
+        .description
+        .as_ref()
+        .unwrap()
+        .contains("Demographic and economic data"));
     assert_eq!(census_source.base_url, "https://api.census.gov/data");
     assert!(!census_source.api_key_required); // No API key required
 
@@ -208,8 +226,7 @@ async fn test_census_query_builder_defaults() -> AppResult<()> {
     let client = Client::new();
 
     // Test query builder with minimal parameters (should use defaults)
-    let query = CensusQueryBuilder::new()
-        .variables(&["ESTAB".to_string()]);
+    let query = CensusQueryBuilder::new().variables(&["ESTAB".to_string()]);
 
     let url = query.build_url()?;
 
@@ -251,7 +268,9 @@ async fn test_census_query_builder_validation() -> AppResult<()> {
 
     assert!(result.is_err());
     if let Err(error) = result {
-        assert!(error.to_string().contains("At least one variable must be specified"));
+        assert!(error
+            .to_string()
+            .contains("At least one variable must be specified"));
     }
 
     Ok(())
@@ -339,9 +358,8 @@ async fn test_fetch_bds_sample_data() -> AppResult<()> {
     }
 
     // Should have data for both ESTAB and FIRM variables
-    let variables: std::collections::HashSet<String> = data_points.iter()
-        .map(|p| p.variable.clone())
-        .collect();
+    let variables: std::collections::HashSet<String> =
+        data_points.iter().map(|p| p.variable.clone()).collect();
 
     assert!(variables.contains("ESTAB"));
     assert!(variables.contains("FIRM"));
@@ -355,20 +373,9 @@ async fn test_fetch_bds_data_custom_params() -> AppResult<()> {
     let client = Client::new();
 
     // Test fetching BDS data with custom parameters
-    let variables = vec![
-        "ESTAB".to_string(),
-        "FIRM".to_string(),
-        "YEAR".to_string(),
-    ];
+    let variables = vec!["ESTAB".to_string(), "FIRM".to_string(), "YEAR".to_string()];
 
-    let data_points = fetch_bds_data(
-        &client,
-        &variables,
-        "us",
-        2021,
-        2022,
-        &None,
-    ).await?;
+    let data_points = fetch_bds_data(&client, &variables, "us", 2021, 2022, &None).await?;
 
     // Should get some data points
     assert!(!data_points.is_empty());
@@ -381,9 +388,8 @@ async fn test_fetch_bds_data_custom_params() -> AppResult<()> {
     }
 
     // Should have data for both variables
-    let variables_found: std::collections::HashSet<String> = data_points.iter()
-        .map(|p| p.variable.clone())
-        .collect();
+    let variables_found: std::collections::HashSet<String> =
+        data_points.iter().map(|p| p.variable.clone()).collect();
 
     assert!(variables_found.contains("ESTAB"));
     assert!(variables_found.contains("FIRM"));
