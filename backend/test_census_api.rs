@@ -73,14 +73,14 @@ fn parse_census_response(response: &str) -> Result<Vec<BdsDataPoint>, Box<dyn st
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔍 Testing Census BDS API integration...");
-    
+
     let client = reqwest::Client::new();
-    
+
     // Test 1: Basic API call
     println!("\n📊 Test 1: Basic API call");
     let url = "https://api.census.gov/data/timeseries/bds?get=ESTAB,YEAR&for=us&YEAR=2020";
     println!("📡 URL: {}", url);
-    
+
     let result = timeout(
         Duration::from_secs(30),
         client.get(url).send(),
@@ -89,18 +89,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match result {
         Ok(Ok(resp)) => {
             println!("✅ Got response with status: {}", resp.status());
-            
+
             if resp.status().is_success() {
                 let text = resp.text().await?;
                 println!("📄 Response length: {} characters", text.len());
                 println!("📄 Raw response: {}", text);
-                
+
                 // Parse the response
                 match parse_census_response(&text) {
                     Ok(data_points) => {
                         println!("✅ Successfully parsed {} data points", data_points.len());
                         for point in &data_points {
-                            println!("📈 Data point: variable={}, year={}, value={:?}, geography={}", 
+                            println!("📈 Data point: variable={}, year={}, value={:?}, geography={}",
                                 point.variable, point.year, point.value, point.geography);
                         }
                     }
@@ -124,7 +124,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n📊 Test 2: Multiple variables");
     let url2 = "https://api.census.gov/data/timeseries/bds?get=ESTAB,FIRM,YEAR&for=us&YEAR=2020,2021";
     println!("📡 URL: {}", url2);
-    
+
     let result2 = timeout(
         Duration::from_secs(30),
         client.get(url2).send(),
@@ -133,17 +133,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match result2 {
         Ok(Ok(resp)) => {
             println!("✅ Got response with status: {}", resp.status());
-            
+
             if resp.status().is_success() {
                 let text = resp.text().await?;
                 println!("📄 Response length: {} characters", text.len());
-                
+
                 // Parse the response
                 match parse_census_response(&text) {
                     Ok(data_points) => {
                         println!("✅ Successfully parsed {} data points", data_points.len());
                         for point in &data_points {
-                            println!("📈 Data point: variable={}, year={}, value={:?}, geography={}", 
+                            println!("📈 Data point: variable={}, year={}, value={:?}, geography={}",
                                 point.variable, point.year, point.value, point.geography);
                         }
                     }
