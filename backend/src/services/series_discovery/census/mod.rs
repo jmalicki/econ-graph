@@ -64,7 +64,7 @@ impl CensusQueryBuilder {
         }
 
         let mut url = "https://api.census.gov/data/timeseries/bds".to_string();
-        
+
         // Build get parameter
         let get_vars = self.variables.join(",");
         url.push_str(&format!("?get={}", get_vars));
@@ -129,16 +129,21 @@ pub struct BdsDataPoint {
 /// Execute a Census API query and return raw response
 pub async fn execute_query(client: &Client, query: &CensusQueryBuilder) -> AppResult<String> {
     let url = query.build_url()?;
-    
-    let response = client.get(&url).send().await.map_err(|e| {
-        AppError::ExternalApiError(format!("Census API request failed: {}", e))
-    })?;
+
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| AppError::ExternalApiError(format!("Census API request failed: {}", e)))?;
 
     if !response.status().is_success() {
         return Err(AppError::ExternalApiError(format!(
             "Census API returned error: {} - {}",
             response.status(),
-            response.status().canonical_reason().unwrap_or("Unknown error")
+            response
+                .status()
+                .canonical_reason()
+                .unwrap_or("Unknown error")
         )));
     }
 
@@ -260,10 +265,16 @@ pub async fn discover_census_series(pool: &DatabasePool) -> AppResult<Vec<Econom
     let census_source = DataSource::get_or_create(pool, DataSource::census()).await?;
 
     // Fetch BDS variables and geography
-    let variables = fetch_bds_variables(&client, "https://api.census.gov/data/timeseries/bds").await?;
-    let geography = fetch_bds_geography(&client, "https://api.census.gov/data/timeseries/bds").await?;
+    let variables =
+        fetch_bds_variables(&client, "https://api.census.gov/data/timeseries/bds").await?;
+    let geography =
+        fetch_bds_geography(&client, "https://api.census.gov/data/timeseries/bds").await?;
 
-    println!("📊 Found {} variables and {} geography levels", variables.len(), geography.len());
+    println!(
+        "📊 Found {} variables and {} geography levels",
+        variables.len(),
+        geography.len()
+    );
 
     // Filter for economic indicators
     let economic_variables = filter_economic_indicators(&variables);
@@ -282,7 +293,11 @@ pub async fn discover_census_series(pool: &DatabasePool) -> AppResult<Vec<Econom
     for variable in &economic_variables {
         for geo in &geography {
             let external_id = format!("CENSUS_BDS_{}_{}", variable.name, geo.name);
-            let title = format!("{} - {}", variable.label, geo.geo_level_display.as_ref().unwrap_or(&geo.name));
+            let title = format!(
+                "{} - {}",
+                variable.label,
+                geo.geo_level_display.as_ref().unwrap_or(&geo.name)
+            );
             let description = format!(
                 "Business Dynamics Statistics: {} for {}",
                 variable.label,
@@ -398,9 +413,38 @@ async fn fetch_bds_variables(client: &Client, base_url: &str) -> AppResult<Vec<B
         AppError::ExternalApiError(format!("Failed to read BDS variables response: {}", e))
     })?;
 
-    let variables: Vec<BdsVariable> = serde_json::from_str(&text).map_err(|e| {
-        AppError::ExternalApiError(format!("Failed to parse BDS variables: {}", e))
-    })?;
+    // Parse the response - it's a JSON object with a "variables" key
+    let response: serde_json::Value = serde_json::from_str(&text)
+        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse BDS variables response: {}", e)))?;
+    
+    let variables_obj = response.get("variables")
+        .ok_or_else(|| AppError::ExternalApiError("No 'variables' key in BDS response".to_string()))?;
+    
+    let mut variables = Vec::new();
+    if let Some(obj) = variables_obj.as_object() {
+        for (name, var_data) in obj {
+            if let Some(var_obj) = var_data.as_object() {
+                let variable = BdsVariable {
+                    name: name.clone(),
+                    label: var_obj.get("label")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    predicate_type: var_obj.get("predicateType")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    group: var_obj.get("group")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    limit: var_obj.get("limit")
+                        .and_then(|v| v.as_i64())
+                        .map(|i| i as i32),
+                    attributes: None, // We can expand this later if needed
+                };
+                variables.push(variable);
+            }
+        }
+    }
 
     Ok(variables)
 }
@@ -425,9 +469,36 @@ async fn fetch_bds_geography(client: &Client, base_url: &str) -> AppResult<Vec<B
         AppError::ExternalApiError(format!("Failed to read BDS geography response: {}", e))
     })?;
 
-    let geography: Vec<BdsGeography> = serde_json::from_str(&text).map_err(|e| {
-        AppError::ExternalApiError(format!("Failed to parse BDS geography: {}", e))
-    })?;
+    // Parse the response - it's a JSON object with a "fips" key
+    let response: serde_json::Value = serde_json::from_str(&text)
+        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse BDS geography response: {}", e)))?;
+    
+    let fips_array = response.get("fips")
+        .ok_or_else(|| AppError::ExternalApiError("No 'fips' key in BDS geography response".to_string()))?;
+    
+    let mut geography = Vec::new();
+    if let Some(array) = fips_array.as_array() {
+        for geo_data in array {
+            if let Some(geo_obj) = geo_data.as_object() {
+                let geo = BdsGeography {
+                    name: geo_obj.get("name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    geo_level_display: geo_obj.get("geoLevelDisplay")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    geo_level_id: geo_obj.get("geoLevelDisplay")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    requires: None, // We can expand this later if needed
+                    wildcard: geo_obj.get("wildcard")
+                        .and_then(|v| v.as_bool()),
+                };
+                geography.push(geo);
+            }
+        }
+    }
 
     Ok(geography)
 }
