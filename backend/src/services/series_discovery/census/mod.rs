@@ -414,29 +414,35 @@ async fn fetch_bds_variables(client: &Client, base_url: &str) -> AppResult<Vec<B
     })?;
 
     // Parse the response - it's a JSON object with a "variables" key
-    let response: serde_json::Value = serde_json::from_str(&text)
-        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse BDS variables response: {}", e)))?;
-    
-    let variables_obj = response.get("variables")
-        .ok_or_else(|| AppError::ExternalApiError("No 'variables' key in BDS response".to_string()))?;
-    
+    let response: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+        AppError::ExternalApiError(format!("Failed to parse BDS variables response: {}", e))
+    })?;
+
+    let variables_obj = response.get("variables").ok_or_else(|| {
+        AppError::ExternalApiError("No 'variables' key in BDS response".to_string())
+    })?;
+
     let mut variables = Vec::new();
     if let Some(obj) = variables_obj.as_object() {
         for (name, var_data) in obj {
             if let Some(var_obj) = var_data.as_object() {
                 let variable = BdsVariable {
                     name: name.clone(),
-                    label: var_obj.get("label")
+                    label: var_obj
+                        .get("label")
                         .and_then(|v| v.as_str())
                         .unwrap_or("")
                         .to_string(),
-                    predicate_type: var_obj.get("predicateType")
+                    predicate_type: var_obj
+                        .get("predicateType")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string()),
-                    group: var_obj.get("group")
+                    group: var_obj
+                        .get("group")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string()),
-                    limit: var_obj.get("limit")
+                    limit: var_obj
+                        .get("limit")
                         .and_then(|v| v.as_i64())
                         .map(|i| i as i32),
                     attributes: None, // We can expand this later if needed
@@ -470,30 +476,34 @@ async fn fetch_bds_geography(client: &Client, base_url: &str) -> AppResult<Vec<B
     })?;
 
     // Parse the response - it's a JSON object with a "fips" key
-    let response: serde_json::Value = serde_json::from_str(&text)
-        .map_err(|e| AppError::ExternalApiError(format!("Failed to parse BDS geography response: {}", e)))?;
-    
-    let fips_array = response.get("fips")
-        .ok_or_else(|| AppError::ExternalApiError("No 'fips' key in BDS geography response".to_string()))?;
-    
+    let response: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+        AppError::ExternalApiError(format!("Failed to parse BDS geography response: {}", e))
+    })?;
+
+    let fips_array = response.get("fips").ok_or_else(|| {
+        AppError::ExternalApiError("No 'fips' key in BDS geography response".to_string())
+    })?;
+
     let mut geography = Vec::new();
     if let Some(array) = fips_array.as_array() {
         for geo_data in array {
             if let Some(geo_obj) = geo_data.as_object() {
                 let geo = BdsGeography {
-                    name: geo_obj.get("name")
+                    name: geo_obj
+                        .get("name")
                         .and_then(|v| v.as_str())
                         .unwrap_or("")
                         .to_string(),
-                    geo_level_display: geo_obj.get("geoLevelDisplay")
+                    geo_level_display: geo_obj
+                        .get("geoLevelDisplay")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string()),
-                    geo_level_id: geo_obj.get("geoLevelDisplay")
+                    geo_level_id: geo_obj
+                        .get("geoLevelDisplay")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string()),
                     requires: None, // We can expand this later if needed
-                    wildcard: geo_obj.get("wildcard")
-                        .and_then(|v| v.as_bool()),
+                    wildcard: geo_obj.get("wildcard").and_then(|v| v.as_bool()),
                 };
                 geography.push(geo);
             }
