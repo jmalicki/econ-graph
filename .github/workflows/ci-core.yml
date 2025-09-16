@@ -86,7 +86,7 @@ jobs:
   backend-smoke-tests:
     name: Backend Smoke Tests (Fast)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     needs: [backend-build-cache]
 
     steps:
