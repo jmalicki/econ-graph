@@ -1430,6 +1430,12 @@ jobs:
       working-directory: frontend
       run: npx playwright install --with-deps
 
+    - name: Install additional mobile browser dependencies
+      working-directory: frontend
+      run: |
+        npx playwright install chromium webkit
+        npx playwright install-deps
+
     - name: Run mobile end-to-end tests
       working-directory: frontend
       run: npm run test:e2e:mobile

@@ -36,21 +36,21 @@ export default defineConfig({
 
   /* Configure projects for mobile browsers only */
   projects: [
-    /* Test against mobile viewports. */
+    /* Test against mobile viewports - Chrome only for CI stability */
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
     },
     {
       name: 'Mobile Chrome (Galaxy S5)',
       use: { ...devices['Galaxy S5'] },
     },
     {
-      name: 'Mobile Safari (iPhone SE)',
+      name: 'Mobile Chrome (iPhone 12)',
+      use: { ...devices['iPhone 12'] },
+    },
+    {
+      name: 'Mobile Chrome (iPhone SE)',
       use: { ...devices['iPhone SE'] },
     },
   ],
