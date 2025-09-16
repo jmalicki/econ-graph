@@ -1331,6 +1331,10 @@ jobs:
       working-directory: frontend/dev-server
       run: npm ci
 
+    - name: Install Playwright browsers
+      working-directory: frontend
+      run: npx playwright install --with-deps
+
     - name: Run end-to-end tests
       working-directory: frontend
       run: npm run test:e2e
@@ -1378,6 +1382,12 @@ jobs:
         key: ${{ runner.os }}-cargo-mobile-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-mobile-
+
+    - name: Install diesel CLI
+      run: |
+        export PATH="$HOME/.cargo/bin:$PATH"
+        cargo install diesel_cli --no-default-features --features postgres
+      working-directory: backend
 
     - name: Setup database
       run: |
