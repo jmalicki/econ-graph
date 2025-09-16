@@ -35,6 +35,49 @@ The EconGraph MCP (Model Context Protocol) Server provides AI models with direct
 - **Purpose**: Browse available data sources and economic series
 - **Access**: Through MCP resource endpoints
 
+## CI/CD Integration
+
+### Test Architecture
+The MCP server is fully integrated into the main CI pipeline with comprehensive testing:
+
+#### **Unit Tests** (Smoke Tests)
+- **Location**: `backend-smoke-tests` job
+- **Coverage**: 15 test cases covering all MCP endpoints
+- **Speed**: Fast execution (no database, mocked dependencies)
+- **Dependencies**: Only requires build cache
+
+#### **Chart API Integration Tests**
+- **Location**: `chart-api-integration-tests` job
+- **Coverage**: 71.42% overall coverage (43 tests)
+- **Services**: Chart API service (port 3001)
+- **Dependencies**: Requires smoke tests to pass
+
+#### **MCP Integration Tests**
+- **Location**: `backend-mcp-integration-tests` job
+- **Coverage**: 6 integration tests with real services
+- **Services**: Backend (port 9877) + Chart API (port 3001) + Database (port 5445)
+- **Dependencies**: Requires both smoke tests and chart API tests to pass
+- **Execution**: Runs in parallel with comprehensive e2e tests
+
+#### **Parallel Execution**
+```
+backend-smoke-tests (includes MCP unit tests)
+    ↓
+chart-api-integration-tests (validates chart API)
+    ↓
+┌─────────────────────────────────────┬─────────────────────────────────────┐
+│  backend-mcp-integration-tests     │  comprehensive-e2e                  │
+│  (MCP + Backend + Chart API)       │  (Frontend + Backend + Database)    │
+│  Ports: 5445, 9877, 3001          │  Ports: 5432, 8080                  │
+└─────────────────────────────────────┴─────────────────────────────────────┘
+```
+
+### Test Coverage
+- **MCP Unit Tests**: 15 tests (server creation, tool functionality, error handling)
+- **Chart API Tests**: 43 tests (71.42% coverage)
+- **MCP Integration Tests**: 6 tests (real service integration)
+- **Total**: 64 comprehensive tests
+
 ## API Endpoints
 
 ### MCP Server Endpoint
