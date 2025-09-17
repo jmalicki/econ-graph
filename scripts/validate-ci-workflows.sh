@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Workflow Validation Script
-# Validates GitHub Actions workflow files for common issues
+# CI/CD Workflow Validation Script
+# Validates GitHub Actions CI/CD workflow files for common issues
 # Based on RelEng persona requirements for workflow hygiene
 
 set -euo pipefail
@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 WORKFLOW_DIR=".github/workflows"
 VALIDATION_ERRORS=0
 
-echo "🔍 Validating GitHub Actions workflows..."
+echo "🔍 Validating GitHub Actions CI/CD workflows..."
 
 # Function to report errors
 report_error() {
@@ -122,13 +122,19 @@ try:
         triggers = content['on']
         if isinstance(triggers, dict):
             # Check for active trigger types
-            active_triggers = [k for k in triggers.keys() if k in ['push', 'pull_request', 'schedule', 'workflow_dispatch', 'repository_dispatch']]
+            active_triggers = [k for k in triggers.keys() if k in ['push', 'pull_request', 'schedule', 'workflow_dispatch', 'repository_dispatch', 'release', 'deployment', 'deployment_status', 'check_run', 'check_suite', 'issue_comment', 'issues', 'label', 'milestone', 'page_build', 'project', 'project_card', 'project_column', 'public', 'pull_request_review', 'pull_request_review_comment', 'pull_request_target', 'registry_package', 'status', 'watch', 'workflow_call', 'workflow_run']]
             if active_triggers:
                 print('Has active triggers')
             else:
                 print('No active triggers')
         elif isinstance(triggers, list):
             print('Has active triggers')
+        elif isinstance(triggers, str):
+            # Handle string triggers like 'push' or 'pull_request'
+            if triggers in ['push', 'pull_request', 'schedule', 'workflow_dispatch', 'repository_dispatch', 'release', 'deployment', 'deployment_status', 'check_run', 'check_suite', 'issue_comment', 'issues', 'label', 'milestone', 'page_build', 'project', 'project_card', 'project_column', 'public', 'pull_request_review', 'pull_request_review_comment', 'pull_request_target', 'registry_package', 'status', 'watch', 'workflow_call', 'workflow_run']:
+                print('Has active triggers')
+            else:
+                print('No active triggers')
         else:
             print('No active triggers')
     else:
@@ -178,7 +184,7 @@ done
 echo ""
 echo "📊 Validation Summary:"
 if [[ $VALIDATION_ERRORS -eq 0 ]]; then
-    echo -e "${GREEN}🎉 All workflow validations passed!${NC}"
+    echo -e "${GREEN}🎉 All CI/CD workflow validations passed!${NC}"
     exit 0
 else
     echo -e "${RED}❌ Found $VALIDATION_ERRORS validation errors${NC}"

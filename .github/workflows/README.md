@@ -104,11 +104,11 @@ The remaining workflows provide comprehensive testing while being clearly organi
 
 ### Automated Validation Script
 
-Use the `scripts/validate-workflows.sh` script to validate all GitHub Actions workflows before committing changes:
+Use the `scripts/validate-ci-workflows.sh` script to validate all GitHub Actions CI/CD workflows before committing changes:
 
 ```bash
-# Run workflow validation
-./scripts/validate-workflows.sh
+# Run CI/CD workflow validation
+./scripts/validate-ci-workflows.sh
 ```
 
 ### Validation Checks
@@ -137,7 +137,7 @@ The script performs the following checks:
 ### Example Output
 
 ```bash
-🔍 Validating GitHub Actions workflows...
+🔍 Validating GitHub Actions CI/CD workflows...
 📋 Checking YAML syntax...
 ✅ ci-core.yml - Valid YAML syntax
 ❌ ci-core.yml - Job structure issues found

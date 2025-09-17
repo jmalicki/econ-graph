@@ -190,8 +190,8 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 
 ## Workflow Validation and Maintenance
 
-### Automated Workflow Validation
-- **Validation Automation**: Create automated scripts to validate all GitHub Actions workflows
+### Automated CI/CD Workflow Validation
+- **Validation Automation**: Create automated scripts to validate all GitHub Actions CI/CD workflows
 - **YAML Syntax Checking**: Ensure all workflow files have valid YAML syntax
 - **Job Structure Validation**: Verify all jobs have proper `steps` sections and valid configurations
 - **Orphaned Workflow Detection**: Identify workflows with no active triggers that may be causing CI noise
