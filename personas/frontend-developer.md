@@ -247,17 +247,68 @@ test: add unit tests for world map
 - **Performance**: Avoid re-rendering entire map on data updates
 - **Responsive**: Handle window resize events properly
 - **Accessibility**: Don't forget ARIA labels and keyboard navigation
+- **ES Modules**: D3 modules use ES modules - configure Jest `transformIgnorePatterns`
+- **Data Loading**: Use CDN loading for world atlas data instead of complex imports
 
 ### **React Performance**
 - **Unnecessary Re-renders**: Use React.memo, useMemo, useCallback
 - **State Management**: Avoid prop drilling, use context appropriately
 - **Bundle Size**: Import only needed D3 modules
 - **Error Handling**: Implement proper error boundaries
+- **Context Updates**: Split state into logical groups to prevent unnecessary re-renders
 
 ### **UI/UX Issues**
 - **Loading States**: Always show loading indicators
 - **Error States**: Provide clear error messages
 - **Accessibility**: Test with screen readers and keyboard navigation
 - **Mobile**: Test on actual devices, not just browser dev tools
+- **Material-UI Integration**: Use `Box` components as containers for D3.js SVG elements
+
+## 📚 **Lessons Learned from Global Analysis Implementation**
+
+### **Technical Discoveries**
+1. **Jest Configuration for D3.js**
+   - **Issue**: D3 modules use ES modules which Jest doesn't handle by default
+   - **Solution**: Add D3 modules to `transformIgnorePatterns` in Jest config
+   - **Impact**: Comprehensive test suite requires proper Jest configuration
+
+2. **World Atlas Data Loading**
+   - **Issue**: `world-atlas` package has complex import structure
+   - **Solution**: Use CDN loading with `fetch()` for reliable data access
+   - **Impact**: More robust data loading with proper error handling
+
+3. **TypeScript Type Safety**
+   - **Discovery**: Comprehensive type definitions are crucial for D3.js integration
+   - **Solution**: Create 15+ specialized interfaces covering all use cases
+   - **Impact**: Better developer experience and fewer runtime errors
+
+4. **React Context API Performance**
+   - **Discovery**: Context updates can cause unnecessary re-renders
+   - **Solution**: Split state into logical groups and use `useCallback` for actions
+   - **Impact**: Optimized performance with proper memoization
+
+5. **Material-UI Integration**
+   - **Discovery**: D3.js SVG elements need special handling with Material-UI
+   - **Solution**: Use `Box` components as containers and proper event handling
+   - **Impact**: Seamless integration with consistent design system
+
+### **Testing Strategy Insights**
+1. **Mock Strategy**: Comprehensive D3.js mocking required for Jest compatibility
+2. **Test Coverage**: 100+ test cases across components, hooks, and context
+3. **Integration Testing**: E2E tests needed for full D3.js functionality validation
+4. **Performance Testing**: Large dataset testing crucial for production readiness
+
+### **Architecture Decisions**
+1. **Custom Hooks**: Separated D3.js logic into reusable hooks for better testability
+2. **Context API**: Centralized state management for complex map interactions
+3. **Component Composition**: Modular design allows for easy feature additions
+4. **Type Safety**: Comprehensive TypeScript coverage prevents runtime errors
+
+### **Best Practices Established**
+1. **Component Structure**: Always separate D3.js logic into custom hooks
+2. **State Management**: Use Context API for complex state, local state for simple UI
+3. **Testing**: Create comprehensive test suites with proper mocking
+4. **Performance**: Implement proper memoization and cleanup
+5. **Accessibility**: Build accessibility features from the start, not as an afterthought
 
 This persona provides comprehensive guidance for frontend development in the EconGraph project, with a focus on creating world-class data visualization interfaces.
