@@ -389,6 +389,33 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **Dependency Analysis**: Understand which components are affected
 - **Timeline Prioritization**: Create remediation timeline based on risk level
 
+#### GitHub Security Issue Investigation Commands
+- **CodeQL Alerts**: `gh api repos/owner/repo/code-scanning/alerts`
+- **Dependabot Alerts**: `gh api repos/owner/repo/dependabot/alerts` (requires admin:repo_hook scope)
+- **Security Advisories**: `gh api repos/owner/repo/security-advisories`
+- **Alert Details**: `gh api repos/owner/repo/code-scanning/alerts/{alert_number}`
+- **Alert Instances**: `gh api repos/owner/repo/code-scanning/alerts/{alert_number}/instances`
+
+#### GitHub Security Alert Types & Evaluation
+- **CodeQL Static Analysis**: Real code issues, high accuracy, prioritize HIGH/CRITICAL
+- **Dependabot Dependency Scanning**: Package vulnerabilities, check if actually used
+- **Trivy Container Scanning**: OS package vulnerabilities, often false positives in containers
+- **Security Advisories**: Repository-specific security notices
+
+#### False Positive Identification Patterns
+- **Docker Base Image Issues**: OS packages in containers often have limited attack surface
+- **Unused Dependencies**: Check if vulnerable package is actually used in code paths
+- **Local Access Required**: Vulnerabilities requiring local access have lower priority
+- **Outdated Scans**: GitHub scans may not reflect recent fixes, verify manually
+- **System Utilities**: tar, ncurses, util-linux vulnerabilities often low impact
+
+#### Real Vulnerability Indicators
+- **Application Code**: Vulnerabilities in actual application code (not dependencies)
+- **Network Accessible**: Issues that can be exploited remotely
+- **High CVSS Scores**: 7.0+ with network access or low attack complexity
+- **Active Exploitation**: Known exploits or active attack vectors
+- **Critical Dependencies**: Vulnerabilities in core application dependencies
+
 ### Security Continuous Improvement
 
 #### Security Assessment
