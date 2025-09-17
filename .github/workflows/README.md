@@ -104,11 +104,11 @@ The remaining workflows provide comprehensive testing while being clearly organi
 
 ### Automated Validation Script
 
-Use the `scripts/validate-ci-workflows.sh` script to validate all GitHub Actions CI/CD workflows before committing changes:
+Use the `ci/scripts/validate-ci-workflows.sh` script to validate all GitHub Actions CI/CD workflows before committing changes:
 
 ```bash
 # Run CI/CD workflow validation
-./scripts/validate-ci-workflows.sh
+./ci/scripts/validate-ci-workflows.sh
 ```
 
 ### Validation Checks
