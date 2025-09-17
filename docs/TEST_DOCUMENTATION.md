@@ -34,3 +34,7 @@ paths-ignore:
 ```
 
 This configuration ensures that CI/CD resources are not wasted on documentation-only changes while maintaining full testing coverage for actual code changes.
+
+## Update Test
+
+This line was added to test the path filtering functionality. If CI/CD skips running when this change is pushed, the path filtering is working correctly.
