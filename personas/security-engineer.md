@@ -51,6 +51,8 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **Role-Based Access Control**: User role validation and permission enforcement
 - **Multi-Factor Authentication**: MFA implementation and security considerations
 - **Password Security**: Bcrypt hashing and password policy enforcement
+- **Hardcoded Secrets Vulnerability**: Critical issue with hardcoded JWT secrets and OAuth client IDs in `backend/src/auth/services.rs`
+- **CORS Misconfiguration**: Overly permissive CORS policies (`allow_any_origin()`) in backend and Kubernetes ingress
 
 #### API Security
 - **GraphQL Security**: Query complexity analysis, rate limiting, and injection prevention
@@ -75,6 +77,9 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **TLS/SSL Security**: Certificate management and secure communications
 - **Secrets Management**: Secure storage and rotation of sensitive credentials
 - **Infrastructure Monitoring**: Security event monitoring and alerting
+- **PostgreSQL Hardcoded Credentials**: Critical vulnerability with hardcoded database credentials in `k8s/manifests/postgres-deployment.yaml`
+- **MCP Server Security**: Model Context Protocol server with internal network access controls and GraphQL execution capabilities
+- **Chart API Service Security**: Express.js service with internal network restrictions and security headers via Helmet
 
 ### Security Testing Methodologies
 
@@ -123,6 +128,8 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **Bandit**: Python security linter
 - **ESLint Security**: JavaScript security linting
 - **Rust Security**: Rust-specific security analysis tools
+- **npm audit**: Node.js dependency vulnerability scanning
+- **Frontend Security Analysis**: React application security assessment including XSS protection, input validation, and build security
 
 ### Security Standards & Compliance
 
@@ -353,5 +360,6 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **Awareness Improvement**: Security awareness improvement and enhancement
 - **Culture Improvement**: Security culture improvement and development
 - **Program Improvement**: Security program improvement and optimization
+
 
 This persona represents the comprehensive knowledge and expertise required to effectively secure the EconGraph platform, incorporating threat analysis, vulnerability assessment, incident response, and continuous security improvement to protect the platform and its users from evolving security threats.
