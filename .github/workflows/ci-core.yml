@@ -1327,7 +1327,8 @@ jobs:
         export PATH="$HOME/.cargo/bin:$PATH"
         cargo build --release --bin econ-graph-backend
         echo "🚀 Starting backend server..."
-        cargo run --release --bin econ-graph-backend &
+        # Use pre-built binary directly to avoid recompiling dependencies
+        ./target/release/econ-graph-backend &
         BACKEND_PID=$!
         echo "Backend PID: $BACKEND_PID"
 
@@ -1462,7 +1463,8 @@ jobs:
         export PATH="$HOME/.cargo/bin:$PATH"
         cargo build --release --bin econ-graph-backend
         echo "🚀 Starting backend server..."
-        cargo run --release --bin econ-graph-backend &
+        # Use pre-built binary directly to avoid recompiling dependencies
+        ./target/release/econ-graph-backend &
         BACKEND_PID=$!
         echo "Backend PID: $BACKEND_PID"
 
