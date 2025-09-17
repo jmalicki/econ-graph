@@ -247,7 +247,7 @@ impl EconGraphMcpServer {
     }
 
     /// Get series data points
-    async fn get_series_data(&self, arguments: Value) -> Result<Value> {
+    pub async fn get_series_data(&self, arguments: Value) -> Result<Value> {
         let series_id = arguments
             .get("series_id")
             .and_then(|v| v.as_str())
@@ -464,7 +464,7 @@ impl EconGraphMcpServer {
     }
 
     /// Create fallback visualization when private chart API is unavailable
-    async fn create_fallback_visualization(
+    pub async fn create_fallback_visualization(
         &self,
         series_data: Vec<Value>,
         chart_type: &str,
