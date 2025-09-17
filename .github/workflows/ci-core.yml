@@ -1302,12 +1302,52 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
 
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        echo "🔍 Waiting for PostgreSQL to be ready..."
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432 -U postgres; then
+            echo "✅ PostgreSQL is ready!"
+            break
+          fi
+          echo "⏳ Attempt $i/30: PostgreSQL not ready yet, waiting 2 seconds..."
+          sleep 2
+        done
+
+        # Additional verification with a simple query
+        echo "🔍 Verifying PostgreSQL is fully functional..."
+        PGPASSWORD=password psql -h localhost -p 5432 -U postgres -d econ_graph_test -c "SELECT 1;" || {
+          echo "❌ PostgreSQL health check failed"
+          exit 1
+        }
+        echo "✅ PostgreSQL is fully functional!"
+
     - name: Build and start backend
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
         cargo build --release
+        echo "🚀 Starting backend server..."
         cargo run --release &
-        sleep 10
+        BACKEND_PID=$!
+        echo "Backend PID: $BACKEND_PID"
+
+        # Wait for backend to be ready
+        echo "🔍 Waiting for backend to be ready..."
+        for i in {1..30}; do
+          if curl -f http://localhost:9876/health > /dev/null 2>&1; then
+            echo "✅ Backend is ready!"
+            break
+          fi
+          echo "⏳ Attempt $i/30: Backend not ready yet, waiting 2 seconds..."
+          sleep 2
+        done
+
+        # Verify backend is responding
+        curl -f http://localhost:9876/health || {
+          echo "❌ Backend health check failed"
+          exit 1
+        }
+        echo "✅ Backend is fully functional!"
       working-directory: backend
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
@@ -1397,12 +1437,52 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
 
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        echo "🔍 Waiting for PostgreSQL to be ready..."
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432 -U postgres; then
+            echo "✅ PostgreSQL is ready!"
+            break
+          fi
+          echo "⏳ Attempt $i/30: PostgreSQL not ready yet, waiting 2 seconds..."
+          sleep 2
+        done
+
+        # Additional verification with a simple query
+        echo "🔍 Verifying PostgreSQL is fully functional..."
+        PGPASSWORD=password psql -h localhost -p 5432 -U postgres -d econ_graph_test -c "SELECT 1;" || {
+          echo "❌ PostgreSQL health check failed"
+          exit 1
+        }
+        echo "✅ PostgreSQL is fully functional!"
+
     - name: Build and start backend
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
         cargo build --release
+        echo "🚀 Starting backend server..."
         cargo run --release &
-        sleep 10
+        BACKEND_PID=$!
+        echo "Backend PID: $BACKEND_PID"
+
+        # Wait for backend to be ready
+        echo "🔍 Waiting for backend to be ready..."
+        for i in {1..30}; do
+          if curl -f http://localhost:9876/health > /dev/null 2>&1; then
+            echo "✅ Backend is ready!"
+            break
+          fi
+          echo "⏳ Attempt $i/30: Backend not ready yet, waiting 2 seconds..."
+          sleep 2
+        done
+
+        # Verify backend is responding
+        curl -f http://localhost:9876/health || {
+          echo "❌ Backend health check failed"
+          exit 1
+        }
+        echo "✅ Backend is fully functional!"
       working-directory: backend
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
