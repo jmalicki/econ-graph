@@ -103,8 +103,34 @@ for workflow in .github/workflows/*.yml; do
         workflow_name=$(basename "$workflow")
         echo "  🔍 Validating $workflow_name..."
 
-        # Check YAML syntax
-        if python3 -c "import yaml; yaml.safe_load(open('$workflow'))" 2>/dev/null; then
+        # Check YAML syntax with custom loader
+        if python3 -c "
+import yaml
+import sys
+
+# Custom loader that doesn't convert 'on' to boolean
+class GitHubActionsLoader(yaml.SafeLoader):
+    def construct_mapping(self, node, deep=False):
+        mapping = super().construct_mapping(node, deep)
+        return mapping
+
+# Override the boolean resolver to not convert 'on' to True
+def boolean_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    if value.lower() in ('true', 'false'):
+        return value.lower() == 'true'
+    return value
+
+GitHubActionsLoader.add_constructor('tag:yaml.org,2002:bool', boolean_constructor)
+
+try:
+    with open('$workflow', 'r') as f:
+        yaml.load(f, Loader=GitHubActionsLoader)
+    print('Valid YAML')
+except Exception as e:
+    print(f'YAML Error: {e}')
+    sys.exit(1)
+" 2>/dev/null; then
             echo "    ✅ YAML syntax valid"
         else
             echo "    ❌ YAML syntax error"

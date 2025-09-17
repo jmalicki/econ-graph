@@ -46,13 +46,33 @@ for workflow_file in "$WORKFLOW_DIR"/*.yml "$WORKFLOW_DIR"/*.yaml; do
     if [[ -f "$workflow_file" ]]; then
         filename=$(basename "$workflow_file")
 
-        # Check YAML syntax using Python
+        # Check YAML syntax using Python with custom loader
         if python3 -c "
 import yaml
 import sys
+
+# Custom loader that doesn't convert 'on' to boolean
+class GitHubActionsLoader(yaml.SafeLoader):
+    def construct_mapping(self, node, deep=False):
+        mapping = super().construct_mapping(node, deep)
+        # Ensure 'on' key is preserved as string, not converted to boolean
+        if 'on' in mapping and mapping['on'] is True:
+            # This shouldn't happen with our custom loader, but just in case
+            pass
+        return mapping
+
+# Override the boolean resolver to not convert 'on' to True
+def boolean_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    if value.lower() in ('true', 'false'):
+        return value.lower() == 'true'
+    return value
+
+GitHubActionsLoader.add_constructor('tag:yaml.org,2002:bool', boolean_constructor)
+
 try:
     with open('$workflow_file', 'r') as f:
-        yaml.safe_load(f)
+        yaml.load(f, Loader=GitHubActionsLoader)
     print('Valid YAML')
 except yaml.YAMLError as e:
     print(f'YAML Error: {e}')
@@ -74,14 +94,29 @@ for workflow_file in "$WORKFLOW_DIR"/*.yml "$WORKFLOW_DIR"/*.yaml; do
     if [[ -f "$workflow_file" ]]; then
         filename=$(basename "$workflow_file")
 
-        # Check job structure using Python
+        # Check job structure using Python with custom loader
         python3 -c "
 import yaml
 import sys
 
+# Custom loader that doesn't convert 'on' to boolean
+class GitHubActionsLoader(yaml.SafeLoader):
+    def construct_mapping(self, node, deep=False):
+        mapping = super().construct_mapping(node, deep)
+        return mapping
+
+# Override the boolean resolver to not convert 'on' to True
+def boolean_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    if value.lower() in ('true', 'false'):
+        return value.lower() == 'true'
+    return value
+
+GitHubActionsLoader.add_constructor('tag:yaml.org,2002:bool', boolean_constructor)
+
 try:
     with open('$workflow_file', 'r') as f:
-        content = yaml.safe_load(f)
+        content = yaml.load(f, Loader=GitHubActionsLoader)
 
     if 'jobs' in content:
         for job_name, job_config in content['jobs'].items():
@@ -114,9 +149,26 @@ for workflow_file in "$WORKFLOW_DIR"/*.yml "$WORKFLOW_DIR"/*.yaml; do
         # Check if workflow has any active triggers
         has_triggers=$(python3 -c "
 import yaml
+import sys
+
+# Custom loader that doesn't convert 'on' to boolean
+class GitHubActionsLoader(yaml.SafeLoader):
+    def construct_mapping(self, node, deep=False):
+        mapping = super().construct_mapping(node, deep)
+        return mapping
+
+# Override the boolean resolver to not convert 'on' to True
+def boolean_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    if value.lower() in ('true', 'false'):
+        return value.lower() == 'true'
+    return value
+
+GitHubActionsLoader.add_constructor('tag:yaml.org,2002:bool', boolean_constructor)
+
 try:
     with open('$workflow_file', 'r') as f:
-        content = yaml.safe_load(f)
+        content = yaml.load(f, Loader=GitHubActionsLoader)
 
     if 'on' in content:
         triggers = content['on']
@@ -160,9 +212,26 @@ for workflow_file in "$WORKFLOW_DIR"/*.yml "$WORKFLOW_DIR"/*.yaml; do
         # Check if workflow has a name field
         has_name=$(python3 -c "
 import yaml
+import sys
+
+# Custom loader that doesn't convert 'on' to boolean
+class GitHubActionsLoader(yaml.SafeLoader):
+    def construct_mapping(self, node, deep=False):
+        mapping = super().construct_mapping(node, deep)
+        return mapping
+
+# Override the boolean resolver to not convert 'on' to True
+def boolean_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    if value.lower() in ('true', 'false'):
+        return value.lower() == 'true'
+    return value
+
+GitHubActionsLoader.add_constructor('tag:yaml.org,2002:bool', boolean_constructor)
+
 try:
     with open('$workflow_file', 'r') as f:
-        content = yaml.safe_load(f)
+        content = yaml.load(f, Loader=GitHubActionsLoader)
 
     if 'name' in content and content['name']:
         print('Has name')
