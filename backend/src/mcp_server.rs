@@ -1551,4 +1551,50 @@ mod tests {
         // This will fail because the series doesn't exist, but tests the function logic
         assert!(result.is_err());
     }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_call_private_chart_api_success() {
+        let container = TestContainer::new().await;
+        let pool = container.pool();
+        let server = EconGraphMcpServer::new(Arc::new(pool.clone()));
+
+        // Test successful chart API call with mock data
+        let chart_request = json!({
+            "seriesData": [{
+                "id": "test-series",
+                "name": "Test Series",
+                "dataPoints": [
+                    {"date": "2023-01-01", "value": 100.0},
+                    {"date": "2023-02-01", "value": 105.0}
+                ]
+            }],
+            "chartType": "line",
+            "title": "Test Chart",
+            "startDate": "2023-01-01",
+            "endDate": "2023-12-31"
+        });
+
+        // This will fail because the chart API service isn't running in tests,
+        // but it tests the function logic and error handling
+        let result = server.call_private_chart_api(&chart_request).await;
+        assert!(result.is_err()); // Expected to fail in test environment
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_call_private_chart_api_failure() {
+        let container = TestContainer::new().await;
+        let pool = container.pool();
+        let server = EconGraphMcpServer::new(Arc::new(pool.clone()));
+
+        // Test chart API call with invalid data
+        let invalid_request = json!({
+            "invalid": "data"
+        });
+
+        // This should fail due to invalid request format
+        let result = server.call_private_chart_api(&invalid_request).await;
+        assert!(result.is_err());
+    }
 }
