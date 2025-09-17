@@ -371,6 +371,24 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **CI/CD Integration**: Secure secret handling in continuous integration
 - **Developer Workflows**: Secure development practices and workflows
 
+#### GitHub Security Analysis & Evaluation
+- **CodeQL Alerts**: Static analysis security alerts from GitHub CodeQL
+- **Dependabot Alerts**: Dependency vulnerability scanning and alerts
+- **Security Advisories**: GitHub security advisory management
+- **Alert Prioritization**: CVSS scoring and risk assessment for GitHub alerts
+- **False Positive Analysis**: Distinguishing real vulnerabilities from false positives
+- **Alert Dismissal**: Proper justification and documentation for dismissing alerts
+- **Security Workflow Integration**: Integrating GitHub security into development workflow
+
+#### GitHub Security Alert Evaluation Process
+- **Severity Assessment**: Evaluate CVSS scores and GitHub security severity levels
+- **Context Analysis**: Determine if vulnerability affects actual code paths
+- **Exploitability Assessment**: Check if vulnerability can be exploited in current environment
+- **Impact Analysis**: Assess potential business and technical impact
+- **Fix Availability**: Check if patches or workarounds are available
+- **Dependency Analysis**: Understand which components are affected
+- **Timeline Prioritization**: Create remediation timeline based on risk level
+
 ### Security Continuous Improvement
 
 #### Security Assessment
