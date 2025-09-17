@@ -343,6 +343,34 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **Public Communication**: Public security communication and transparency
 - **Media Communication**: Security media communication and management
 
+### Secrets Management & Git Security
+
+#### Secrets Management Patterns
+- **Sealed Secrets**: Bitnami Sealed Secrets for Kubernetes secret encryption
+- **SOPS**: Secrets OPerationS for file-based secret encryption
+- **External Secrets Operator**: Kubernetes operator for external secret synchronization
+- **HashiCorp Vault**: Enterprise secret management and rotation
+- **Cloud Secret Managers**: AWS Secrets Manager, Azure Key Vault, Google Secret Manager
+- **Key Rotation**: Automated secret and key rotation strategies
+- **Secret Scanning**: Automated detection of secrets in code repositories
+
+#### Git-Based Security Approaches
+- **Private Repositories**: Secure storage of encrypted secrets in private Git repos
+- **Git Submodules**: Separating secrets from main codebase using submodules
+- **Encrypted Storage**: Using encryption for sensitive data in version control
+- **Access Control**: Repository-level access controls and branch protection
+- **Audit Trails**: Git-based audit trails for secret changes
+- **Pre-commit Hooks**: Preventing accidental secret commits
+- **Secret Detection**: Automated scanning for exposed secrets in Git history
+
+#### Development Environment Security
+- **Local Kubernetes**: Secure secret management for local development
+- **Docker Secrets**: Container-based secret management
+- **Environment Variables**: Secure handling of environment-based secrets
+- **Configuration Management**: Secure configuration file management
+- **CI/CD Integration**: Secure secret handling in continuous integration
+- **Developer Workflows**: Secure development practices and workflows
+
 ### Security Continuous Improvement
 
 #### Security Assessment

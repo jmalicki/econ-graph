@@ -75,6 +75,23 @@ Welcome to the comprehensive documentation for EconGraph - the economic data vis
 ### For API Users
 - See [API Documentation](./api/) for GraphQL API reference
 
+### For Security
+- Review [Security Findings Report](./projects/SECURITY_FINDINGS_REPORT.md) for vulnerability analysis
+- See [Security Implementation Plan](./projects/SECURITY_IMPLEMENTATION_PLAN.md) for remediation strategy
+- Check [Admin Security](./technical/ADMIN_SECURITY.md) for admin interface security
+
+## 🔐 Secrets Management
+
+EconGraph uses a secure secrets management approach:
+
+- **Secrets Repository**: Private repository at `https://github.com/jmalicki/econ-graph-secrets`
+- **Encryption Method**: Bitnami Sealed Secrets for Kubernetes
+- **Access Control**: Private repository with team-based permissions
+- **Integration**: Git submodule in `k8s/secrets/` directory
+- **Deployment**: Integrated with deployment scripts in `scripts/deploy/`
+
+For more details, see the [Security Implementation Plan](./projects/SECURITY_IMPLEMENTATION_PLAN.md).
+
 ## 📝 Contributing to Documentation
 
 When adding new documentation:

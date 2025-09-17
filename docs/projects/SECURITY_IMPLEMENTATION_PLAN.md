@@ -24,11 +24,19 @@ This implementation plan addresses **4 critical vulnerabilities** and **1 high s
 **Timeline**: 4-6 hours
 **Files Affected**: `backend/src/auth/services.rs`
 
+#### Implementation Approach: Sealed Secrets + Git Submodule
+- **Secrets Repository**: `https://github.com/jmalicki/econ-graph-secrets` (private)
+- **Submodule Location**: `k8s/secrets/` in main repository
+- **Encryption Method**: Bitnami Sealed Secrets
+- **Access Control**: Private repository with team-based access
+
 #### Implementation Steps:
 1. **Remove hardcoded defaults** from `get_jwt_secret()` function
 2. **Implement proper environment variable validation** with fail-fast behavior
-3. **Add secret rotation capability** for JWT secrets
-4. **Update Kubernetes secrets** to use proper secret management
+3. **Set up Sealed Secrets controller** in Kubernetes cluster
+4. **Create encrypted secrets** using Sealed Secrets
+5. **Update Kubernetes manifests** to reference sealed secrets
+6. **Integrate with deployment scripts** in `scripts/deploy/`
 
 #### Code Changes:
 ```rust
@@ -55,6 +63,40 @@ env:
       secretKeyRef:
         name: econ-graph-secrets
         key: jwt-secret
+```
+
+#### Sealed Secrets Setup:
+```yaml
+# k8s/secrets/sealed-secrets/econ-graph-secrets.yaml (encrypted)
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: econ-graph-secrets
+  namespace: default
+spec:
+  encryptedData:
+    jwt-secret: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+    postgres-password: AgBy3i4OJSWK+PiTySYZZA9rO43cGDEQAx...
+  template:
+    metadata:
+      name: econ-graph-secrets
+      namespace: default
+    type: Opaque
+```
+
+#### Deployment Script Integration:
+```bash
+# scripts/deploy/deploy-secrets.sh
+#!/bin/bash
+set -e
+
+echo "Updating secrets submodule..."
+git submodule update --remote k8s/secrets
+
+echo "Applying sealed secrets..."
+kubectl apply -f k8s/secrets/sealed-secrets/
+
+echo "Secrets deployed successfully!"
 ```
 
 ### 1.2 CORS Policy Hardening

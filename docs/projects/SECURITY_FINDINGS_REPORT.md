@@ -36,6 +36,12 @@ pub fn get_jwt_secret() -> String {
 
 **Recommendation**: Remove all hardcoded secrets and implement proper environment variable validation with fail-fast behavior.
 
+**Implementation Approach**: 
+- **Secrets Management**: Sealed Secrets with Git submodule
+- **Repository**: `https://github.com/jmalicki/econ-graph-secrets` (private)
+- **Encryption**: Bitnami Sealed Secrets for cluster-specific encryption
+- **Access Control**: Private repository with team-based permissions
+
 ### 2. Overly Permissive CORS Configuration
 **Severity**: CRITICAL (CVSS 8.8)  
 **Files**: `backend/src/main.rs`, `k8s/manifests/ingress.yaml`  
