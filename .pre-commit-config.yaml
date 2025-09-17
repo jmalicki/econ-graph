@@ -71,6 +71,23 @@ repos:
         args: ['--disable', 'MD013', 'MD041', 'MD022', 'MD032', 'MD031', 'MD034', 'MD040', 'MD026', 'MD009', 'MD029', 'MD033', 'MD036', 'MD047', 'MD024', 'MD012', 'MD051', '--']  # Disable common formatting rules
         exclude: '^node_modules/'
 
+  # GitHub Actions workflow validation
+  - repo: local
+    hooks:
+      - id: github-actions-validate
+        name: GitHub Actions Workflow Validation
+        entry: python3 scripts/validate-github-actions.py
+        language: system
+        files: '^\.github/workflows/.*\.yml$|^ci/workflows/.*\.yml$'
+        pass_filenames: true
+
+      - id: docker-compose-validate
+        name: Docker Compose Validation
+        entry: bash -c 'for file in "$@"; do echo "Validating $file:"; docker-compose -f "$file" config > /dev/null && echo "✅ Valid" || echo "❌ Invalid"; done'
+        language: system
+        files: '^ci/docker/.*\.yml$|^docker-compose.*\.yml$'
+        pass_filenames: true
+
   # Security checks
   - repo: local
     hooks:
