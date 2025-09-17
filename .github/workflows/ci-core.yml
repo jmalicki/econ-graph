@@ -1325,9 +1325,9 @@ jobs:
     - name: Build and start backend
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo build --release
+        cargo build --release --bin econ-graph-backend
         echo "🚀 Starting backend server..."
-        cargo run --release &
+        cargo run --release --bin econ-graph-backend &
         BACKEND_PID=$!
         echo "Backend PID: $BACKEND_PID"
 
@@ -1460,9 +1460,9 @@ jobs:
     - name: Build and start backend
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo build --release
+        cargo build --release --bin econ-graph-backend
         echo "🚀 Starting backend server..."
-        cargo run --release &
+        cargo run --release --bin econ-graph-backend &
         BACKEND_PID=$!
         echo "Backend PID: $BACKEND_PID"
 
