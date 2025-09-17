@@ -477,6 +477,7 @@ fn is_economic_indicator(indicator: &WorldBankIndicator) -> bool {
 }
 
 /// Fetch detailed metadata for a specific indicator
+#[allow(unused_variables)]
 async fn fetch_indicator_metadata(
     client: &Client,
     indicator_id: &str,

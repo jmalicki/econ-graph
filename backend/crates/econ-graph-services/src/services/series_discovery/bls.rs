@@ -82,6 +82,7 @@ pub async fn discover_bls_series(
 }
 
 /// Fetch all surveys from BLS API v2
+#[allow(unused_variables)]
 async fn fetch_bls_surveys(client: &Client, api_key: &str) -> AppResult<Vec<BlsSurvey>> {
     let url = "https://api.bls.gov/publicAPI/v2/surveys";
 

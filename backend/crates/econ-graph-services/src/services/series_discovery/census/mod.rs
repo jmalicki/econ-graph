@@ -287,20 +287,19 @@ pub async fn discover_census_series(pool: &DatabasePool) -> AppResult<Vec<Econom
     );
 
     // Filter for economic indicators
-    let economic_variables = filter_economic_indicators(&variables);
     println!("🔍 Filtering economic indicators...");
-    let economic_variables = filter_economic_indicators(&variables);
+    let _economic_variables = filter_economic_indicators(&variables);
 
     println!(
         "📈 Creating series for {} economic indicators across {} geographic levels",
-        economic_variables.len(),
+        _economic_variables.len(),
         geography.len()
     );
 
     let mut discovered_series = Vec::new();
 
     // Create series for each economic variable and geography combination
-    for variable in &economic_variables {
+    for variable in &_economic_variables {
         for geo in &geography {
             let external_id = format!("CENSUS_BDS_{}_{}", variable.name, geo.name);
             let title = format!(

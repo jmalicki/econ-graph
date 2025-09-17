@@ -14,7 +14,7 @@ pub struct CatalogDownloader {
 
 impl CatalogDownloader {
     /// Create a new catalog downloader
-    pub fn new(client: Client) -> Self {
+    pub fn new(_client: Client) -> Self {
         Self {
             discovery_service: SeriesDiscoveryService::new(None, None, None, None),
         }

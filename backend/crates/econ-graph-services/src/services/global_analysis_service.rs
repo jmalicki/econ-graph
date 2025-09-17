@@ -405,6 +405,7 @@ impl GlobalAnalysisService {
     }
 
     /// Get latest economic indicators for a country
+    #[allow(unused_variables)]
     async fn get_latest_economic_indicators(
         conn: &mut AsyncPgConnection,
         country_id: uuid::Uuid,
@@ -477,6 +478,7 @@ impl GlobalAnalysisService {
     }
 
     /// Calculate pairwise correlation between two countries
+    #[allow(unused_variables)]
     async fn calculate_pairwise_correlation(
         conn: &mut AsyncPgConnection,
         country_a_id: uuid::Uuid,
@@ -517,6 +519,7 @@ impl GlobalAnalysisService {
     }
 
     /// Get country impacts for a global event
+    #[allow(unused_variables)]
     async fn get_event_country_impacts(
         conn: &mut AsyncPgConnection,
         event_id: uuid::Uuid,

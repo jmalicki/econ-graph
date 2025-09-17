@@ -160,7 +160,6 @@ mod tests {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
         let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
@@ -227,7 +226,6 @@ mod tests {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
         let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
@@ -302,7 +300,6 @@ mod tests {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
         let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
@@ -351,7 +348,6 @@ mod tests {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
         let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
@@ -431,7 +427,6 @@ mod tests {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
         let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
@@ -478,7 +473,6 @@ mod tests {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
         let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());

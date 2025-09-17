@@ -25,3 +25,8 @@ This avoids multiple agents checking out main from different git worktrees at th
 * **Modular Codebase Organization**: Follow the established modular directory structure. Place scripts and tools in their appropriate domain directories (e.g., `ci/scripts/` for CI/CD tools, `scripts/` for general project scripts, `backend/` for Rust code, `frontend/` for React code). This improves maintainability and makes the codebase more navigable.
 * **Domain-Specific Tooling**: When creating validation scripts, testing tools, or automation scripts, place them in the appropriate domain directory rather than a generic `scripts/` folder. This makes the codebase more modular and easier to understand.
 * **Consistent Directory Structure**: Maintain consistency with the existing modular structure. If you're unsure where to place a new script or tool, follow the pattern of similar existing tools in the codebase.
+* **Rust Warning Handling**: When dealing with unused variable warnings in Rust, do not use underscores in parameter names (e.g., `_param`). Instead, use proper Rust patterns:
+  * Use `#[allow(unused_variables)]` attribute for functions where parameters are intentionally unused
+  * Implement the function properly if the parameter should be used
+  * Use `let _ = variable;` to explicitly ignore a value if needed
+  * Consider if the parameter is actually needed or if the function signature should be changed

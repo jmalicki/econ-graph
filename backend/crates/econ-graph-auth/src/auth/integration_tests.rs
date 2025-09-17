@@ -10,7 +10,6 @@ mod tests {
     use crate::auth::services::AuthService;
     use econ_graph_core::test_utils::TestContainer;
     use serde_json::json;
-    use std::collections::HashMap;
     use uuid::Uuid;
     // use warp::test; // Temporarily disabled - not needed for current tests
 
@@ -208,7 +207,7 @@ mod tests {
         assert!(user.is_active);
 
         // Create demo user first
-        let demo_user_created = auth_service
+        let _demo_user_created = auth_service
             .create_email_user(
                 "demo@econgraph.com".to_string(),
                 "demo123456".to_string(),
