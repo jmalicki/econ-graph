@@ -19,6 +19,10 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Workflow Hygiene**: Regularly audit and clean up unused or broken workflows
 - **Trigger Validation**: Ensure all workflows have proper trigger configurations
 - **Noise Reduction**: Eliminate CI noise by removing workflows that can't generate meaningful results
+- **Script Delegation**: Delegate complex CI logic to dedicated scripts in `ci/scripts/` for maintainability
+- **One-Liner Jobs**: Keep CI job steps as simple one-liners that call scripts for better readability
+- **Docker-First Approach**: Use Docker builds for consistency across all environments and better caching
+- **Build Cache Optimization**: Leverage Docker layer caching and GitHub Actions cache for faster builds
 
 ### Test System Maintenance
 - **Test Infrastructure**: Maintain test runners, test databases, and test environments
@@ -119,6 +123,10 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Workflow Validation**: Ensure all workflows have valid trigger configurations
 - **Clean Workflow Structure**: Remove disabled workflows instead of commenting out triggers
 - **Single Source of Truth**: Avoid duplicate workflows that serve the same purpose
+- **Script-Based Architecture**: Move complex logic to dedicated scripts in `ci/scripts/` directory
+- **Docker Layer Strategy**: Use multi-stage Docker builds with proper layer caching
+- **Consistent Environments**: Ensure all builds and tests use identical Docker environments
+- **Build Artifact Reuse**: Share built Docker images between different CI jobs
 
 ### Test Strategy
 - **Test Pyramid**: Maintain a healthy balance of unit, integration, and E2E tests
@@ -216,3 +224,57 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Malformed YAML**: Syntax errors that prevent workflow parsing
 - **Missing Triggers**: Workflows that can't be executed
 - **Poor Naming**: Workflows without descriptive names making maintenance difficult
+
+## Docker-Based CI/CD Patterns
+
+### Build Strategy
+- **Multi-Stage Builds**: Use multi-stage Dockerfiles to separate build and runtime environments
+- **Layer Caching**: Optimize Docker layer caching by ordering commands from least to most frequently changing
+- **Build Context**: Minimize build context size by using `.dockerignore` and copying only necessary files
+- **Base Image Selection**: Choose appropriate base images (e.g., `rust:1.88-slim` for Rust projects)
+- **Dependency Caching**: Copy dependency files (Cargo.toml, package.json) before source code for better caching
+
+### Test Execution
+- **Containerized Tests**: Run all tests inside Docker containers for consistency
+- **Database Services**: Use Docker Compose to spin up test databases and services
+- **Test Isolation**: Each test run gets a fresh container environment
+- **Parallel Execution**: Run different test suites in parallel using separate containers
+- **Resource Management**: Set appropriate memory and CPU limits for test containers
+
+### CI/CD Integration
+- **Script Delegation**: Keep GitHub Actions workflows simple by delegating to scripts
+- **One-Liner Jobs**: Each CI job step should be a single command that calls a script
+- **Environment Variables**: Pass configuration through environment variables to containers
+- **Artifact Sharing**: Use Docker image tags to share built artifacts between jobs
+- **Cache Strategy**: Leverage both Docker layer caching and GitHub Actions cache
+
+### Script Organization
+- **Centralized Scripts**: Place all CI logic in `ci/scripts/` directory
+- **Modular Design**: Create separate scripts for different concerns (build, test, deploy)
+- **Parameterization**: Make scripts configurable through command-line arguments
+- **Error Handling**: Implement proper error handling and exit codes in scripts
+- **Documentation**: Document script usage and parameters clearly
+
+### Example Patterns
+```bash
+# Backend build script
+./ci/scripts/backend-build.sh
+
+# Backend test script with options
+./ci/scripts/backend-test.sh --unit
+./ci/scripts/backend-test.sh --integration
+./ci/scripts/backend-test.sh --all
+
+# Frontend build script
+./ci/scripts/frontend-build.sh
+
+# E2E test script
+./ci/scripts/run-tests.sh --group core
+```
+
+### Benefits
+- **Consistency**: Same environment across local development, CI, and production
+- **Reproducibility**: Deterministic builds and test results
+- **Caching**: Better caching through Docker layers and GitHub Actions
+- **Maintainability**: Easier to maintain and debug CI processes
+- **Scalability**: Easy to add new test types or build configurations
