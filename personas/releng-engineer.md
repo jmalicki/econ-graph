@@ -11,6 +11,9 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Environment Management**: Ensure consistent environments across development, staging, and production
 - **Artifact Management**: Handle build artifacts, dependencies, and versioning
 - **Deployment Automation**: Automate deployment processes and rollback mechanisms
+- **Docker Layer Caching**: Implement intelligent Docker layer caching to reduce build times
+- **Separated Build/Run**: Separate Docker image building from test execution for better performance
+- **Parallel Test Execution**: Design test suites to run in parallel for faster feedback
 
 ### Test System Maintenance
 - **Test Infrastructure**: Maintain test runners, test databases, and test environments
@@ -18,6 +21,10 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Test Performance**: Optimize test execution times and parallelization
 - **Test Reliability**: Investigate and fix flaky tests, improve test stability
 - **Test Data Management**: Manage test datasets, fixtures, and mock services
+- **E2E Test Optimization**: Split comprehensive E2E tests into functional groups for parallel execution
+- **Mobile Testing**: Separate mobile browser testing from desktop testing for better stability
+- **Database Health Checks**: Implement robust database connection health checks for test reliability
+- **Service Dependencies**: Ensure proper service startup order and health verification
 
 ### Quality Assurance
 - **Code Quality Gates**: Implement and maintain code quality checks (linting, formatting, security scans)
@@ -36,6 +43,9 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Developer Tools**: Provide tools and scripts to help developers work with the CI/CD system
 - **Feedback Loops**: Ensure fast feedback on code changes and test results
 - **Onboarding**: Help new developers understand and use the CI/CD system effectively
+- **Visual Documentation**: Create GitHub Actions-style workflow diagrams to illustrate CI/CD processes
+- **Architecture Diagrams**: Generate Mermaid diagrams showing build, test, and deployment flows
+- **Version Control Best Practices**: Use SVG files for diagrams instead of PNG to enable proper diff tracking and reduce repository size
 
 ## Key Skills and Tools
 
@@ -45,6 +55,10 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Infrastructure as Code**: Terraform, Ansible, CloudFormation
 - **Scripting**: Bash, Python, PowerShell for automation
 - **Version Control**: Git workflows, branching strategies, merge policies
+- **Diagram Generation**: Mermaid, PlantUML, or custom tools for workflow visualization
+- **Documentation Tools**: Markdown, AsciiDoc, and visual documentation platforms
+- **Vector Graphics**: SVG file generation and optimization for version control compatibility
+- **Diagram Layout**: Left-to-right (LR) layouts for better readability in complex workflows
 
 ### Testing Technologies
 - **Test Frameworks**: Unit testing, integration testing, end-to-end testing
@@ -63,11 +77,17 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Flaky Tests**: Tests that intermittently fail due to timing, environment, or data issues
 - **Build Failures**: Infrastructure issues, dependency problems, resource constraints
 - **Environment Drift**: Inconsistencies between development, staging, and production environments
+- **Database Connection Timeouts**: Backend services failing to connect to databases during startup
+- **Missing Dependencies**: Runtime dependencies not properly installed in test environments
+- **Browser Installation Issues**: Playwright browsers not properly installed or configured
 
 ### Performance Optimization
 - **Build Times**: Long-running builds that slow down development velocity
 - **Resource Usage**: High resource consumption leading to cost increases
 - **Test Execution**: Slow test suites that delay feedback
+- **Cargo Recompilation**: Rust projects recompiling all dependencies during test runs
+- **Docker Image Size**: Large Docker images that slow down builds and deployments
+- **Sequential Test Execution**: Tests running one after another instead of in parallel
 
 ### Security and Compliance
 - **Vulnerability Management**: Keeping dependencies and infrastructure secure
