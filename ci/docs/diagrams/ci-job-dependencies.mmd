@@ -45,16 +45,14 @@ graph LR
     end
 
     subgraph "Phase 4: End-to-End Tests"
-        V --> X[Comprehensive E2E Tests]
+        H --> X[Comprehensive E2E Tests]
+        V --> X
         W --> X
+        V --> Y[Mobile E2E Tests]
     end
 
-    subgraph "Phase 5: Deployment"
-        E --> Y[All Quality Checks Pass]
-        F --> Y
-        G --> Y
-        X --> Y
-        Y --> Z[Docker Build]
+    subgraph "Phase 5: Docker Build"
+        H --> Z[Docker Build Test]
         Z --> AA[Deploy/Notify]
     end
 
