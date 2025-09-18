@@ -414,23 +414,8 @@ mod tests {
 
         let created_item = CrawlQueueItem::create(&pool, &new_item).await.unwrap();
 
-        // For testing, use a simple query without locking to verify the item exists
-        use econ_graph_core::schema::crawl_queue::dsl;
-        let mut conn = pool.get().await.unwrap();
-        let items: Vec<CrawlQueueItem> = dsl::crawl_queue
-            .filter(dsl::status.eq("pending"))
-            .filter(dsl::locked_by.is_null())
-            .filter(
-                dsl::scheduled_for
-                    .is_null()
-                    .or(dsl::scheduled_for.le(Utc::now())),
-            )
-            .order(dsl::priority.desc())
-            .order(dsl::created_at.asc())
-            .limit(10)
-            .load::<CrawlQueueItem>(&mut conn)
-            .await
-            .unwrap();
+        // Get next items using SKIP LOCKED
+        let items = get_next_queue_items(&pool, 10).await.unwrap();
         assert_eq!(items.len(), 1);
         assert_eq!(items[0].id, created_item.id);
         assert_eq!(items[0].source, "FRED");
