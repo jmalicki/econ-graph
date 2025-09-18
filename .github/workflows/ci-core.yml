@@ -141,7 +141,7 @@ jobs:
     - name: Run fast unit tests (no database)
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo test --lib -- --test-threads=4 --nocapture config auth::services metrics mcp_server::tests::test_get_available_tools mcp_server::tests::test_get_available_resources
+        cargo test --lib -- --test-threads=4 --nocapture config auth metrics mcp_server::tests::test_get_available_tools mcp_server::tests::test_get_available_resources
       working-directory: backend
       env:
         RUST_LOG: warn
