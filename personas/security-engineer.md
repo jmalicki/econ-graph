@@ -416,6 +416,20 @@ A Security Engineer is responsible for identifying, assessing, and mitigating se
 - **Active Exploitation**: Known exploits or active attack vectors
 - **Critical Dependencies**: Vulnerabilities in core application dependencies
 
+#### Docker Base Image Vulnerability Fixes
+- **zlib Integer Overflow (CVE)**: Critical vulnerability in compression library
+  - **Fix Method**: Add `apt-get upgrade -y` to Dockerfile runtime stage
+  - **Impact**: Prevents integer overflow attacks via malformed compressed data
+  - **Assessment**: Real vulnerability but requires local container access
+  - **Priority**: High for production containers, medium for development
+- **Base Image Updates**: Always update base images to latest security patches
+  - **Debian/Ubuntu**: Use `apt-get update && apt-get upgrade -y`
+  - **Alpine**: Use `apk update && apk upgrade`
+  - **Best Practice**: Pin to specific versions, update regularly
+- **Container Security**: Non-root users reduce impact of many vulnerabilities
+  - **User Context**: Vulnerabilities requiring root access are less critical
+  - **Attack Surface**: Limited attack surface in properly configured containers
+
 ### Security Continuous Improvement
 
 #### Security Assessment
