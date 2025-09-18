@@ -141,7 +141,7 @@ jobs:
     - name: Run fast unit tests (no database)
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo test --lib -- --test-threads=4 --nocapture config auth metrics mcp_server::tests::test_get_available_tools mcp_server::tests::test_get_available_resources
+        cargo test --lib -- --test-threads=4 --nocapture config auth::integration_tests::test_user_response_serialization auth::integration_tests::test_request_validation auth::integration_tests::test_password_hashing auth::integration_tests::test_model_deserialization auth::comprehensive_integration_tests::test_password_security metrics mcp_server::tests::test_get_available_tools mcp_server::tests::test_get_available_resources
       working-directory: backend
       env:
         RUST_LOG: warn
@@ -964,7 +964,7 @@ jobs:
     - name: Run backend auth integration tests
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo test --lib -- --test-threads=2 --nocapture auth::integration_tests auth::comprehensive_integration_tests
+        cargo test --lib -- --test-threads=2 --nocapture auth::integration_tests::test_auth_service_creation auth::integration_tests::test_jwt_token_flow auth::integration_tests::test_google_oauth_flow auth::integration_tests::test_facebook_oauth_flow auth::integration_tests::test_email_password_auth auth::integration_tests::test_authentication_failures auth::integration_tests::test_profile_update auth::comprehensive_integration_tests::test_google_oauth_signup_flow auth::comprehensive_integration_tests::test_google_oauth_signin_flow auth::comprehensive_integration_tests::test_facebook_oauth_signup_flow auth::comprehensive_integration_tests::test_facebook_oauth_signin_flow auth::comprehensive_integration_tests::test_email_password_signup_flow auth::comprehensive_integration_tests::test_email_password_signin_flow auth::comprehensive_integration_tests::test_authentication_failure_scenarios auth::comprehensive_integration_tests::test_duplicate_user_scenarios auth::comprehensive_integration_tests::test_user_profile_update auth::comprehensive_integration_tests::test_jwt_token_expiration auth::comprehensive_integration_tests::test_request_validation auth::comprehensive_integration_tests::test_model_serialization
       working-directory: backend
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5442/econ_graph_test
