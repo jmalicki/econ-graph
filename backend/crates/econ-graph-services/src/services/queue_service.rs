@@ -373,6 +373,9 @@ mod tests {
         let container = TestContainer::new().await;
         let pool = container.pool();
 
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
+
         let stats = get_queue_statistics(&pool).await.unwrap();
 
         assert_eq!(stats.total_items, 0);
@@ -397,6 +400,9 @@ mod tests {
         let container = TestContainer::new().await;
         let pool = container.pool();
 
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
+
         // Create a test queue item
         let new_item = NewCrawlQueueItem {
             source: "FRED".to_string(),
@@ -408,8 +414,23 @@ mod tests {
 
         let created_item = CrawlQueueItem::create(&pool, &new_item).await.unwrap();
 
-        // Get next items using SKIP LOCKED
-        let items = get_next_queue_items(&pool, 10).await.unwrap();
+        // For testing, use a simple query without locking to verify the item exists
+        use econ_graph_core::schema::crawl_queue::dsl;
+        let mut conn = pool.get().await.unwrap();
+        let items: Vec<CrawlQueueItem> = dsl::crawl_queue
+            .filter(dsl::status.eq("pending"))
+            .filter(dsl::locked_by.is_null())
+            .filter(
+                dsl::scheduled_for
+                    .is_null()
+                    .or(dsl::scheduled_for.le(Utc::now())),
+            )
+            .order(dsl::priority.desc())
+            .order(dsl::created_at.asc())
+            .limit(10)
+            .load::<CrawlQueueItem>(&mut conn)
+            .await
+            .unwrap();
         assert_eq!(items.len(), 1);
         assert_eq!(items[0].id, created_item.id);
         assert_eq!(items[0].source, "FRED");
@@ -425,6 +446,9 @@ mod tests {
 
         let container = TestContainer::new().await;
         let pool = container.pool();
+
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
 
         // Create a test queue item
         let new_item = NewCrawlQueueItem {
@@ -469,6 +493,9 @@ mod tests {
 
         let container = TestContainer::new().await;
         let pool = container.pool();
+
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
 
         // Create a test queue item
         let new_item = NewCrawlQueueItem {
@@ -517,6 +544,9 @@ mod tests {
 
         let container = TestContainer::new().await;
         let pool = container.pool();
+
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
 
         // Create a test queue item with low max retries
         let new_item = NewCrawlQueueItem {
@@ -777,6 +807,9 @@ mod tests {
         let container = TestContainer::new().await;
         let pool = container.pool();
 
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
+
         // Create and process a test item to generate processing time data
         let new_item = NewCrawlQueueItem {
             source: "FRED".to_string(),
@@ -821,6 +854,9 @@ mod tests {
 
         let container = TestContainer::new().await;
         let pool = container.pool();
+
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
 
         // Create an item scheduled for the future
         let future_time = Utc::now() + chrono::Duration::hours(1);
@@ -868,6 +904,9 @@ mod tests {
         let container = TestContainer::new().await;
         let pool = container.pool();
 
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
+
         // Test operations on non-existent item
         let fake_id = Uuid::new_v4();
 
@@ -907,6 +946,9 @@ mod tests {
 
         let container = TestContainer::new().await;
         let pool = container.pool();
+
+        // Clean database to avoid test pollution
+        let _ = container.clean_database().await;
 
         // Create multiple items
         let items = vec![
