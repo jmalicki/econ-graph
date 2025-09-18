@@ -216,3 +216,89 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Malformed YAML**: Syntax errors that prevent workflow parsing
 - **Missing Triggers**: Workflows that can't be executed
 - **Poor Naming**: Workflows without descriptive names making maintenance difficult
+
+### Frontend Test Infrastructure Issues
+- **Unused Import Failures**: ESLint errors from unused imports causing test failures
+- **Missing Dependencies**: Test dependencies like `supertest` not installed
+- **D3.js Module Import Issues**: ES modules in node_modules causing Jest parsing errors
+- **Mock Configuration Problems**: Incomplete or incorrect Jest mocks for external libraries
+
+### D3.js Testing Solutions (Learned from Real Issues)
+When dealing with D3.js testing failures in React applications:
+
+1. **Create Comprehensive Mocks**: Create separate mock files for each D3 module:
+   - `d3-geo.js` - Geographic projections and path generation
+   - `d3-zoom.js` - Zoom behavior and event handling
+   - `d3-scale.js` - Scales and color interpolation
+   - `d3-scale-chromatic.js` - Color schemes and palettes
+   - `d3-array.js` - Array utilities and data manipulation
+   - `d3-selection.js` - DOM selection and manipulation
+
+2. **Jest Configuration Updates**: Update `package.json` Jest config:
+   ```json
+   "jest": {
+     "moduleNameMapper": {
+       "^d3-geo$": "<rootDir>/src/__mocks__/d3-geo.js",
+       "^d3-zoom$": "<rootDir>/src/__mocks__/d3-zoom.js",
+       "^d3-scale$": "<rootDir>/src/__mocks__/d3-scale.js",
+       "^d3-scale-chromatic$": "<rootDir>/src/__mocks__/d3-scale-chromatic.js"
+     },
+     "transformIgnorePatterns": [
+       "node_modules/(?!(d3-geo|d3-zoom|d3-scale|d3-scale-chromatic)/)"
+     ]
+   }
+   ```
+
+3. **Mock Function Structure**: Each mock should return proper function objects:
+   ```javascript
+   export const geoNaturalEarth1 = jest.fn(() => ({
+     scale: jest.fn(),
+     center: jest.fn(),
+     translate: jest.fn(),
+   }));
+   ```
+
+### Frontend Test Debugging Process
+1. **Identify Root Cause**: Check if failures are from unused imports, missing deps, or module issues
+2. **Fix Linting Issues First**: Remove unused imports before addressing test infrastructure
+3. **Install Missing Dependencies**: Add required test dependencies like `supertest`
+4. **Create Module Mocks**: For ES modules causing Jest issues, create comprehensive mocks
+5. **Update Jest Configuration**: Configure module mapping and transform patterns
+6. **Verify All Tests Pass**: Run full test suite to ensure no regressions
+
+### Validation Script Improvements
+The existing `ci/scripts/validate-ci-workflows.sh` script should be enhanced to also check:
+- **Frontend Test Dependencies**: Verify all required test dependencies are installed
+- **Mock File Completeness**: Check that mock files exist for commonly problematic modules
+- **Jest Configuration**: Validate Jest configuration for proper module mapping
+
+### Real-World Case Study: Frontend Test Failures (September 2025)
+**Problem**: GitHub Actions CI failing with frontend test errors:
+- Unused import linting errors in 6 files
+- Missing `supertest` dependency for private chart server tests
+- D3.js ES module import failures in Jest environment
+
+**Root Causes Identified**:
+1. **Linting Issues**: Unused imports (`useState`, `useCallback`, `CountryTooltip`, etc.) causing ESLint failures
+2. **Missing Dependencies**: `supertest` not installed for Express.js server testing
+3. **D3.js Module Issues**: ES modules in `node_modules/d3-geo` causing Jest parsing errors
+4. **Incomplete Mocks**: Existing D3 mock too basic for complex D3 module usage
+
+**Solutions Implemented**:
+1. **Cleaned Up Imports**: Removed all unused imports from affected files
+2. **Added Missing Dependencies**: `npm install --save-dev supertest`
+3. **Created Comprehensive D3 Mocks**: 6 separate mock files for different D3 modules
+4. **Updated Jest Configuration**: Added proper module mapping and transform patterns
+5. **Verified Results**: All 15 test suites (256 tests) now pass consistently
+
+**Key Learnings**:
+- Frontend test failures often cascade from simple linting issues
+- D3.js testing requires careful mock configuration for ES modules
+- Missing test dependencies can cause unexpected failures
+- Comprehensive mocking strategy prevents future D3-related test issues
+
+**Prevention Strategies**:
+- Regular dependency audits for test requirements
+- Proactive mock creation for complex external libraries
+- Linting enforcement in pre-commit hooks
+- Comprehensive test coverage validation
