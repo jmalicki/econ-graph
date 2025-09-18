@@ -49,6 +49,69 @@ This avoids multiple agents checking out main from different git worktrees at th
 * Run `cargo fix --lib -p package_name --tests` to automatically apply many warning fixes.
 * Never ignore compiler warnings in CI - they often indicate real issues that should be addressed.
 
+## Test Categorization Guidelines
+
+**CRITICAL: Proper test categorization is essential for CI performance and reliability.**
+
+### Unit Tests (Fast Tests - No External Dependencies)
+* **Location**: Inside crate `tests.rs` modules or `#[cfg(test)]` modules
+* **Characteristics**:
+  * No database connections
+  * No external API calls
+  * No network requests
+  * No file system operations (except temporary test files)
+  * No environment variables for external services
+  * Pure function testing
+  * Configuration validation
+  * Data structure validation
+  * Business logic testing
+* **Examples**:
+  * Testing data source configuration structs
+  * Testing data parsing functions
+  * Testing validation logic
+  * Testing mathematical calculations
+  * Testing string manipulation
+
+### Integration Tests (Slow Tests - External Dependencies)
+* **Location**: `tests/` directory at project root (for Rust) or dedicated integration test directories
+* **Characteristics**:
+  * Database connections and operations
+  * External API calls
+  * Network requests
+  * File system operations
+  * Environment variable dependencies
+  * Full system integration testing
+  * End-to-end workflows
+* **Examples**:
+  * Testing database CRUD operations
+  * Testing API client functionality
+  * Testing full service workflows
+  * Testing external service integrations
+  * Testing file upload/download
+  * Testing authentication flows
+
+### Test Naming and Organization
+* **Unit tests**: Use simple `#[test]` attribute
+* **Integration tests**: Use `#[tokio::test]` for async operations and `#[serial]` for database tests
+* **File naming**: Integration tests should be clearly named (e.g., `*_integration_tests.rs`)
+* **Test descriptions**: Clearly indicate if a test requires external dependencies in comments
+
+### CI Impact
+* **Smoke tests** (fast unit tests) run on every commit and must pass quickly
+* **Integration tests** run less frequently and can take longer
+* **Never mix** database-dependent tests in unit test suites
+* **Always move** tests that require external dependencies to integration test directories
+
+### Common Mistakes to Avoid
+* ❌ Putting database tests in unit test modules
+* ❌ Making API calls in unit tests
+* ❌ Using `TestContainer` in unit tests
+* ❌ Testing external service integrations in unit tests
+* ❌ Using environment variables for external services in unit tests
+* ✅ Move any test requiring external dependencies to integration tests
+* ✅ Keep unit tests fast and isolated
+* ✅ Use proper test categorization from the start
+
 ## CI Failure Debugging
 
 * When CI fails, always check the detailed logs using `gh run view RUN_ID --log-failed` to see the actual error messages.
@@ -57,4 +120,6 @@ This avoids multiple agents checking out main from different git worktrees at th
   * Container timeouts: Often Docker resource issues or network problems
   * Compilation errors: Usually missing dependencies or syntax issues
   * Test failures: Check if tests are properly isolated and cleaned up
+  * Smoke test failures: Often caused by unit tests trying to access external dependencies
 * Always fix the root cause, not just the symptoms. For example, if you see database constraint violations, fix the test isolation rather than just changing the test data.
+* If smoke tests fail due to external dependencies, move the problematic tests to integration tests.
