@@ -164,10 +164,11 @@ mod tests {
         assert_eq!(user.provider, AuthProvider::Email);
         assert!(user.is_active);
 
-        // Create demo user first
-        let demo_user_created = auth_service
+        // Create demo user first with unique email
+        let demo_email = format!("demo-{}@econgraph.com", uuid::Uuid::new_v4());
+        let _demo_user_created = auth_service
             .create_email_user(
-                "demo@econgraph.com".to_string(),
+                demo_email.clone(),
                 "demo123456".to_string(),
                 "Demo User".to_string(),
             )
@@ -176,11 +177,11 @@ mod tests {
 
         // Test authentication with demo credentials
         let demo_user = auth_service
-            .authenticate_email_user("demo@econgraph.com".to_string(), "demo123456".to_string())
+            .authenticate_email_user(demo_email.clone(), "demo123456".to_string())
             .await
             .expect("Should authenticate demo user successfully");
 
-        assert_eq!(demo_user.email, "demo@econgraph.com");
+        assert_eq!(demo_user.email, demo_email);
         assert_eq!(demo_user.name, "Demo User");
         assert_eq!(demo_user.role, UserRole::Viewer); // Default role for new users
     }
