@@ -1,6 +1,6 @@
 name: RAM Disk Build Cache
 
-on:
+'on':
   workflow_dispatch:
     inputs:
       branch:

@@ -1,6 +1,6 @@
 name: Experimental Features
 
-on:
+'on':
   workflow_dispatch:
     inputs:
       branch:

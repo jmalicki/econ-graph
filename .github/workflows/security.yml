@@ -1,6 +1,6 @@
 name: Security and Dependency Updates
 
-on:
+'on':
   schedule:
     # Run daily at 2 AM UTC
     - cron: '0 2 * * *'
