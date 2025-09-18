@@ -112,8 +112,8 @@ mod tests {
         // For now, we'll test the user creation flow
 
         let google_user_info = GoogleUserInfo {
-            id: "google-123456789".to_string(),
-            email: "googleuser@gmail.com".to_string(),
+            id: format!("google-{}", uuid::Uuid::new_v4()),
+            email: format!("googleuser-{}@gmail.com", uuid::Uuid::new_v4()),
             name: "Google User".to_string(),
             avatar: Some("https://lh3.googleusercontent.com/avatar.jpg".to_string()),
             verified_email: true,
@@ -159,8 +159,8 @@ mod tests {
         let auth_service = AuthService::new(container.pool().clone());
 
         let facebook_user_info = FacebookUserInfo {
-            id: "facebook-987654321".to_string(),
-            email: Some("fbuser@facebook.com".to_string()),
+            id: format!("facebook-{}", uuid::Uuid::new_v4()),
+            email: Some(format!("fbuser-{}@facebook.com", uuid::Uuid::new_v4())),
             name: "Facebook User".to_string(),
             picture: Some(FacebookPicture {
                 data: FacebookPictureData {
@@ -283,6 +283,12 @@ mod tests {
         if skip_if_no_database(&container).await {
             return;
         }
+
+        // Clean database before test to ensure isolation
+        container
+            .clean_database()
+            .await
+            .expect("Failed to clean database");
 
         let auth_service = AuthService::new(container.pool().clone());
 

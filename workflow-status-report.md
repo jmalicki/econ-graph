@@ -1,6 +1,6 @@
 # GitHub Actions Workflow Status Report
 
-Generated: 2025-09-17 08:25:07 PDT
+Generated: 2025-09-18 10:30:43 PDT
 
 ## Issue Identified
 GitHub is showing 22 workflows as "active" but only 8 actually exist in the repository. This is causing CI parsing failures.
@@ -12,7 +12,9 @@ GitHub is showing 22 workflows as "active" but only 8 actually exist in the repo
 
 ## Orphaned Workflows (shown as active but don't exist)
 - ❌ .github/workflows/ci-build.yml (orphaned)
-- ❌ .github/workflows/ci-core.yml (orphaned)
+- ❌ Core (orphaned)
+- ❌ CI (orphaned)
+- ❌ Tests (orphaned)
 - ❌ Experimental (orphaned)
 - ❌ Features (orphaned)
 - ❌ .github/workflows/ci-integration.yml (orphaned)

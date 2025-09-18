@@ -236,10 +236,13 @@ mod tests {
             return;
         }
 
+        // Clean database before test to ensure isolation
+        container
+            .clean_database()
+            .await
+            .expect("Failed to clean database");
+
         let auth_service = AuthService::new(container.pool().clone());
-        let container = create_test_pool().await;
-        let pool = container.pool();
-        let auth_service = AuthService::new(pool.clone());
 
         // First, create a user (signup)
         let facebook_user_info = FacebookUserInfo {
@@ -311,10 +314,13 @@ mod tests {
             return;
         }
 
+        // Clean database before test to ensure isolation
+        container
+            .clean_database()
+            .await
+            .expect("Failed to clean database");
+
         let auth_service = AuthService::new(container.pool().clone());
-        let container = create_test_pool().await;
-        let pool = container.pool();
-        let auth_service = AuthService::new(pool.clone());
 
         let email = "newuser@econgraph.com".to_string();
         let password = "securepassword123".to_string();
@@ -360,10 +366,13 @@ mod tests {
             return;
         }
 
+        // Clean database before test to ensure isolation
+        container
+            .clean_database()
+            .await
+            .expect("Failed to clean database");
+
         let auth_service = AuthService::new(container.pool().clone());
-        let container = create_test_pool().await;
-        let pool = container.pool();
-        let auth_service = AuthService::new(pool.clone());
 
         let email = "signinuser@econgraph.com".to_string();
         let password = "signinpassword123".to_string();
@@ -440,10 +449,13 @@ mod tests {
             return;
         }
 
+        // Clean database before test to ensure isolation
+        container
+            .clean_database()
+            .await
+            .expect("Failed to clean database");
+
         let auth_service = AuthService::new(container.pool().clone());
-        let container = create_test_pool().await;
-        let pool = container.pool();
-        let auth_service = AuthService::new(pool.clone());
 
         let email = "duplicate@econgraph.com".to_string();
         let password = "password123".to_string();
@@ -487,10 +499,13 @@ mod tests {
             return;
         }
 
+        // Clean database before test to ensure isolation
+        container
+            .clean_database()
+            .await
+            .expect("Failed to clean database");
+
         let auth_service = AuthService::new(container.pool().clone());
-        let container = create_test_pool().await;
-        let pool = container.pool();
-        let auth_service = AuthService::new(pool.clone());
 
         // Create a test user
         let email = "profileuser@econgraph.com".to_string();
