@@ -65,6 +65,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:unit": "react-scripts test --testPathIgnorePatterns=src/__tests__/integration --watchAll=false",
+    "test:integration": "react-scripts test src/__tests__/integration --watchAll=false",
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
