@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import { Add, Remove, Public, Explore, TravelExplore } from '@mui/icons-material';
 import { useGlobalAnalysis } from '../../contexts/GlobalAnalysisContext';
-import { ProjectionType, ColorScheme } from '../../types/globalAnalysis';
 
 const WorldMapControls: React.FC = () => {
   const { state, actions } = useGlobalAnalysis();
