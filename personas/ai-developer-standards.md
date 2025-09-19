@@ -113,6 +113,66 @@ This avoids multiple agents checking out main from different git worktrees at th
 * ✅ Keep unit tests fast and isolated
 * ✅ Use proper test categorization from the start
 
+## Port Configuration and Environment Variables
+
+**CRITICAL: Centralize all port numbers and service URLs as environment variables for maintainability and consistency.**
+
+### Centralized Configuration
+* **Single Source of Truth**: All port numbers, URLs, and service endpoints must be defined in centralized configuration files
+* **Environment Variables**: Use environment variables for all service configurations instead of hardcoding values
+* **Configuration Files**: Maintain configuration in dedicated files like `ci-env.config` or `.env` files
+* **Inheritance Pattern**: All services, databases, and test frameworks should inherit configuration from the centralized source
+
+### Port Management Best Practices
+* **Avoid Port Conflicts**: Use different ports for different test suites to prevent conflicts
+* **Dynamic Port Assignment**: When possible, use dynamic port assignment or environment variable overrides
+* **Port Naming Convention**: Use descriptive names like `BACKEND_PORT`, `FRONTEND_PORT`, `DATABASE_PORT`
+* **Test-Specific Ports**: Use separate ports for different test suites (e.g., `BACKEND_SMOKE_DB_PORT=5433`, `BACKEND_INTEGRATION_DB_PORT=5447`)
+
+### Configuration Structure
+* **Core Services**: Define base ports for main services (backend, frontend, database)
+* **Derived URLs**: Build service URLs from base configuration (e.g., `BACKEND_URL=http://localhost:${BACKEND_PORT}`)
+* **Health Check Endpoints**: Define health check URLs consistently (e.g., `BACKEND_HEALTH_URL=${BACKEND_URL}/health`)
+* **API Endpoints**: Centralize API endpoint definitions (e.g., `GRAPHQL_ENDPOINT=${BACKEND_URL}/graphql`)
+
+### Implementation Requirements
+* **CI/CD Integration**: All CI workflows must use environment variables for port configuration
+* **Docker Configuration**: Docker containers must use environment variables for port mapping
+* **Test Configuration**: All test frameworks (Playwright, Jest, etc.) must inherit port configuration
+* **Service Discovery**: Use environment variables for service-to-service communication URLs
+
+### Common Mistakes to Avoid
+* ❌ Hardcoding port numbers in multiple places
+* ❌ Using different ports for the same service across different environments
+* ❌ Not updating all references when changing port numbers
+* ❌ Creating port conflicts between different test suites
+* ❌ Using inconsistent URL patterns across services
+* ✅ Define all ports in one centralized configuration file
+* ✅ Use environment variables throughout the codebase
+* ✅ Use descriptive, consistent naming conventions
+* ✅ Test port configuration changes across all environments
+
+### Configuration File Example
+```bash
+# Core Service Ports
+BACKEND_PORT=8080
+FRONTEND_PORT=3000
+DATABASE_PORT=5432
+
+# Derived URLs
+BACKEND_URL=http://localhost:${BACKEND_PORT}
+FRONTEND_URL=http://localhost:${FRONTEND_PORT}
+DATABASE_URL=postgresql://postgres:password@localhost:${DATABASE_PORT}/econ_graph_test
+
+# Health Check Endpoints
+BACKEND_HEALTH_URL=${BACKEND_URL}/health
+FRONTEND_HEALTH_URL=${FRONTEND_URL}
+
+# Test-Specific Ports (to avoid conflicts)
+BACKEND_SMOKE_DB_PORT=5433
+BACKEND_INTEGRATION_DB_PORT=5447
+```
+
 ## CI Failure Debugging
 
 * When CI fails, always check the detailed logs using `gh run view RUN_ID --log-failed` to see the actual error messages.
