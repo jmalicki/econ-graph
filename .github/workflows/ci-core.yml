@@ -1378,7 +1378,7 @@ jobs:
     - name: Run backend integration tests
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo test --lib -- --test-threads=2 --nocapture integration_tests
+        cargo test --package econ-graph-backend --lib -- --test-threads=2 --nocapture integration_tests
       working-directory: backend
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
