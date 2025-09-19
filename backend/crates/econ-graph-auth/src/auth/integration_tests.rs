@@ -159,8 +159,8 @@ mod tests {
         let auth_service = AuthService::new(container.pool().clone());
 
         let facebook_user_info = FacebookUserInfo {
-            id: "facebook-987654321".to_string(),
-            email: Some("fbuser@facebook.com".to_string()),
+            id: format!("facebook-{}", uuid::Uuid::new_v4()),
+            email: Some(format!("fbuser-{}@facebook.com", uuid::Uuid::new_v4())),
             name: "Facebook User".to_string(),
             picture: Some(FacebookPicture {
                 data: FacebookPictureData {

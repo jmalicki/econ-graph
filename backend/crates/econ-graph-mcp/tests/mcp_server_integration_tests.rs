@@ -1,6 +1,6 @@
 /// Integration tests for MCP server that require real backend and chart API services
 /// These tests start up actual services and test end-to-end functionality
-use econ_graph_backend::mcp_server::EconGraphMcpServer;
+use econ_graph_mcp::mcp_server::EconGraphMcpServer;
 use serde_json::json;
 use serial_test::serial;
 use std::sync::Arc;
@@ -8,7 +8,7 @@ use std::sync::Arc;
 // We need to create a simple test container setup since we can't import test_utils
 // from the tests directory. Let's create a minimal version for integration testing.
 
-async fn create_test_database_pool() -> econ_graph_backend::database::DatabasePool {
+async fn create_test_database_pool() -> econ_graph_core::database::DatabasePool {
     use diesel::Connection;
     use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::postgres::Postgres;
@@ -34,7 +34,7 @@ async fn create_test_database_pool() -> econ_graph_backend::database::DatabasePo
 
     // Run migrations
     use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-    const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
+    const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../../migrations/");
 
     let mut conn =
         diesel::PgConnection::establish(&database_url).expect("Failed to connect to test database");

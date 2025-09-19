@@ -316,7 +316,7 @@ mod tests {
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
 
-        let email = "newuser@econgraph.com".to_string();
+        let email = format!("newuser-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "securepassword123".to_string();
         let name = "New Email User".to_string();
 
@@ -365,7 +365,7 @@ mod tests {
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
 
-        let email = "signinuser@econgraph.com".to_string();
+        let email = format!("signinuser-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "signinpassword123".to_string();
         let name = "Signin User".to_string();
 
@@ -445,7 +445,7 @@ mod tests {
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
 
-        let email = "duplicate@econgraph.com".to_string();
+        let email = format!("duplicate-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "password123".to_string();
         let name = "Duplicate User".to_string();
 
