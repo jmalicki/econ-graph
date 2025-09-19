@@ -215,3 +215,54 @@ BACKEND_INTEGRATION_DB_PORT=5447
 * **Example of Good Separation**:
   * ❌ **Bad**: "Fix CI failures and improve test organization" (two concerns)
   * ✅ **Good**: "Fix database cleanup table name bug" + "Move MCP tests to integration tests" (two separate PRs)
+
+## Debugging Methodology and Avoiding False Confidence
+
+**CRITICAL: Never claim to have "fixed all issues" without comprehensive verification.**
+
+### Systematic Debugging Approach
+* **One Issue at a Time**: Focus on fixing ONE specific failure completely before moving to the next
+* **Verify Each Fix**: After each fix, wait for CI results and confirm the specific issue is resolved
+* **Don't Assume**: Never assume that fixing one issue automatically fixes related issues
+* **Test Locally First**: When possible, reproduce and fix issues locally before pushing to CI
+* **Read Error Messages Carefully**: Don't just scan error messages - read them completely and understand the root cause
+
+### False Confidence Anti-Patterns
+* ❌ **"I've fixed all the issues"** - This is almost never true in complex systems
+* ❌ **"This should resolve everything"** - Complex systems have interdependencies you may not see
+* ❌ **"The tests should pass now"** - Always verify with actual test results
+* ❌ **Making multiple changes simultaneously** - Makes it impossible to know which change fixed what
+* ❌ **Assuming correlation equals causation** - Just because you made a change doesn't mean it fixed the problem
+
+### Proper Debugging Workflow
+1. **Identify the specific failure** - Get the exact error message and understand what's failing
+2. **Reproduce locally** - Try to reproduce the issue in your local environment
+3. **Make ONE targeted fix** - Address only the specific root cause you identified
+4. **Test the fix** - Verify the fix works locally if possible
+5. **Push and wait for CI** - Let CI run and confirm the specific issue is resolved
+6. **Only then move to the next issue** - Don't start fixing other things until you've confirmed this fix worked
+
+### Communication Standards
+* **Be Honest About Uncertainty**: Say "I believe this fixes X" not "This fixes everything"
+* **Acknowledge What You Don't Know**: "I'm not sure if this will fix Y, but it should fix X"
+* **Provide Evidence**: Reference specific error messages and explain how your fix addresses them
+* **Set Expectations**: "This should fix the Docker build issue, but there may be other failures"
+
+### When You're Wrong (And You Will Be)
+* **Acknowledge Mistakes Immediately**: Don't double down on incorrect assumptions
+* **Learn from Each Failure**: Each failed fix teaches you something about the system
+* **Ask for Help Sooner**: If you're stuck in a loop, ask for guidance rather than continuing to guess
+* **Document What Didn't Work**: Keep track of approaches that failed so you don't repeat them
+
+### Red Flags That You're Going Down the Wrong Path
+* You're making multiple changes without testing each one
+* You're claiming to fix "everything" without specific evidence
+* You're not waiting for CI results before making more changes
+* You're getting frustrated and making larger, riskier changes
+* You're ignoring specific error messages in favor of general assumptions
+
+### Success Metrics
+* ✅ **Specific Issues Resolved**: You can point to exact error messages that are now gone
+* ✅ **Incremental Progress**: Each change moves you closer to a working system
+* ✅ **Verifiable Fixes**: You can explain exactly how each fix addresses a specific problem
+* ✅ **Honest Communication**: You accurately represent what you know and what you don't know
