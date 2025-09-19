@@ -10,6 +10,7 @@ mod tests {
     use crate::auth::services::AuthService;
     use econ_graph_core::test_utils::TestContainer;
     use serde_json::json;
+    use serial_test::serial;
     use std::sync::Arc;
     use uuid::Uuid;
 
@@ -352,16 +353,16 @@ mod tests {
 
     /// Test email/password signin flow
     #[tokio::test]
+    #[serial]
     async fn test_email_password_signin_flow() {
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
 
         // Skip test if database is not available
         if skip_if_no_database(&container).await {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
-        let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
 
@@ -479,21 +480,21 @@ mod tests {
 
     /// Test user profile update functionality
     #[tokio::test]
+    #[serial]
     async fn test_user_profile_update() {
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
 
         // Skip test if database is not available
         if skip_if_no_database(&container).await {
             return;
         }
 
-        let auth_service = AuthService::new(container.pool().clone());
-        let container = create_test_pool().await;
         let pool = container.pool();
         let auth_service = AuthService::new(pool.clone());
 
-        // Create a test user
-        let email = "profileuser@econgraph.com".to_string();
+        // Create a test user with unique email
+        let email = format!("profileuser-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "password123".to_string();
         let name = "Profile User".to_string();
 
