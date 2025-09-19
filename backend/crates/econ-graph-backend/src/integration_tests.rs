@@ -4,14 +4,14 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::models::{
-        DataPoint, DataSource, EconomicSeries, NewDataPoint, NewDataSource, NewEconomicSeries,
-    };
-    use crate::test_utils::TestContainer;
     use bigdecimal::BigDecimal;
     use chrono::NaiveDate;
     use diesel::prelude::*;
     use diesel_async::RunQueryDsl;
+    use econ_graph_core::models::{
+        DataPoint, DataSource, EconomicSeries, NewDataPoint, NewDataSource, NewEconomicSeries,
+    };
+    use econ_graph_core::test_utils::TestContainer;
     use serial_test::serial;
     use std::sync::Arc;
     use uuid::Uuid;
@@ -161,7 +161,7 @@ mod tests {
         let pool = container.pool();
 
         // Test queue statistics on empty queue
-        let empty_stats = crate::services::queue_service::get_queue_statistics(&pool)
+        let empty_stats = econ_graph_services::services::queue_service::get_queue_statistics(&pool)
             .await
             .expect("Should get queue statistics");
 
@@ -170,7 +170,7 @@ mod tests {
         assert_eq!(empty_stats.processing_items, 0);
 
         // Test creating queue items
-        use crate::models::{CrawlQueueItem, NewCrawlQueueItem};
+        use econ_graph_core::models::{CrawlQueueItem, NewCrawlQueueItem};
 
         let new_item = NewCrawlQueueItem {
             source: "FRED".to_string(),
@@ -185,18 +185,21 @@ mod tests {
             .expect("Should create queue item");
 
         // Test queue statistics with items
-        let stats_with_items = crate::services::queue_service::get_queue_statistics(&pool)
-            .await
-            .expect("Should get queue statistics");
+        let stats_with_items =
+            econ_graph_services::services::queue_service::get_queue_statistics(&pool)
+                .await
+                .expect("Should get queue statistics");
 
         assert_eq!(stats_with_items.total_items, 1);
         assert_eq!(stats_with_items.pending_items, 1);
 
         // Test getting next item for processing
-        let next_item =
-            crate::services::queue_service::get_and_lock_next_item(&pool, "test-worker")
-                .await
-                .expect("Should get next item");
+        let next_item = econ_graph_services::services::queue_service::get_and_lock_next_item(
+            &pool,
+            "test-worker",
+        )
+        .await
+        .expect("Should get next item");
 
         assert!(next_item.is_some());
         let locked_item = next_item.unwrap();
@@ -217,9 +220,10 @@ mod tests {
         let pool = container.pool();
 
         // Test crawler status
-        let status = crate::services::crawler::simple_crawler_service::get_crawler_status()
-            .await
-            .expect("Should get crawler status");
+        let status =
+            econ_graph_services::services::crawler::simple_crawler_service::get_crawler_status()
+                .await
+                .expect("Should get crawler status");
 
         // Status should reflect environment configuration
         assert!(status.active_workers >= 0);

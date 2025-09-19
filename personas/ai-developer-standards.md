@@ -7,6 +7,7 @@ git fetch
 git branch -b your_agent_name/descriptive_branch_name_for_your_task origin/main
 ```
 This avoids multiple agents checking out main from different git worktrees at the same time.
+* **ALWAYS use `git mv` when moving files**: When you need to move or rename files, use `git mv old_path new_path` instead of `mv old_path new_path`. This ensures git properly tracks the file move as a rename operation rather than a delete + add, which preserves file history and makes the git log cleaner. Using `mv` followed by `git add` can cause git to lose track of file history.
 * Please make sure to not use interactive merge, or other interactive git commands.  You just hang and your human developer has to rescue you by typing `:wq`.  If you're working overnight, that's hours of work lost.
 * Always write lots of tests, and make sure that every feature you write is covered.  This means you can iterate against them and fix them until it works.
 * Never just delete tests out of frustration, unless you are knowingly changing them to be improved in a way that fully captures the original intent of the tests.
