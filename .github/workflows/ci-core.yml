@@ -1412,11 +1412,45 @@ jobs:
       env:
         REACT_APP_GRAPHQL_ENDPOINT: http://localhost:8080/graphql
 
+  e2e-container-build:
+    name: Build E2E Test Containers
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [frontend-integration-tests]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build standard E2E container
+      run: |
+        docker build -f ci/docker/e2e/Dockerfile -t econ-graph-e2e:latest .
+        docker save econ-graph-e2e:latest | gzip > e2e-container.tar.gz
+
+    - name: Build mobile E2E container
+      run: |
+        docker build -f ci/docker/e2e/Dockerfile.mobile -t econ-graph-e2e-mobile:latest .
+        docker save econ-graph-e2e-mobile:latest | gzip > e2e-mobile-container.tar.gz
+
+    - name: Upload E2E containers
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-containers
+        path: |
+          e2e-container.tar.gz
+          e2e-mobile-container.tar.gz
+        retention-days: 1
+
   e2e-core-tests:
     name: E2E Core Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [backend-smoke-tests, frontend-integration-tests, backend-integration-tests]
+    needs: [backend-smoke-tests, frontend-integration-tests, backend-integration-tests, e2e-container-build]
 
     services:
       postgres:
@@ -1499,26 +1533,23 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Download E2E containers
+      uses: actions/download-artifact@v4
       with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+        name: e2e-containers
 
-    - name: Install frontend dependencies
-      run: npm ci
-      working-directory: frontend
-
-    - name: Install Playwright browsers
-      run: npx playwright install --with-deps
-      working-directory: frontend
+    - name: Load E2E containers
+      run: |
+        docker load < e2e-container.tar.gz
+        docker load < e2e-mobile-container.tar.gz
 
     - name: Start frontend service
       run: |
-        npm run build
-        npx serve -s build -l 3000 &
-        echo $! > frontend.pid
+        # Use the pre-built frontend from the container
+        docker run --rm -d --name frontend-server \
+          -p 3000:3000 \
+          econ-graph-e2e:latest \
+          npx serve -s build -l 3000
 
         # Wait for frontend to be ready
         for i in {1..30}; do
@@ -1529,11 +1560,17 @@ jobs:
           echo "Waiting for frontend... ($i/30)"
           sleep 2
         done
-      working-directory: frontend
 
     - name: Run E2E Core Tests
-      run: npm run test:e2e:core
-      working-directory: frontend
+      run: |
+        docker run --rm \
+          --network host \
+          -e BASE_URL=http://localhost:3000 \
+          -v $(pwd)/frontend/tests:/app/tests \
+          -v $(pwd)/frontend/ci:/app/ci \
+          -v $(pwd)/frontend/playwright.config.ts:/app/playwright.config.ts \
+          econ-graph-e2e:latest \
+          npm run test:e2e:core
 
     - name: Stop services
       if: always()
@@ -1541,15 +1578,13 @@ jobs:
         if [ -f backend.pid ]; then
           kill $(cat backend.pid) || true
         fi
-        if [ -f frontend.pid ]; then
-          kill $(cat frontend.pid) || true
-        fi
+        docker stop frontend-server || true
 
   e2e-comprehensive-tests:
     name: E2E Comprehensive Tests
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    needs: [backend-smoke-tests, frontend-integration-tests, backend-integration-tests]
+    needs: [backend-smoke-tests, frontend-integration-tests, backend-integration-tests, e2e-container-build]
 
     services:
       postgres:
