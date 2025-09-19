@@ -24,6 +24,7 @@ mod tests {
         // This tests the full workflow from data source to queue processing
 
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
         let pool = container.pool();
 
         // Create test data source
@@ -158,6 +159,7 @@ mod tests {
         // This tests the SKIP LOCKED functionality and queue statistics
 
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
         let pool = container.pool();
 
         // Test queue statistics on empty queue
@@ -217,6 +219,7 @@ mod tests {
         // This tests the complete data pipeline from crawler to database
 
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
         let pool = container.pool();
 
         // Test crawler status
