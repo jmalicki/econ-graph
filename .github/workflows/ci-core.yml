@@ -1678,7 +1678,7 @@ jobs:
     name: Mobile End-to-End Tests
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: [backend-integration-tests]
+    needs: [backend-smoke-tests, frontend-integration-tests, backend-integration-tests]
 
     services:
       postgres:
