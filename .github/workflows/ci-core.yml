@@ -1670,9 +1670,54 @@ jobs:
       working-directory: frontend
       run: npx playwright install --with-deps
 
+    - name: Start backend service
+      run: |
+        export PATH="$HOME/.cargo/bin:$PATH"
+        cargo run --bin econ-graph-backend &
+        echo $! > backend.pid
+
+        # Wait for backend to be ready
+        for i in {1..30}; do
+          if curl -f http://localhost:8080/health 2>/dev/null; then
+            echo "Backend is ready!"
+            break
+          fi
+          echo "Waiting for backend... ($i/30)"
+          sleep 2
+        done
+      working-directory: backend
+      env:
+        DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
+
+    - name: Start frontend service
+      run: |
+        npx serve -s build -l 3000 &
+        echo $! > frontend.pid
+
+        # Wait for frontend to be ready
+        for i in {1..30}; do
+          if curl -f http://localhost:3000 2>/dev/null; then
+            echo "Frontend is ready!"
+            break
+          fi
+          echo "Waiting for frontend... ($i/30)"
+          sleep 2
+        done
+      working-directory: frontend
+
     - name: Run end-to-end tests
       working-directory: frontend
-      run: npm run test:e2e
+      run: npm run test:e2e:comprehensive
+
+    - name: Stop services
+      if: always()
+      run: |
+        if [ -f backend.pid ]; then
+          kill $(cat backend.pid) || true
+        fi
+        if [ -f frontend.pid ]; then
+          kill $(cat frontend.pid) || true
+        fi
 
   mobile-e2e-tests:
     name: Mobile End-to-End Tests
