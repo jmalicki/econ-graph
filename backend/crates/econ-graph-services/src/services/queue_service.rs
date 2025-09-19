@@ -570,6 +570,7 @@ mod tests {
         // This ensures efficient worker processing without race conditions
 
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
         let pool = container.pool();
 
         // Create multiple test queue items with different priorities

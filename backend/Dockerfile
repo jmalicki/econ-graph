@@ -24,6 +24,7 @@ RUN cargo build --release --bin econ-graph-backend
 # Remove dummy main.rs and copy actual source code
 RUN rm src/main.rs
 COPY src ./src
+COPY crates ./crates
 COPY migrations ./migrations
 
 # Build the actual application
