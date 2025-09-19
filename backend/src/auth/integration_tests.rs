@@ -10,6 +10,7 @@ mod tests {
     use crate::auth::services::AuthService;
     use crate::test_utils::TestContainer;
     use serde_json::json;
+    use serial_test::serial;
     use std::collections::HashMap;
     use uuid::Uuid;
     use warp::test;
@@ -145,12 +146,14 @@ mod tests {
 
     /// Test email/password authentication
     #[tokio::test]
+    #[serial]
     async fn test_email_password_auth() {
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
         let auth_service = AuthService::new(container.pool);
 
-        // Test user creation
-        let email = "newuser@econgraph.com".to_string();
+        // Test user creation with unique email
+        let email = format!("newuser-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "securepassword123".to_string();
         let name = "New User".to_string();
 

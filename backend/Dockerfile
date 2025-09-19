@@ -15,6 +15,9 @@ WORKDIR /app
 COPY Cargo.toml ./
 COPY Cargo.lock* ./
 
+# Copy crates directory (needed for workspace dependencies)
+COPY crates ./crates
+
 # Create a dummy main.rs to build dependencies
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 
@@ -24,7 +27,6 @@ RUN cargo build --release --bin econ-graph-backend
 # Remove dummy main.rs and copy actual source code
 RUN rm src/main.rs
 COPY src ./src
-COPY crates ./crates
 COPY migrations ./migrations
 
 # Build the actual application
