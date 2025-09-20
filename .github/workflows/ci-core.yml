@@ -1587,6 +1587,7 @@ jobs:
       run: |
         docker run --rm \
           --network host \
+          -w /app \
           -e BASE_URL=http://localhost:3000 \
           econ-graph-e2e:latest \
           npm run test:e2e:core
@@ -1752,6 +1753,7 @@ jobs:
       run: |
         docker run --rm \
           --network host \
+          -w /app \
           -e BASE_URL=http://localhost:3000 \
           econ-graph-e2e:latest \
           npm run test:e2e:comprehensive
