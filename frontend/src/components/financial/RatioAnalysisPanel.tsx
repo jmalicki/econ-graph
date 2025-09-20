@@ -16,13 +16,11 @@ import {
   Alert,
   AlertDescription,
   Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui';
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   Calculator,
   BookOpen,

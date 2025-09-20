@@ -12,16 +12,27 @@ import {
 import { Badge, Button, Progress, Alert, AlertDescription } from '@/components/ui';
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   Calculator,
-  Users,
   MessageSquare,
   BookOpen,
   Lightbulb,
   ChevronRight,
   ChevronDown,
 } from 'lucide-react';
+import {
+  GET_FINANCIAL_STATEMENTS,
+  GET_FINANCIAL_RATIOS,
+  GET_FINANCIAL_ANNOTATIONS,
+  CREATE_FINANCIAL_ANNOTATION,
+  FINANCIAL_ANNOTATION_SUBSCRIPTION,
+} from '@/graphql/financial';
+import { FinancialStatement, FinancialRatio, FinancialAnnotation } from '@/types/financial';
+import { AnnotationPanel } from './AnnotationPanel';
+import { RatioAnalysisPanel } from './RatioAnalysisPanel';
+import { EducationalPanel } from './EducationalPanel';
+import { CollaborativePresence } from './CollaborativePresence';
+
 // Mock Apollo Client hooks for now
 const useQuery = (query: any, options?: any) => ({
   data: {
@@ -56,18 +67,6 @@ const useSubscription = (subscription: any, options?: any) => ({
     annotationAdded: null,
   },
 });
-import {
-  GET_FINANCIAL_STATEMENTS,
-  GET_FINANCIAL_RATIOS,
-  GET_FINANCIAL_ANNOTATIONS,
-  CREATE_FINANCIAL_ANNOTATION,
-  FINANCIAL_ANNOTATION_SUBSCRIPTION,
-} from '@/graphql/financial';
-import { FinancialStatement, FinancialRatio, FinancialAnnotation } from '@/types/financial';
-import { AnnotationPanel } from './AnnotationPanel';
-import { RatioAnalysisPanel } from './RatioAnalysisPanel';
-import { EducationalPanel } from './EducationalPanel';
-import { CollaborativePresence } from './CollaborativePresence';
 
 interface FinancialStatementViewerProps {
   statementId: string;
@@ -87,8 +86,7 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
   const [activeTab, setActiveTab] = useState('statement');
   const [selectedLineItem, setSelectedLineItem] = useState<string | null>(null);
   const [showAnnotations, setShowAnnotations] = useState(false);
-  const [showRatios, setShowRatios] = useState(false);
-  const [showEducational, setShowEducational] = useState(false);
+  const [showRatios] = useState(false);
 
   // GraphQL queries
   const {
@@ -105,7 +103,7 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
     skip: !showRatios,
   });
 
-  const { data: annotationsData, loading: annotationsLoading } = useQuery(
+  const { data: annotationsData } = useQuery(
     GET_FINANCIAL_ANNOTATIONS,
     {
       variables: { statementId },
@@ -186,20 +184,6 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
     console.log('Deleting annotation:', { id });
   };
 
-  const getComplexityLevel = () => {
-    switch (userType) {
-      case 'beginner':
-        return 'simple';
-      case 'intermediate':
-        return 'standard';
-      case 'advanced':
-        return 'detailed';
-      case 'expert':
-        return 'comprehensive';
-      default:
-        return 'standard';
-    }
-  };
 
   const renderLineItemValue = (value: number | null, unit: string) => {
     if (value === null) return '-';
@@ -221,24 +205,6 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
     );
   };
 
-  const renderLineItemTrend = (currentValue: number, previousValue: number) => {
-    const change = currentValue - previousValue;
-    const changePercent = (change / previousValue) * 100;
-    const isPositive = change >= 0;
-
-    return (
-      <div className='flex items-center space-x-1 text-sm'>
-        {isPositive ? (
-          <TrendingUp className='h-4 w-4 text-green-500' />
-        ) : (
-          <TrendingDown className='h-4 w-4 text-red-500' />
-        )}
-        <span className={isPositive ? 'text-green-600' : 'text-red-600'}>
-          {changePercent.toFixed(1)}%
-        </span>
-      </div>
-    );
-  };
 
   const renderAnnotationIndicator = (lineItemId: string) => {
     const itemAnnotations = annotations.filter(a => a.lineItemId === lineItemId);
@@ -388,7 +354,6 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
                               size='sm'
                               onClick={(e: any) => {
                                 e.stopPropagation();
-                                setShowEducational(true);
                                 setActiveTab('education');
                               }}
                             >
