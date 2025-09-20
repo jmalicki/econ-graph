@@ -1434,6 +1434,7 @@ jobs:
 
     - name: Build mobile E2E container
       run: |
+        # Mobile container depends on the standard container being built first
         docker build -f ci/docker/e2e/Dockerfile.mobile -t econ-graph-e2e-mobile:latest .
         docker save econ-graph-e2e-mobile:latest | gzip > e2e-mobile-container.tar.gz
 
@@ -1542,6 +1543,25 @@ jobs:
       run: |
         docker load < e2e-container.tar.gz
         docker load < e2e-mobile-container.tar.gz
+
+    - name: Start backend service
+      run: |
+        export PATH="$HOME/.cargo/bin:$PATH"
+        cargo run --bin econ-graph-backend &
+        echo $! > backend.pid
+
+        # Wait for backend to be ready
+        for i in {1..30}; do
+          if curl -f http://localhost:8080/health 2>/dev/null; then
+            echo "Backend is ready!"
+            break
+          fi
+          echo "Waiting for backend... ($i/30)"
+          sleep 2
+        done
+      working-directory: backend
+      env:
+        DATABASE_URL: postgresql://postgres:password@localhost:5432/econ_graph_test
 
     - name: Start frontend service
       run: |
