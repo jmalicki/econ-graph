@@ -99,7 +99,7 @@ impl FinancialAnalysisConfig {
     /// Load configuration from config directory
     pub fn load_from_dir<P: AsRef<Path>>(config_dir: P) -> Result<Self> {
         let config_dir = config_dir.as_ref();
-        
+
         let concept_mappings = Self::load_concept_mappings(config_dir)?;
         let ratio_benchmarks = Self::load_ratio_benchmarks(config_dir)?;
         let ratio_interpretations = Self::load_ratio_interpretations(config_dir)?;
@@ -118,10 +118,10 @@ impl FinancialAnalysisConfig {
         let file_path = config_dir.join("concept_mappings.json");
         let content = fs::read_to_string(&file_path)
             .with_context(|| format!("Failed to read concept mappings from {:?}", file_path))?;
-        
+
         let config: ConceptMappingsConfig = serde_json::from_str(&content)
             .with_context(|| format!("Failed to parse concept mappings from {:?}", file_path))?;
-        
+
         Ok(config)
     }
 
@@ -130,10 +130,10 @@ impl FinancialAnalysisConfig {
         let file_path = config_dir.join("ratio_benchmarks.json");
         let content = fs::read_to_string(&file_path)
             .with_context(|| format!("Failed to read ratio benchmarks from {:?}", file_path))?;
-        
+
         let config: RatioBenchmarksConfig = serde_json::from_str(&content)
             .with_context(|| format!("Failed to parse ratio benchmarks from {:?}", file_path))?;
-        
+
         Ok(config)
     }
 
@@ -142,10 +142,10 @@ impl FinancialAnalysisConfig {
         let file_path = config_dir.join("ratio_interpretations.json");
         let content = fs::read_to_string(&file_path)
             .with_context(|| format!("Failed to read ratio interpretations from {:?}", file_path))?;
-        
+
         let config: RatioInterpretationsConfig = serde_json::from_str(&content)
             .with_context(|| format!("Failed to parse ratio interpretations from {:?}", file_path))?;
-        
+
         Ok(config)
     }
 
@@ -154,10 +154,10 @@ impl FinancialAnalysisConfig {
         let file_path = config_dir.join("ratio_formulas.json");
         let content = fs::read_to_string(&file_path)
             .with_context(|| format!("Failed to read ratio formulas from {:?}", file_path))?;
-        
+
         let config: RatioFormulasConfig = serde_json::from_str(&content)
             .with_context(|| format!("Failed to parse ratio formulas from {:?}", file_path))?;
-        
+
         Ok(config)
     }
 
@@ -182,7 +182,7 @@ impl FinancialAnalysisConfig {
     /// Get ratio interpretation for a given ratio name and value
     pub fn get_ratio_interpretation(&self, ratio_name: &str, value: f64) -> Option<String> {
         let interpretation = self.ratio_interpretations.interpretations.get(ratio_name)?;
-        
+
         if value >= interpretation.excellent.threshold {
             Some(interpretation.excellent.description.clone())
         } else if value >= interpretation.good.threshold {
@@ -239,7 +239,7 @@ mod tests {
     fn test_config_loading() {
         let config_dir = PathBuf::from("config");
         let result = FinancialAnalysisConfig::load_from_dir(&config_dir);
-        
+
         // This test will only pass if the config files exist
         if result.is_ok() {
             let config = result.unwrap();
