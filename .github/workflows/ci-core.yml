@@ -1435,6 +1435,8 @@ jobs:
     - name: Build mobile E2E container
       run: |
         # Mobile container depends on the standard container being built first
+        # Verify the standard container is available
+        docker images | grep econ-graph-e2e
         docker build -f ci/docker/e2e/Dockerfile.mobile -t econ-graph-e2e-mobile:latest .
         docker save econ-graph-e2e-mobile:latest | gzip > e2e-mobile-container.tar.gz
 
