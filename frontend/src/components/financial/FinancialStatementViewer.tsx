@@ -103,13 +103,10 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
     skip: !showRatios,
   });
 
-  const { data: annotationsData } = useQuery(
-    GET_FINANCIAL_ANNOTATIONS,
-    {
-      variables: { statementId },
-      skip: !showAnnotations,
-    }
-  );
+  const { data: annotationsData } = useQuery(GET_FINANCIAL_ANNOTATIONS, {
+    variables: { statementId },
+    skip: !showAnnotations,
+  });
 
   // Real-time subscription for new annotations
   const { data: newAnnotationData } = useSubscription(FINANCIAL_ANNOTATION_SUBSCRIPTION, {
@@ -184,7 +181,6 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
     console.log('Deleting annotation:', { id });
   };
 
-
   const renderLineItemValue = (value: number | null, unit: string) => {
     if (value === null) return '-';
 
@@ -204,7 +200,6 @@ export const FinancialStatementViewer: React.FC<FinancialStatementViewerProps> =
       </div>
     );
   };
-
 
   const renderAnnotationIndicator = (lineItemId: string) => {
     const itemAnnotations = annotations.filter(a => a.lineItemId === lineItemId);
