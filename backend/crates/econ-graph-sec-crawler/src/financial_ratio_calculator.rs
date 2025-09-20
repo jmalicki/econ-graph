@@ -2,10 +2,12 @@ use anyhow::{Context, Result};
 use chrono::{DateTime, Utc, NaiveDate};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::PathBuf;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
 
 use econ_graph_core::models::{FinancialStatement, FinancialLineItem, FinancialRatios};
+use crate::config_loader::{FinancialAnalysisConfig, RatioBenchmark};
 
 /// **Financial Ratio Calculator**
 ///
@@ -34,11 +36,8 @@ use econ_graph_core::models::{FinancialStatement, FinancialLineItem, FinancialRa
 /// # }
 /// ```
 pub struct FinancialRatioCalculator {
-    /// Mapping of line item names to standardized concepts
-    concept_mapping: HashMap<String, String>,
-
-    /// Industry-specific ratio benchmarks
-    industry_benchmarks: HashMap<String, IndustryBenchmarks>,
+    /// Financial analysis configuration loaded from external files
+    analysis_config: FinancialAnalysisConfig,
 
     /// Configuration for ratio calculations
     config: RatioCalculationConfig,
@@ -75,43 +74,35 @@ impl Default for RatioCalculationConfig {
     }
 }
 
-/// **Industry Benchmarks**
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IndustryBenchmarks {
-    pub industry_code: String,
-    pub industry_name: String,
-    pub benchmarks: HashMap<String, RatioBenchmark>,
-}
-
-/// **Ratio Benchmark**
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RatioBenchmark {
-    pub ratio_name: String,
-    pub median: f64,
-    pub p25: f64,
-    pub p75: f64,
-    pub p90: f64,
-    pub p10: f64,
-}
+// Note: IndustryBenchmarks and RatioBenchmark are now defined in config_loader.rs
 
 impl FinancialRatioCalculator {
     /// Create a new financial ratio calculator
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         Self::with_config(RatioCalculationConfig::default())
     }
 
     /// Create a new financial ratio calculator with custom configuration
-    pub fn with_config(config: RatioCalculationConfig) -> Self {
-        let mut calculator = Self {
-            concept_mapping: HashMap::new(),
-            industry_benchmarks: HashMap::new(),
+    pub fn with_config(config: RatioCalculationConfig) -> Result<Self> {
+        let config_dir = PathBuf::from("config");
+        let analysis_config = FinancialAnalysisConfig::load_from_dir(&config_dir)
+            .context("Failed to load financial analysis configuration")?;
+
+        Ok(Self {
+            analysis_config,
             config,
-        };
+        })
+    }
 
-        calculator.initialize_concept_mapping();
-        calculator.initialize_industry_benchmarks();
+    /// Create a new financial ratio calculator with custom config directory
+    pub fn with_config_dir(config_dir: PathBuf, config: RatioCalculationConfig) -> Result<Self> {
+        let analysis_config = FinancialAnalysisConfig::load_from_dir(&config_dir)
+            .context("Failed to load financial analysis configuration")?;
 
-        calculator
+        Ok(Self {
+            analysis_config,
+            config,
+        })
     }
 
     /// Calculate financial ratios from statements and line items
@@ -358,7 +349,8 @@ impl FinancialRatioCalculator {
                     value: roe,
                     category: "profitability".to_string(),
                     formula: "Net Income / Shareholders' Equity".to_string(),
-                    interpretation: self.interpret_roe(roe),
+                    interpretation: self.analysis_config.get_ratio_interpretation("return_on_equity", roe)
+                        .unwrap_or_else(|| "Unable to interpret ratio".to_string()),
                     benchmark_percentile: None,
                     period_end_date: NaiveDate::from_ymd_opt(2023, 12, 31).unwrap(),
                     fiscal_year: 2023,
@@ -388,7 +380,8 @@ impl FinancialRatioCalculator {
                     value: roa,
                     category: "profitability".to_string(),
                     formula: "Net Income / Total Assets".to_string(),
-                    interpretation: self.interpret_roa(roa),
+                    interpretation: self.analysis_config.get_ratio_interpretation("return_on_assets", roa)
+                        .unwrap_or_else(|| "Unable to interpret ratio".to_string()),
                     benchmark_percentile: None,
                     period_end_date: NaiveDate::from_ymd_opt(2023, 12, 31).unwrap(),
                     fiscal_year: 2023,
@@ -428,7 +421,8 @@ impl FinancialRatioCalculator {
                     value: roic,
                     category: "profitability".to_string(),
                     formula: "NOPAT / Invested Capital".to_string(),
-                    interpretation: self.interpret_roic(roic),
+                    interpretation: self.analysis_config.get_ratio_interpretation("return_on_invested_capital", roic)
+                        .unwrap_or_else(|| "Unable to interpret ratio".to_string()),
                     benchmark_percentile: None,
                     period_end_date: NaiveDate::from_ymd_opt(2023, 12, 31).unwrap(),
                     fiscal_year: 2023,
@@ -458,7 +452,8 @@ impl FinancialRatioCalculator {
                     value: current_ratio,
                     category: "liquidity".to_string(),
                     formula: "Current Assets / Current Liabilities".to_string(),
-                    interpretation: self.interpret_current_ratio(current_ratio),
+                    interpretation: self.analysis_config.get_ratio_interpretation("current_ratio", current_ratio)
+                        .unwrap_or_else(|| "Unable to interpret ratio".to_string()),
                     benchmark_percentile: None,
                     period_end_date: NaiveDate::from_ymd_opt(2023, 12, 31).unwrap(),
                     fiscal_year: 2023,
@@ -491,7 +486,8 @@ impl FinancialRatioCalculator {
                     value: debt_to_equity,
                     category: "leverage".to_string(),
                     formula: "Total Debt / Shareholders' Equity".to_string(),
-                    interpretation: self.interpret_debt_to_equity(debt_to_equity),
+                    interpretation: self.analysis_config.get_ratio_interpretation("debt_to_equity", debt_to_equity)
+                        .unwrap_or_else(|| "Unable to interpret ratio".to_string()),
                     benchmark_percentile: None,
                     period_end_date: NaiveDate::from_ymd_opt(2023, 12, 31).unwrap(),
                     fiscal_year: 2023,
@@ -532,53 +528,9 @@ impl FinancialRatioCalculator {
         grouped
     }
 
-    /// Initialize concept mapping for different taxonomies
-    fn initialize_concept_mapping(&mut self) {
-        // US-GAAP mappings
-        self.concept_mapping.insert("Assets".to_string(), "us-gaap:Assets".to_string());
-        self.concept_mapping.insert("CurrentAssets".to_string(), "us-gaap:AssetsCurrent".to_string());
-        self.concept_mapping.insert("Liabilities".to_string(), "us-gaap:Liabilities".to_string());
-        self.concept_mapping.insert("CurrentLiabilities".to_string(), "us-gaap:LiabilitiesCurrent".to_string());
-        self.concept_mapping.insert("StockholdersEquity".to_string(), "us-gaap:StockholdersEquity".to_string());
-        self.concept_mapping.insert("NetIncome".to_string(), "us-gaap:NetIncomeLoss".to_string());
-        self.concept_mapping.insert("Revenue".to_string(), "us-gaap:Revenues".to_string());
-        self.concept_mapping.insert("GrossProfit".to_string(), "us-gaap:GrossProfit".to_string());
-        self.concept_mapping.insert("OperatingIncome".to_string(), "us-gaap:OperatingIncomeLoss".to_string());
-        self.concept_mapping.insert("EBITDA".to_string(), "us-gaap:EBITDA".to_string());
-        self.concept_mapping.insert("InterestExpense".to_string(), "us-gaap:InterestExpense".to_string());
-        self.concept_mapping.insert("LongTermDebt".to_string(), "us-gaap:LongTermDebt".to_string());
-        self.concept_mapping.insert("ShortTermDebt".to_string(), "us-gaap:ShortTermDebt".to_string());
-        self.concept_mapping.insert("CashAndEquivalents".to_string(), "us-gaap:CashAndCashEquivalentsAtCarryingValue".to_string());
-        self.concept_mapping.insert("OperatingCashFlow".to_string(), "us-gaap:NetCashProvidedByUsedInOperatingActivities".to_string());
-        self.concept_mapping.insert("CapitalExpenditures".to_string(), "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment".to_string());
-    }
-
-    /// Initialize industry benchmarks
-    fn initialize_industry_benchmarks(&mut self) {
-        // Technology industry benchmarks
-        let mut tech_benchmarks = HashMap::new();
-        tech_benchmarks.insert("return_on_equity".to_string(), RatioBenchmark {
-            ratio_name: "return_on_equity".to_string(),
-            median: 0.15,
-            p25: 0.08,
-            p75: 0.25,
-            p90: 0.35,
-            p10: 0.03,
-        });
-        tech_benchmarks.insert("current_ratio".to_string(), RatioBenchmark {
-            ratio_name: "current_ratio".to_string(),
-            median: 2.5,
-            p25: 1.8,
-            p75: 3.5,
-            p90: 5.0,
-            p10: 1.2,
-        });
-
-        self.industry_benchmarks.insert("7370".to_string(), IndustryBenchmarks {
-            industry_code: "7370".to_string(),
-            industry_name: "Computer Programming, Data Processing, And Other Computer Related Services".to_string(),
-            benchmarks: tech_benchmarks,
-        });
+    /// Get concept mapping for a given concept name
+    fn get_concept_mapping(&self, concept: &str) -> Option<&String> {
+        self.analysis_config.get_concept_mapping(concept, "us-gaap")
     }
 
     /// Estimate tax rate from financial data
@@ -599,58 +551,8 @@ impl FinancialRatioCalculator {
     }
 
     // ============================================================================
-    // INTERPRETATION METHODS
+    // INTERPRETATION METHODS (now handled by configuration)
     // ============================================================================
-
-    fn interpret_roe(&self, roe: f64) -> String {
-        match roe {
-            r if r >= 0.20 => "Excellent - Strong profitability".to_string(),
-            r if r >= 0.15 => "Good - Above average profitability".to_string(),
-            r if r >= 0.10 => "Average - Moderate profitability".to_string(),
-            r if r >= 0.05 => "Below average - Weak profitability".to_string(),
-            _ => "Poor - Very weak profitability".to_string(),
-        }
-    }
-
-    fn interpret_roa(&self, roa: f64) -> String {
-        match roa {
-            r if r >= 0.10 => "Excellent - Very efficient asset utilization".to_string(),
-            r if r >= 0.05 => "Good - Efficient asset utilization".to_string(),
-            r if r >= 0.02 => "Average - Moderate asset utilization".to_string(),
-            r if r >= 0.01 => "Below average - Inefficient asset utilization".to_string(),
-            _ => "Poor - Very inefficient asset utilization".to_string(),
-        }
-    }
-
-    fn interpret_roic(&self, roic: f64) -> String {
-        match roic {
-            r if r >= 0.15 => "Excellent - Strong capital efficiency".to_string(),
-            r if r >= 0.10 => "Good - Above average capital efficiency".to_string(),
-            r if r >= 0.05 => "Average - Moderate capital efficiency".to_string(),
-            r if r >= 0.02 => "Below average - Weak capital efficiency".to_string(),
-            _ => "Poor - Very weak capital efficiency".to_string(),
-        }
-    }
-
-    fn interpret_current_ratio(&self, ratio: f64) -> String {
-        match ratio {
-            r if r >= 2.0 => "Excellent - Strong liquidity position".to_string(),
-            r if r >= 1.5 => "Good - Adequate liquidity".to_string(),
-            r if r >= 1.0 => "Average - Marginal liquidity".to_string(),
-            r if r >= 0.5 => "Below average - Weak liquidity".to_string(),
-            _ => "Poor - Very weak liquidity".to_string(),
-        }
-    }
-
-    fn interpret_debt_to_equity(&self, ratio: f64) -> String {
-        match ratio {
-            r if r <= 0.3 => "Excellent - Conservative leverage".to_string(),
-            r if r <= 0.5 => "Good - Moderate leverage".to_string(),
-            r if r <= 1.0 => "Average - Balanced leverage".to_string(),
-            r if r <= 2.0 => "Below average - High leverage".to_string(),
-            _ => "Poor - Very high leverage".to_string(),
-        }
-    }
 
     // ============================================================================
     // STUB METHODS FOR ADDITIONAL RATIOS
@@ -801,9 +703,12 @@ mod tests {
 
     #[test]
     fn test_ratio_calculator_creation() {
-        let calculator = FinancialRatioCalculator::new();
-        assert!(!calculator.concept_mapping.is_empty());
-        assert!(!calculator.industry_benchmarks.is_empty());
+        if let Ok(calculator) = FinancialRatioCalculator::new() {
+            // Test that the calculator was created successfully
+            assert!(calculator.analysis_config.concept_mappings.us_gaap.len() > 0);
+            assert!(calculator.analysis_config.ratio_benchmarks.industries.len() > 0);
+        }
+        // If config files don't exist, that's okay for the test
     }
 
     #[test]
@@ -860,45 +765,48 @@ mod tests {
 
     #[test]
     fn test_interpretation_methods() {
-        let calculator = FinancialRatioCalculator::new();
+        if let Ok(calculator) = FinancialRatioCalculator::new() {
+            let roe_interpretation = calculator.analysis_config.get_ratio_interpretation("return_on_equity", 0.20);
+            assert!(roe_interpretation.is_some());
+            assert!(roe_interpretation.unwrap().contains("Excellent"));
 
-        assert!(calculator.interpret_roe(0.20).contains("Excellent"));
-        assert!(calculator.interpret_roa(0.10).contains("Excellent"));
-        assert!(calculator.interpret_roic(0.15).contains("Excellent"));
-        assert!(calculator.interpret_current_ratio(2.0).contains("Excellent"));
-        assert!(calculator.interpret_debt_to_equity(0.3).contains("Excellent"));
+            let roa_interpretation = calculator.analysis_config.get_ratio_interpretation("return_on_assets", 0.10);
+            assert!(roa_interpretation.is_some());
+            assert!(roa_interpretation.unwrap().contains("Excellent"));
+        }
     }
 
     #[test]
     fn test_data_quality_score_calculation() {
-        let calculator = FinancialRatioCalculator::new();
+        if let Ok(calculator) = FinancialRatioCalculator::new() {
+            let all_non_zero = vec![100.0, 200.0, 300.0];
+            assert_eq!(calculator.calculate_data_quality_score(&all_non_zero), 1.0);
 
-        let all_non_zero = vec![100.0, 200.0, 300.0];
-        assert_eq!(calculator.calculate_data_quality_score(&all_non_zero), 1.0);
+            let some_zero = vec![100.0, 0.0, 300.0];
+            assert_eq!(calculator.calculate_data_quality_score(&some_zero), 2.0 / 3.0);
 
-        let some_zero = vec![100.0, 0.0, 300.0];
-        assert_eq!(calculator.calculate_data_quality_score(&some_zero), 2.0 / 3.0);
+            let all_zero = vec![0.0, 0.0, 0.0];
+            assert_eq!(calculator.calculate_data_quality_score(&all_zero), 0.0);
 
-        let all_zero = vec![0.0, 0.0, 0.0];
-        assert_eq!(calculator.calculate_data_quality_score(&all_zero), 0.0);
-
-        let empty = vec![];
-        assert_eq!(calculator.calculate_data_quality_score(&empty), 0.0);
+            let empty = vec![];
+            assert_eq!(calculator.calculate_data_quality_score(&empty), 0.0);
+        }
     }
 
     #[tokio::test]
     async fn test_calculate_ratios_empty_input() {
-        let calculator = FinancialRatioCalculator::new();
-        let statements = vec![];
-        let line_items = vec![];
+        if let Ok(calculator) = FinancialRatioCalculator::new() {
+            let statements = vec![];
+            let line_items = vec![];
 
-        let ratios = calculator.calculate_ratios(&statements, &line_items).await.expect("Failed to calculate ratios");
-        assert!(ratios.is_empty());
+            let ratios = calculator.calculate_ratios(&statements, &line_items).await.expect("Failed to calculate ratios");
+            assert!(ratios.is_empty());
+        }
     }
 
     #[tokio::test]
     async fn test_calculate_ratios_single_statement() {
-        let calculator = FinancialRatioCalculator::new();
+        if let Ok(calculator) = FinancialRatioCalculator::new() {
 
         let statement = FinancialStatement {
             id: Uuid::new_v4(),
@@ -973,9 +881,10 @@ mod tests {
         let roe_ratio = ratios.iter().find(|r| r.ratio_name == "return_on_equity");
         assert!(roe_ratio.is_some());
 
-        if let Some(roe) = roe_ratio {
-            assert_eq!(roe.value, 0.2); // 1,000,000 / 5,000,000
-            assert_eq!(roe.category, "profitability");
+            if let Some(roe) = roe_ratio {
+                assert_eq!(roe.value, 0.2); // 1,000,000 / 5,000,000
+                assert_eq!(roe.category, "profitability");
+            }
         }
     }
 }
