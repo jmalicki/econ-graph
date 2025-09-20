@@ -10,6 +10,7 @@ mod tests {
     use crate::auth::services::AuthService;
     use econ_graph_core::test_utils::TestContainer;
     use serde_json::json;
+    use serial_test::serial;
     use std::sync::Arc;
     use uuid::Uuid;
 
@@ -322,7 +323,7 @@ mod tests {
 
         let auth_service = AuthService::new(container.pool().clone());
 
-        let email = "newuser@econgraph.com".to_string();
+        let email = format!("newuser-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "securepassword123".to_string();
         let name = "New Email User".to_string();
 
@@ -358,23 +359,20 @@ mod tests {
 
     /// Test email/password signin flow
     #[tokio::test]
+    #[serial]
     async fn test_email_password_signin_flow() {
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
 
         // Skip test if database is not available
         if skip_if_no_database(&container).await {
             return;
         }
 
-        // Clean database before test to ensure isolation
-        container
-            .clean_database()
-            .await
-            .expect("Failed to clean database");
+        let pool = container.pool();
+        let auth_service = AuthService::new(pool.clone());
 
-        let auth_service = AuthService::new(container.pool().clone());
-
-        let email = "signinuser@econgraph.com".to_string();
+        let email = format!("signinuser-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "signinpassword123".to_string();
         let name = "Signin User".to_string();
 
@@ -457,7 +455,7 @@ mod tests {
 
         let auth_service = AuthService::new(container.pool().clone());
 
-        let email = "duplicate@econgraph.com".to_string();
+        let email = format!("duplicate-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "password123".to_string();
         let name = "Duplicate User".to_string();
 
@@ -491,24 +489,21 @@ mod tests {
 
     /// Test user profile update functionality
     #[tokio::test]
+    #[serial]
     async fn test_user_profile_update() {
         let container = TestContainer::new().await;
+        container.clean_database().await.unwrap();
 
         // Skip test if database is not available
         if skip_if_no_database(&container).await {
             return;
         }
 
-        // Clean database before test to ensure isolation
-        container
-            .clean_database()
-            .await
-            .expect("Failed to clean database");
+        let pool = container.pool();
+        let auth_service = AuthService::new(pool.clone());
 
-        let auth_service = AuthService::new(container.pool().clone());
-
-        // Create a test user
-        let email = "profileuser@econgraph.com".to_string();
+        // Create a test user with unique email
+        let email = format!("profileuser-{}@econgraph.com", uuid::Uuid::new_v4());
         let password = "password123".to_string();
         let name = "Profile User".to_string();
 

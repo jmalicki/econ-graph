@@ -438,7 +438,7 @@ impl EconGraphMcpServer {
     }
 
     /// Call private frontend chart API to generate chart configuration
-    async fn call_private_chart_api(&self, chart_request: &Value) -> Result<Value> {
+    pub async fn call_private_chart_api(&self, chart_request: &Value) -> Result<Value> {
         let url = format!("{}/generate", self.frontend_chart_api_url);
 
         let response = self
