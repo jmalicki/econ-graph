@@ -112,7 +112,7 @@ for workflow in .github/workflows/*.yml; do
         fi
 
         # Check for required sections
-        if grep -q "^on:" "$workflow"; then
+        if grep -q "^'on':" "$workflow"; then
             echo "    ✅ Has trigger configuration"
         else
             echo "    ❌ Missing trigger configuration"

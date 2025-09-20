@@ -1,6 +1,6 @@
 name: Security and Dependency Updates
 
-on:
+'on':
   schedule:
     # Run daily at 2 AM UTC
     - cron: '0 2 * * *'
@@ -294,4 +294,6 @@ jobs:
         sarif_file: 'frontend-trivy.sarif'
         category: 'frontend-docker'
 
-# Workflow cache refresh: 2025-09-17 08:25:07 PDT
+
+
+# Workflow cache refresh: 2025-09-18 10:30:43 PDT

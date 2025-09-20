@@ -2,7 +2,7 @@ name: Crawler Integration Test
 
 # This workflow is manually triggered and does NOT run automatically
 # It tests the crawler by downloading real data and generating migrations
-on:
+'on':
   workflow_dispatch:
     inputs:
       data_source:
@@ -264,4 +264,6 @@ jobs:
         echo "  2. Test migration on development database"
         echo "  3. Integrate into main migration sequence if approved"
 
-# Workflow cache refresh: 2025-09-17 08:25:07 PDT
+
+
+# Workflow cache refresh: 2025-09-18 10:30:43 PDT

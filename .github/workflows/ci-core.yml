@@ -1,6 +1,6 @@
 name: Core CI Tests
 
-on:
+'on':
   push:
     branches: [ main, develop, optimize/ci-core-primary ]
     paths-ignore:
@@ -1958,4 +1958,6 @@ jobs:
         docker run --rm econ-graph-frontend:test --version || echo "Frontend image test completed"
 # Updated Wed Sep 17 08:11:38 PDT 2025
 
-# Workflow cache refresh: 2025-09-17 08:25:07 PDT
+
+
+# Workflow cache refresh: 2025-09-18 10:30:43 PDT

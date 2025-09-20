@@ -283,6 +283,12 @@ mod tests {
             return;
         }
 
+        // Clean database before test to ensure isolation
+        container
+            .clean_database()
+            .await
+            .expect("Failed to clean database");
+
         let auth_service = AuthService::new(container.pool().clone());
 
         // First create a user with unique email
