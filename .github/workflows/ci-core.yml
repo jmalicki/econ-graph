@@ -1586,10 +1586,6 @@ jobs:
         docker run --rm \
           --network host \
           -e BASE_URL=http://localhost:3000 \
-          -v $(pwd)/frontend/tests:/app/tests \
-          -v $(pwd)/frontend/ci:/app/ci \
-          -v $(pwd)/frontend/playwright.config.ts:/app/playwright.config.ts \
-          -v $(pwd)/frontend/playwright.mobile.config.ts:/app/playwright.mobile.config.ts \
           econ-graph-e2e:latest \
           npm run test:e2e:core
 
@@ -1755,10 +1751,6 @@ jobs:
         docker run --rm \
           --network host \
           -e BASE_URL=http://localhost:3000 \
-          -v $(pwd)/frontend/tests:/app/tests \
-          -v $(pwd)/frontend/ci:/app/ci \
-          -v $(pwd)/frontend/playwright.config.ts:/app/playwright.config.ts \
-          -v $(pwd)/frontend/playwright.mobile.config.ts:/app/playwright.mobile.config.ts \
           econ-graph-e2e:latest \
           npm run test:e2e:comprehensive
 
@@ -1912,10 +1904,6 @@ jobs:
         docker run --rm \
           --network host \
           -e BASE_URL=http://localhost:3000 \
-          -v $(pwd)/frontend/tests:/app/tests \
-          -v $(pwd)/frontend/ci:/app/ci \
-          -v $(pwd)/frontend/playwright.config.ts:/app/playwright.config.ts \
-          -v $(pwd)/frontend/playwright.mobile.config.ts:/app/playwright.mobile.config.ts \
           econ-graph-e2e-mobile:latest \
           npm run test:e2e:mobile
 
