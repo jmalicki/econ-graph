@@ -115,6 +115,9 @@ jobs:
       with:
         tool: cargo-deny,cargo-audit
     - name: Install diesel_cli (from crates.io)
+      env:
+        RUSTC_WRAPPER: ""
+        SCCACHE_GHA_ENABLED: "false"
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
         cargo install --locked diesel_cli --no-default-features --features postgres
@@ -1358,10 +1361,10 @@ jobs:
       working-directory: admin-frontend
       run: npm ci
 
-    - name: Run pre-commit (manual CI hooks)
+    - name: Run pre-commit
       uses: pre-commit/action@v3.0.1
       with:
-        extra_args: --all-files --hook-stage manual
+        extra_args: --all-files
 
     - name: Clippy annotations
       if: always()
