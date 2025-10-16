@@ -96,18 +96,19 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
+        workspaces: backend
+        cache-all-crates: true
+
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
+
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
 
     - name: Install shared tools
       run: |
@@ -202,18 +203,24 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
+        workspaces: backend
+        cache-all-crates: true
+
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
+
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+
+    - name: Install cargo-nextest
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-nextest
 
     - name: Check Rust formatting
       if: false # handled by pre-commit in quality-checks
@@ -225,13 +232,16 @@ jobs:
       run: echo "clippy handled by pre-commit/CI annotations"
       working-directory: backend
 
-    - name: Run fast unit tests (no database)
+    - name: Run fast unit tests with nextest (no database)
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo test --lib -- --test-threads=4 --nocapture config auth::integration_tests::test_user_response_serialization auth::integration_tests::test_request_validation auth::integration_tests::test_password_hashing auth::integration_tests::test_model_deserialization auth::comprehensive_integration_tests::test_password_security metrics mcp_server::tests::test_get_available_tools mcp_server::tests::test_get_available_resources
+        cargo nextest run --workspace --lib --status-level=fail --retries=1 --no-fail-fast
       working-directory: backend
       env:
         RUST_LOG: warn
+
+    - name: Show sccache stats
+      run: sccache --show-stats || true
 
   chart-api-integration-tests:
     name: Chart API Integration Tests
@@ -315,18 +325,19 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
+        workspaces: backend
+        cache-all-crates: true
+
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
+
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
 
     - name: Install diesel CLI
       run: |
@@ -1373,6 +1384,15 @@ jobs:
       with:
         extra_args: --all-files --hook-stage manual
 
+    - name: Annotate Clippy with reviewdog
+      if: always()
+      uses: reviewdog/action-clippy@v2
+      with:
+        workdir: backend
+        clippy_flags: --workspace --all-targets --all-features
+        reporter: github-pr-check
+        level: warning
+
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
@@ -1560,17 +1580,19 @@ jobs:
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@1.89.0
 
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
+        workspaces: backend
+        cache-all-crates: true
+
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
+
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
 
     - name: Install diesel CLI
       run: |
