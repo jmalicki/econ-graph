@@ -36,13 +36,13 @@ More info: ${i}
         - Are you sure a story with the id '${e.storyId}' exists?
         - Please check the values in the stories field of your main.js config and see if they would match your CSF File.
         - Also check the browser console and terminal for potential error messages.`}),this.data=e}};n(Xo,"MissingStoryAfterHmrError");var xr=Xo,Jo=class extends G{constructor(e){super({category:"PREVIEW_API",code:2,documentation:"https://github.com/storybookjs/storybook/blob/next/MIGRATION.md#using-implicit-actions-during-rendering-is-deprecated-for-example-in-the-play-function",message:_$1`
-        We detected that you use an implicit action arg while ${e.phase} of your story.  
+        We detected that you use an implicit action arg while ${e.phase} of your story.
         ${e.deprecated?`
 This is deprecated and won't work in Storybook 8 anymore.
 `:""}
         Please provide an explicit spy to your args like this:
           import { fn } from '@storybook/test';
-          ... 
+          ...
           args: {
            ${e.name}: fn()
           }`}),this.data=e}};n(Jo,"ImplicitActionsDuringRendering");var zo=Jo,Qo=class extends G{constructor(){super({category:"PREVIEW_API",code:3,message:_$1`
@@ -53,14 +53,14 @@ This is deprecated and won't work in Storybook 8 anymore.
 
         Perhaps it needs to be upgraded for Storybook 7.0?`,documentation:"https://github.com/storybookjs/storybook/blob/next/MIGRATION.md#mainjs-framework-field"})}};n(Zo,"MissingRenderToCanvasError");var wr=Zo,en=class extends G{constructor(e){super({category:"PREVIEW_API",code:5,message:_$1`
         Called \`Preview.${e.methodName}()\` before initialization.
-        
+
         The preview needs to load the story index before most methods can be called. If you want
         to call \`${e.methodName}\`, try \`await preview.initializationPromise;\` first.
-        
+
         If you didn't call the above code, then likely it was called by an addon that needs to
         do the above.`}),this.data=e}};n(en,"CalledPreviewMethodBeforeInitializationError");var V=en,rn=class extends G{constructor(e){super({category:"PREVIEW_API",code:6,message:_$1`
         Error fetching \`/index.json\`:
-        
+
         ${e.text}
 
         If you are in development, this likely indicates a problem with your Storybook process,
@@ -70,7 +70,7 @@ This is deprecated and won't work in Storybook 8 anymore.
         build.`}),this.data=e}};n(rn,"StoryIndexFetchError");var _r=rn,tn=class extends G{constructor(e){super({category:"PREVIEW_API",code:7,message:_$1`
         Tried to render docs entry ${e.storyId} but it is a MDX file that has no CSF
         references, or autodocs for a CSF file that some doesn't refer to itself.
-        
+
         This likely is an internal error in Storybook's indexing, or you've attached the
         \`attached-mdx\` tag to an MDX file that is not attached.`}),this.data=e}};n(tn,"MdxFileWithNoCsfReferencesError");var Cr=tn,on=class extends G{constructor(){super({category:"PREVIEW_API",code:8,message:_$1`
         Couldn't find any stories in your Storybook.
@@ -95,32 +95,32 @@ This is deprecated and won't work in Storybook 8 anymore.
         It is not recommended to use methods directly on the Story Store anyway, in Storybook 9 we will
         remove access to the store entirely`})}};n(an,"StoryStoreAccessedBeforeInitializationError");var Fr=an,ln=class extends G{constructor(e){super({category:"PREVIEW_API",code:12,message:_$1`
       Incorrect use of mount in the play function.
-      
-      To use mount in the play function, you must satisfy the following two requirements: 
-      
-      1. You *must* destructure the mount property from the \`context\` (the argument passed to your play function). 
+
+      To use mount in the play function, you must satisfy the following two requirements:
+
+      1. You *must* destructure the mount property from the \`context\` (the argument passed to your play function).
          This makes sure that Storybook does not start rendering the story before the play function begins.
-      
-      2. Your Storybook framework or builder must be configured to transpile to ES2017 or newer. 
-         This is because destructuring statements and async/await usages are otherwise transpiled away, 
+
+      2. Your Storybook framework or builder must be configured to transpile to ES2017 or newer.
+         This is because destructuring statements and async/await usages are otherwise transpiled away,
          which prevents Storybook from recognizing your usage of \`mount\`.
-      
-      Note that Angular is not supported. As async/await is transpiled to support the zone.js polyfill. 
-      
+
+      Note that Angular is not supported. As async/await is transpiled to support the zone.js polyfill.
+
       More info: https://storybook.js.org/docs/writing-tests/interaction-testing#run-code-before-the-component-gets-rendered
-      
+
       Received the following play function:
       ${e.playFunction}`}),this.data=e}};n(ln,"MountMustBeDestructuredError");var Oe=ln,cn=class extends G{constructor(e){super({category:"PREVIEW_API",code:14,message:_$1`
         No render function available for storyId '${e.id}'
       `}),this.data=e}};n(cn,"NoRenderFunctionError");var Dr=cn,pn=class extends G{constructor(){super({category:"PREVIEW_API",code:15,message:_$1`
         No component is mounted in your story.
-        
+
         This usually occurs when you destructure mount in the play function, but forget to call it.
-        
+
         For example:
 
         async play({ mount, canvasElement }) {
-          // 👈 mount should be called: await mount(); 
+          // 👈 mount should be called: await mount();
           const canvas = within(canvasElement);
           const button = await canvas.findByRole('button');
           await userEvent.click(button);
@@ -135,18 +135,18 @@ This is deprecated and won't work in Storybook 8 anymore.
         Tried to access router mocks from "${e.importType}" but they were not created yet. You might be running code in an unsupported environment.
       `}),this.data=e}};n(un,"NextjsRouterMocksNotAvailable");var $o=un,fn=class extends G{constructor(e){super({category:"DOCS-TOOLS",code:1,documentation:"https://github.com/storybookjs/storybook/issues/26606",message:_$1`
         There was a failure when generating detailed ArgTypes in ${e.language} for:
-        ${JSON.stringify(e.type,null,2)} 
-        
+        ${JSON.stringify(e.type,null,2)}
+
         Storybook will fall back to use a generic type description instead.
 
         This type is either not supported or it is a bug in the docgen generation in Storybook.
         If you think this is a bug, please detail it as much as possible in the Github issue.
       `}),this.data=e}};n(fn,"UnknownArgTypesError");var Yo=fn,yn=class extends G{constructor(e){super({category:"ADDON_VITEST",code:1,message:_$1`
         Encountered an unsupported value "${e.value}" when setting the viewport ${e.dimension} dimension.
-        
+
         The Storybook plugin only supports values in the following units:
         - px, vh, vw, em, rem and %.
-        
+
         You can either change the viewport for this story to use one of the supported units or skip the test by adding '!test' to the story's tags per https://storybook.js.org/docs/writing-stories/tags
       `}),this.data=e}};n(yn,"UnsupportedViewportDimensionError");var Ko=yn,Ot=ue(it()),rr=Symbol("incompatible"),mn=n((t,e)=>{let r=e.type;if(t==null||!r||e.mapping)return t;switch(r.name){case"string":return String(t);case"enum":return t;case"number":return Number(t);case"boolean":return String(t)==="true";case"array":return!r.value||!Array.isArray(t)?rr:t.reduce((o,a,i)=>{let l=mn(a,{type:r.value});return l!==rr&&(o[i]=l),o},new Array(t.length));case"object":return typeof t=="string"||typeof t=="number"?t:!r.value||typeof t!="object"?rr:Object.entries(t).reduce((o,[a,i])=>{let l=mn(i,{type:r.value[a]});return l===rr?o:Object.assign(o,{[a]:l})},{});default:return rr}},"map"),Ei=n((t,e)=>Object.entries(t).reduce((r,[o,a])=>{if(!e[o])return r;let i=mn(a,e[o]);return i===rr?r:Object.assign(r,{[o]:i})},{}),"mapArgsToTypes"),tr=n((t,e)=>Array.isArray(t)&&Array.isArray(e)?e.reduce((r,o,a)=>(r[a]=tr(t[a],e[a]),r),[...t]).filter(r=>r!==void 0):!$$1(t)||!$$1(e)?e:Object.keys({...t,...e}).reduce((r,o)=>{if(o in e){let a=tr(t[o],e[o]);a!==void 0&&(r[o]=a)}else r[o]=t[o];return r},{}),"combineArgs"),Ri=n((t,e)=>Object.entries(e).reduce((r,[o,{options:a}])=>{function i(){return o in t&&(r[o]=t[o]),r}if(n(i,"allowArg"),!a)return i();if(!Array.isArray(a))return j$1.error(_$1`
         Invalid argType: '${o}.options' should be an array.
@@ -192,7 +192,7 @@ ${Ve.description}`)},"showError"),showException:n(Ve=>{throw Ve},"showException"
     Error sorting stories with sort parameter ${e}:
 
     > ${o.message}
-    
+
     Are you using a V6-style sort function in V7 mode?
 
     More info: https://github.com/storybookjs/storybook/blob/next/MIGRATION.md#v7-style-story-sort

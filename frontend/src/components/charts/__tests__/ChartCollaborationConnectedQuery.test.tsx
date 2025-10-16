@@ -171,7 +171,7 @@ describe('ChartCollaborationConnectedQuery', () => {
 
   it('should show loading state initially', () => {
     // Mock a slow response
-    mockExecuteGraphQL.mockImplementation(() => 
+    mockExecuteGraphQL.mockImplementation(() =>
       new Promise(resolve => setTimeout(() => resolve({ data: null }), 100))
     );
 
@@ -237,7 +237,7 @@ describe('ChartCollaborationConnectedQuery', () => {
     // Check that filter dropdown exists
     const filterSelect = screen.getByTestId('filter-annotations-select');
     expect(filterSelect).toBeInTheDocument();
-    
+
     // Verify the component renders both annotations
     // Testing the actual dropdown interaction is complex with MUI portals in JSDOM
     // The filtering logic is tested implicitly by the component rendering correctly

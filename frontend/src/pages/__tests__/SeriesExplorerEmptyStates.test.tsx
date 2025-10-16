@@ -16,32 +16,32 @@ vi.mock('../../utils/graphql', async () => {
   return {
     ...actual,
     executeGraphQL: vi.fn(async ({ query, variables }) => {
-      console.log('🔧 Mocked executeGraphQL called with:', { 
-        query: query.substring(0, 50) + '...', 
-        variables 
+      console.log('🔧 Mocked executeGraphQL called with:', {
+        query: query.substring(0, 50) + '...',
+        variables
       });
-      
+
       // Handle SearchSeriesFulltext query
       if (query.includes('SearchSeriesFulltext') || query.includes('searchSeries')) {
         const response = loadGraphQLResponse('search_series_fulltext', 'empty');
         console.log('🔧 Mocked executeGraphQL returning SearchSeriesFulltext:', response);
         return response;
       }
-      
+
       // Handle GetDataSources query
       if (query.includes('GetDataSources') || query.includes('dataSources')) {
         const response = loadGraphQLResponse('get_data_sources', 'empty');
         console.log('🔧 Mocked executeGraphQL returning GetDataSources:', response);
         return response;
       }
-      
+
       // Handle GetSeriesList query
       if (query.includes('GetSeriesList') || query.includes('seriesList')) {
         const response = loadGraphQLResponse('get_series_list', 'empty');
         console.log('🔧 Mocked executeGraphQL returning GetSeriesList:', response);
         return response;
       }
-      
+
       console.log('🔧 Mocked executeGraphQL unhandled query:', query.substring(0, 50) + '...');
       return { data: null, errors: [{ message: 'Unhandled query' }] };
     })
@@ -72,7 +72,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
     // Should render without crashing
     expect(screen.getByText(/series explorer/i)).toBeInTheDocument();
-    
+
     // Should show search interface
     const searchInput = screen.getByPlaceholderText(/search economic series/i);
     expect(searchInput).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       const user = userEvent.setup();
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
-      
+
       // Search for something that won't return results
       await user.clear(searchInput);
       await user.type(searchInput, 'nonexistent-series-123');
@@ -123,7 +123,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       const user = userEvent.setup();
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
-      
+
       await user.clear(searchInput);
       await user.type(searchInput, 'GDP');
 
@@ -179,7 +179,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       const user = userEvent.setup();
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
-      
+
       await user.clear(searchInput);
       await user.type(searchInput, 'GDP');
 
@@ -269,7 +269,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       const user = userEvent.setup();
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
-      
+
       // Test empty string search
       await user.clear(searchInput);
       // Note: userEvent.type doesn't work with empty strings, so we test clear functionality
@@ -288,7 +288,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       const user = userEvent.setup();
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
-      
+
       // Test very long search query
       const longQuery = 'a'.repeat(100); // Reduced length to avoid timeout
       await user.clear(searchInput);
@@ -313,18 +313,18 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       const user = userEvent.setup();
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
-      
+
       // Should be able to perform multiple searches
       await user.clear(searchInput);
       await user.type(searchInput, 'first search');
-      
+
       await waitFor(() => {
         expect(searchInput).toHaveValue('first search');
       });
 
       await user.clear(searchInput);
       await user.type(searchInput, 'second search');
-      
+
       await waitFor(() => {
         expect(searchInput).toHaveValue('second search');
       });
@@ -342,7 +342,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       const user = userEvent.setup();
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
-      
+
       // Perform search that returns empty results
       await user.clear(searchInput);
       await user.type(searchInput, 'test');
@@ -368,7 +368,7 @@ describe('SeriesExplorer Empty State Scenarios', () => {
 
       // Should have proper heading structure
       expect(screen.getByRole('heading', { name: /series explorer/i })).toBeInTheDocument();
-      
+
       // Should have accessible search input
       const searchInput = screen.getByPlaceholderText(/search economic series/i);
       expect(searchInput).toBeInTheDocument();

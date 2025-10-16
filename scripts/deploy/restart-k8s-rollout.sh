@@ -127,14 +127,14 @@ echo "🔒 Installing cert-manager for SSL certificates..."
 if ! kubectl get namespace cert-manager >/dev/null 2>&1; then
     echo "Installing cert-manager..."
     kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-    
+
     echo "Waiting for cert-manager namespace to be created..."
     kubectl wait --for=condition=ready namespace cert-manager --timeout=30s || true
-    
+
     echo "Waiting for cert-manager pods to be ready..."
     # Wait for pods to be created first
     sleep 10
-    
+
     # Check if pods exist before waiting
     if kubectl get pods -l app=cert-manager -n cert-manager --no-headers 2>/dev/null | grep -q .; then
         kubectl wait --for=condition=ready pod -l app=cert-manager -n cert-manager --timeout=120s || {
@@ -427,7 +427,7 @@ echo ""
 echo "🔐 Checking SSL certificate status..."
 if kubectl get secret econ-graph-tls -n econ-graph >/dev/null 2>&1; then
     echo "  ✅ SSL Certificate: econ-graph-tls secret exists"
-    
+
     # Check certificate expiry
     CERT_INFO=$(kubectl get secret econ-graph-tls -n econ-graph -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates 2>/dev/null || echo "Unable to parse certificate")
     if [[ "$CERT_INFO" != "Unable to parse certificate" ]]; then

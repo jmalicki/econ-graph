@@ -135,7 +135,7 @@ export default [
 
       // Import rules - temporarily disable path resolution warnings
       'import/no-unresolved': 'off',
-      
+
       // JSDoc rules for documentation quality (initially lenient)
       'jsdoc/require-jsdoc': [
         'warn',

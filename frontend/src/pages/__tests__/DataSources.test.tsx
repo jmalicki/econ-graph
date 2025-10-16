@@ -195,7 +195,7 @@ describe('DataSources', () => {
       // Component renders h1 with "Data Sources" text
       const mainHeadings = screen.getAllByRole('heading', { level: 1 });
       expect(mainHeadings.length).toBeGreaterThan(0);
-      
+
       // Check that at least one has "Data Sources" text (use first one found)
       const dataSourcesHeading = mainHeadings.find(h => h.textContent?.includes('Data Sources'));
       expect(dataSourcesHeading).toBeTruthy();
@@ -388,7 +388,7 @@ describe('DataSources', () => {
 
       // Wait for component to render with Suspense
       await screen.findByText('Data Sources');
-      
+
       expect(screen.getAllByText('Data Sources').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Economic data providers and their current status').length).toBeGreaterThan(0);
 

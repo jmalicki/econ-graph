@@ -16,10 +16,10 @@ const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" 
       <stop offset="100%" style="stop-color:#1565c0;stop-opacity:1" />
     </linearGradient>
   </defs>
-  
+
   <!-- Background circle -->
   <circle cx="16" cy="16" r="15" fill="url(#gradient)" stroke="#ffffff" stroke-width="1"/>
-  
+
   <!-- TrendingUp icon -->
   <path d="M8 20l4-4 4 4 8-8" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M20 12h4v4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>

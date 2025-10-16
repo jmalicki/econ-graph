@@ -172,7 +172,7 @@ describe('ChartCollaboration', () => {
       // Look for the badge by finding the CommentIcon and checking its badge content
       const commentIcons = screen.getAllByTestId('CommentIcon');
       expect(commentIcons.length).toBeGreaterThan(0);
-      
+
       // The badge should be a parent of the first CommentIcon (the one in the header)
       const badge = commentIcons[0].closest('[class*="MuiBadge-root"]');
       expect(badge).toBeInTheDocument();

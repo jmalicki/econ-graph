@@ -548,7 +548,7 @@ describe('LoginDialog', () => {
     // Fill email on sign in tab - use more specific selector
     const signInTab = screen.getByRole('tab', { name: 'Sign In' });
     fireEvent.click(signInTab);
-    
+
     const emailInput = screen.getByLabelText('Email');
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
@@ -577,7 +577,7 @@ describe('LoginDialog', () => {
     // Fill form (target the Sign In tab specifically)
     const signInTab = screen.getByRole('tab', { name: 'Sign In' });
     fireEvent.click(signInTab);
-    
+
     const emailInput = screen.getByLabelText('Email');
     const passwordInput = screen.getByLabelText('Password');
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
@@ -608,7 +608,7 @@ describe('LoginDialog', () => {
     // Fill form (target the Sign In tab specifically)
     const signInTab = screen.getByRole('tab', { name: 'Sign In' });
     fireEvent.click(signInTab);
-    
+
     const emailInput = screen.getByLabelText('Email');
     const passwordInput = screen.getByLabelText('Password');
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });

@@ -79,7 +79,7 @@ const preview: Preview = {
       // Initialize MSW for this story synchronously
       console.log('🔧 Storybook preview: Setting up MSW synchronously...');
       setupSimpleMSW();
-      
+
       return (
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={theme}>

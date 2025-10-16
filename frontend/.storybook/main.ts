@@ -23,17 +23,17 @@ const config: StorybookConfig = {
         '@': '/src',
       };
     }
-    
+
     // Handle Node.js modules for browser compatibility
     config.define = {
       ...config.define,
       global: 'globalThis',
     };
-    
+
     // Configure external modules for browser compatibility
     config.external = config.external || [];
     config.external.push('fs', 'path');
-    
+
     return config;
   },
 };

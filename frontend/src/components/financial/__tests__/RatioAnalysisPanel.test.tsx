@@ -276,7 +276,7 @@ describe('RatioAnalysisPanel', () => {
 
       // Use getByRole with aria-label for better accessibility and performance
       const benchmarkButton = screen.queryByRole('button', { name: /benchmark|target/i });
-      
+
       if (benchmarkButton) {
         fireEvent.click(benchmarkButton);
 

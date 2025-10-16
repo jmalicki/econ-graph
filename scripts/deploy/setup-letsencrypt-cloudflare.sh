@@ -57,7 +57,7 @@ OPTIONS:
 EXAMPLES:
     # Production setup
     $0 -d econgraph.com -t "your-cloudflare-api-token"
-    
+
     # Staging setup for testing
     $0 -d test.econgraph.com -t "your-cloudflare-api-token" --staging
 
@@ -218,7 +218,7 @@ kubectl wait --for=condition=Ready --timeout=600s certificate/${DOMAIN}-wildcard
 CERT_STATUS=$(kubectl get certificate ${DOMAIN}-wildcard-tls -n ${NAMESPACE} -o jsonpath='{.status.conditions[0].type}')
 if [[ "$CERT_STATUS" == "Ready" ]]; then
     print_success "Certificate issued successfully!"
-    
+
     # Display certificate details
     print_status "Certificate details:"
     kubectl describe certificate ${DOMAIN}-wildcard-tls -n ${NAMESPACE}

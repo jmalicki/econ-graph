@@ -118,23 +118,23 @@ import{j as i}from"./jsx-runtime-LnmZrwv1.js";import{r as u,R as U,a as eo}from"
     margin-right: `).concat(c,"px ").concat(r,`;
     `),n==="padding"&&"padding-right: ".concat(c,"px ").concat(r,";")].filter(Boolean).join(""),`
   }
-  
+
   .`).concat(Ht,` {
     right: `).concat(c,"px ").concat(r,`;
   }
-  
+
   .`).concat(Qt,` {
     margin-right: `).concat(c,"px ").concat(r,`;
   }
-  
+
   .`).concat(Ht," .").concat(Ht,` {
     right: 0 `).concat(r,`;
   }
-  
+
   .`).concat(Qt," .").concat(Qt,` {
     margin-right: 0 `).concat(r,`;
   }
-  
+
   body[`).concat(rt,`] {
     `).concat(xd,": ").concat(c,`px;
   }
