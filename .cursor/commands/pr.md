@@ -2,6 +2,8 @@
 
 Create or update a GitHub Pull Request from the current branch using gh, with a templated body, and enforce PR best practices.
 
+Note: Use the GitHub CLI (`gh`) for all PR/CI operations. Do NOT use MCP for PR creation or CI checks.
+
 - title (string, required): PR title (Conventional Commits)
 - body (string, optional): PR body (markdown). If omitted, generate from recent commits + diff
 - base (string, optional): Base branch (default: main)
