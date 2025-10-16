@@ -1,5 +1,6 @@
 // @generated automatically by Diesel CLI.
 
+#[allow(unused_imports)]
 use diesel::sql_types::*;
 
 diesel::table! {

@@ -91,7 +91,7 @@ impl NewAnnotationAssignment {
 }
 
 /// Filter for querying annotation assignments
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnnotationAssignmentFilter {
     pub statement_id: Option<Uuid>,
     pub line_item_id: Option<Uuid>,
@@ -105,19 +105,4 @@ pub struct AnnotationAssignmentFilter {
     pub created_before: Option<DateTime<Utc>>,
 }
 
-impl Default for AnnotationAssignmentFilter {
-    fn default() -> Self {
-        Self {
-            statement_id: None,
-            line_item_id: None,
-            assignee_id: None,
-            assigner_id: None,
-            assignment_type: None,
-            status: None,
-            due_after: None,
-            due_before: None,
-            created_after: None,
-            created_before: None,
-        }
-    }
-}
+// derive(Default) used instead of manual impl

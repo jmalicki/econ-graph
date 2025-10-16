@@ -47,7 +47,7 @@ impl NewAnnotationReply {
 }
 
 /// Filter for querying annotation replies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnnotationReplyFilter {
     pub annotation_id: Option<Uuid>,
     pub author_id: Option<Uuid>,
@@ -55,13 +55,4 @@ pub struct AnnotationReplyFilter {
     pub created_before: Option<DateTime<Utc>>,
 }
 
-impl Default for AnnotationReplyFilter {
-    fn default() -> Self {
-        Self {
-            annotation_id: None,
-            author_id: None,
-            created_after: None,
-            created_before: None,
-        }
-    }
-}
+// derive(Default) used instead of manual impl

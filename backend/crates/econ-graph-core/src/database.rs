@@ -125,7 +125,7 @@ where
     })?;
 
     // Execute the function with the dereferenced connection
-    f(&mut *conn).await
+    f(&mut conn).await
 }
 
 /// Check database health
