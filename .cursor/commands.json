@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schemas.cursor.dev/commands.v1.json",
+  "commands": [
+    {
+      "name": "/pr",
+      "description": "Create or update a GitHub Pull Request from the current branch using gh, with a templated body.",
+      "arguments": [
+        {
+          "name": "title",
+          "description": "PR title (short, descriptive).",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "description": "PR body (supports markdown). If omitted, generates from git diff.",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "base",
+          "description": "Base branch to merge into (default: main).",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "draft",
+          "description": "Open as draft (true/false, default: false).",
+          "required": false,
+          "type": "boolean"
+        }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail;\nTITLE=\"$1\"; BODY=\"${2-}\"; BASE=\"${3-main}\"; DRAFT_FLAG=\"${4-false}\";\n# Ensure branch has an upstream and push\nif ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then\n  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD);\n  git push -u origin \"$CURRENT_BRANCH\";\nfi;\n# Generate body from diff if not provided\nif [ -z \"$BODY\" ]; then\n  BODY=$(git log --oneline -n 5; echo; echo '## Diff'; echo '```'; git diff --stat \"$BASE\"...HEAD || true; echo '```');\nfi;\n# Create PR (or view existing)\nif gh pr view --json url >/dev/null 2>&1; then\n  echo 'PR already exists:'; gh pr view --json url -q .url;\nelse\n  if [ \"$DRAFT_FLAG\" = \"true\" ]; then DRAFT_OPT=--draft; else DRAFT_OPT=; fi;\n  gh pr create --base \"$BASE\" --title \"$TITLE\" --body \"$BODY\" $DRAFT_OPT --fill;\n  gh pr view --json url -q .url;\nfi"
+      }
+    },
+    {
+      "name": "/commit",
+      "description": "Create a conventional commit with a multi-line message via heredoc and show status.",
+      "arguments": [
+        { "name": "message", "description": "Commit message (first line + optional details).", "required": true, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; MSG=\"$1\";\n# Stage all by default if nothing staged\nif [ -z \"$(git diff --name-only --cached)\" ]; then git add -A; fi;\n# Commit via heredoc to preserve newlines\nCOMMIT_MSG=$(cat <<EOF\n$MSG\nEOF\n);\nif git commit -m \"$COMMIT_MSG\"; then\n  echo 'Committed successfully.';\nelse\n  echo 'No changes to commit or commit failed.';\nfi;\n\n# Show concise status\ngit --no-pager log -1 --stat --oneline;"
+      }
+    },
+    {
+      "name": "/review",
+      "description": "Summarize current diff and highlight risks, test gaps, and CI considerations.",
+      "arguments": [],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail;\necho '## Summary of changes';\ngit --no-pager diff --stat HEAD || true;\necho; echo '## Files changed';\ngit --no-pager diff --name-only HEAD || true;\necho; echo '## Recent commits';\ngit --no-pager log -5 --oneline || true;"
+      }
+    }
+  ]
+}
