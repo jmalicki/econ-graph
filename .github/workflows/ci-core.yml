@@ -216,15 +216,13 @@ jobs:
           ${{ runner.os }}-shared-cargo-
 
     - name: Check Rust formatting
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo fmt --all -- --check
+      if: false # handled by pre-commit in quality-checks
+      run: echo "rustfmt handled by pre-commit"
       working-directory: backend
 
     - name: Run Clippy (linting)
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo clippy --all-targets --all-features -- -D warnings -A unused_imports -A dead_code -A clippy::empty_line_after_doc_comments -A clippy::explicit_auto_deref -A clippy::unused_enumerate_index -A clippy::manual_range_contains -A clippy::unnecessary_map_or -A clippy::inherent_to_string -A clippy::too_many_arguments -A clippy::uninlined_format_args -A clippy::needless_borrow -A unused_variables -A clippy::if_same_then_else -A clippy::assertions_on_constants -A clippy::useless_vec -A clippy::overly_complex_bool_expr -A clippy::manual_clamp -A clippy::upper_case_acronyms -A unused_must_use -A unused_mut -A clippy::derivable_impls
+      if: false # handled by pre-commit/reviewdog elsewhere
+      run: echo "clippy handled by pre-commit/CI annotations"
       working-directory: backend
 
     - name: Run fast unit tests (no database)
@@ -1345,33 +1343,15 @@ jobs:
       with:
         ref: ${{ github.event.inputs.branch || github.ref }}
 
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-registry-
-
-    - name: Run Rust formatting check
-      working-directory: backend
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo fmt -- --check
-
-    - name: Run Rust clippy
-      working-directory: backend
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo clippy -- -W clippy::all
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -1388,17 +1368,10 @@ jobs:
       working-directory: admin-frontend
       run: npm ci
 
-    - name: Install admin-frontend dependencies
-      working-directory: admin-frontend
-      run: npm ci
-
-    - name: Run frontend formatting check
-      working-directory: frontend
-      run: npm run prettier-check
-
-    - name: Run frontend linting
-      working-directory: frontend
-      run: npm run lint
+    - name: Run pre-commit (manual CI hooks)
+      uses: pre-commit/action@v3.0.1
+      with:
+        extra_args: --all-files --hook-stage manual
 
   security-audit:
     name: Security Audit
