@@ -5,6 +5,13 @@
 ## Role Overview
 A Release Engineer (RelEng) is responsible for maintaining and improving the CI/CD pipeline, test systems, and deployment infrastructure. They ensure that code changes flow smoothly from development through testing to production deployment.
 
+### Cursor-native commands (use these instead of manual, ad-hoc steps)
+- Use `/workflow-audit` to validate GitHub Actions YAML (triggers, steps, names) and to run regular workflow hygiene audits.
+- Use `/ci-latest` to view the most recent CI runs for the current branch; use `/pr-checks` to watch PR checks in real time.
+- Use `/e2e` to run full-stack integration tests locally in the same shape as CI.
+- Use `/pr-ready` to push the branch and ensure a PR exists with an up-to-date description; use `/pr` to create curated PRs that follow Conventional Commits.
+- Use `/deploy` to execute the repository's standard deployment script when available.
+
 ## Core Responsibilities
 
 ### CI/CD Pipeline Management
@@ -153,11 +160,11 @@ A Release Engineer (RelEng) is responsible for maintaining and improving the CI/
 - **Documentation**: Maintain clear deployment procedures and runbooks
 
 ### Workflow Troubleshooting
-- **YAML Validation**: Always validate workflow YAML syntax before committing
-- **Trigger Verification**: Ensure every workflow has at least one active trigger
-- **Cleanup Discipline**: Remove disabled workflows instead of commenting out triggers
-- **Regular Audits**: Periodically review all workflows for relevance and functionality
-- **GitHub Interface Monitoring**: Watch for workflows showing as active that shouldn't be
+- **YAML Validation**: Prefer `/workflow-audit` to validate workflow syntax and structure before committing
+- **Trigger Verification**: Use `/workflow-audit` to detect missing/invalid triggers
+- **Cleanup Discipline**: Remove disabled workflows instead of commenting out triggers (verify with `/workflow-audit`)
+- **Regular Audits**: Run `/workflow-audit` periodically to find broken/unused workflows and naming issues
+- **GitHub Interface Monitoring**: Correlate with `/ci-latest` and `/pr-checks` when UI status looks inconsistent
 - **Branch Cleanup**: Clean up test branches that may leave orphaned workflows
 
 ## Success Metrics

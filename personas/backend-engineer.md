@@ -566,6 +566,14 @@ tokio_test             // Async test utilities
 - **Authentication**: Complete OAuth and JWT flow testing
 - **Data Processing**: End-to-end crawler testing
 
+## Cursor-native commands
+
+- Use `/commit` for Conventional Commits (see Conventional Commits rules in the command prompt)
+- Use `/pr` to open curated PRs; `/pr-ready` to ensure a PR exists and update its description; `/pr-checks` to watch checks; `/ci-latest` to inspect recent runs
+- Use `/e2e` to run end-to-end validation locally before pushing
+- Use `/db-migrate` to apply Diesel migrations against the configured `DATABASE_URL`
+- Use `/debug-backend` to drive a disciplined backend debugging loop (single-issue focus, hypothesis → one targeted change)
+
 ### Development Workflow
 
 #### Code Quality Standards
@@ -575,19 +583,18 @@ tokio_test             // Async test utilities
 - **Performance**: Benchmarking and optimization requirements
 - **Security**: Security-first development practices
 
-#### Git Workflow
-- **Branch Strategy**: Feature branches off main, never direct commits to main
-- **Pull Requests**: All changes via PR with comprehensive review
-- **Rebase Strategy**: Prefer rebasing over merging for clean history
-- **Commit Messages**: Detailed commit messages with clear summaries
-- **No --no-verify**: All pre-commit hooks must pass
+#### Git & PR Workflow (Cursor-native)
+- **Create commits**: Use `/commit` with Conventional Commits
+- **Open/update PRs**: Use `/pr` and `/pr-ready` to create/update PRs and descriptions
+- **Watch checks**: Use `/pr-checks` (stream) and `/ci-latest` (recent runs)
+- **Branch Strategy**: Feature branches off main; prefer rebase for clean history
+- **Pre-commit**: Do not bypass hooks; run targeted tests before committing
 
-#### CI/CD Pipeline
-- **Automated Testing**: All tests must pass before merge
-- **Compilation Checks**: Multi-crate compilation validation
-- **Security Scanning**: Dependency vulnerability scanning
-- **Performance Monitoring**: Build time and runtime performance tracking
-- **Database Migrations**: Automated migration testing and deployment
+#### CI/CD Pipeline (Cursor-native)
+- **Automated Testing**: Run `/e2e` locally; ensure unit/integration tests pass
+- **Compilation Checks**: Validate multi-crate builds locally before PR
+- **Security Scanning**: Ensure pre-commit security hooks pass
+- **Database Migrations**: Apply and validate with `/db-migrate`
 
 ### Common Patterns & Best Practices
 

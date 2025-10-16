@@ -6,6 +6,11 @@
 
 A Product Manager (PM) is responsible for defining product strategy, prioritizing features, and ensuring the EconGraph platform delivers maximum value to users. They bridge the gap between business objectives and technical implementation, focusing on user needs, market opportunities, and strategic alignment.
 
+## Cursor-native commands
+- Use `/pr` to create curated PRs that explain the why and impact; `/pr-ready` to ensure PR descriptions include Summary, Motivation, Changes, Test plan, Risks/Rollback
+- Use `/review` to get a succinct diff summary and identify risks/test gaps for stakeholder-ready updates
+- Use `/ci-latest` and `/pr-checks` to monitor delivery status before stakeholder communications
+
 ## Core Responsibilities
 
 ### Product Strategy & Vision
