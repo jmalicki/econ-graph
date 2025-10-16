@@ -37,11 +37,11 @@ const integrationServer = setupServer(
     const { query, variables, operationName } = body;
     console.log('🔧 MSW GraphQL request:', { operationName, variables });
     console.log('🔧 MSW GraphQL query includes GetFinancialStatement:', query.includes('GetFinancialStatement'));
-    
+
     // console.log('🔧 Integration MSW intercepted GraphQL request:', operationName);
     // console.log('🔧 Query includes GetFinancialDashboard:', query.includes('GetFinancialDashboard'));
     // console.log('🔧 Variables:', variables);
-    
+
     // Handle GetFinancialDashboard
     if (query.includes('GetFinancialDashboard')) {
       const { companyId } = variables || {};
@@ -51,13 +51,13 @@ const integrationServer = setupServer(
       } else if (companyId === 'error-company-id') {
         scenario = 'error';
       }
-      
+
       const response = loadGraphQLResponse('get_financial_dashboard', scenario);
       // console.log('🔧 Integration MSW returning GetFinancialDashboard:', response);
       // console.log('🔧 Company name in response:', response.data?.company?.name);
       return HttpResponse.json(response);
     }
-    
+
     // Handle GetFinancialRatios
     if (query.includes('GetFinancialRatios')) {
       const { statementId } = variables || {};
@@ -67,17 +67,17 @@ const integrationServer = setupServer(
       } else if (statementId === 'empty-statement-id') {
         scenario = 'empty';
       }
-      
+
       const response = loadGraphQLResponse('get_financial_ratios', scenario);
       return HttpResponse.json(response);
     }
-    
+
     // Handle GetFinancialStatement
     if (query.includes('GetFinancialStatement')) {
       const response = loadGraphQLResponse('get_financial_statement', 'success');
       return HttpResponse.json(response);
     }
-    
+
     return HttpResponse.json({
       data: null,
       errors: [{ message: `Unhandled operation: ${operationName}` }],
@@ -87,12 +87,12 @@ const integrationServer = setupServer(
 
 // Start MSW for integration tests
 beforeAll(async () => {
-  integrationServer.listen({ 
+  integrationServer.listen({
     onUnhandledRequest: 'warn'
   });
-  
+
   console.log('🔧 MSW server started for integration tests');
-  
+
   // Give MSW time to start
   await new Promise(resolve => setTimeout(resolve, 200));
 });
@@ -115,14 +115,14 @@ vi.mock('../../utils/graphql', async () => {
     ...actual,
     executeGraphQL: vi.fn(async ({ query, variables }) => {
       console.log('🔧 Mocked executeGraphQL called with:', { query: query.substring(0, 50) + '...', variables });
-      
+
       // Handle GetFinancialStatement
       if (query.includes('GetFinancialStatement')) {
         const response = loadGraphQLResponse('get_financial_statement', 'success');
         console.log('🔧 Mocked executeGraphQL returning GetFinancialStatement:', response);
         return response;
       }
-      
+
       // Handle GetFinancialDashboard
       if (query.includes('GetFinancialDashboard')) {
         const { companyId } = variables || {};
@@ -136,7 +136,7 @@ vi.mock('../../utils/graphql', async () => {
         console.log('🔧 Mocked executeGraphQL returning GetFinancialDashboard:', response);
         return response;
       }
-      
+
       // Handle GetFinancialRatios
       if (query.includes('GetFinancialRatios')) {
         const { statementId } = variables || {};
@@ -150,7 +150,7 @@ vi.mock('../../utils/graphql', async () => {
         console.log('🔧 Mocked executeGraphQL returning GetFinancialRatios:', response);
         return response;
       }
-      
+
       console.log('🔧 Mocked executeGraphQL unhandled query:', query.substring(0, 50) + '...');
       return { data: null, errors: [{ message: 'Unhandled query' }] };
     })
@@ -464,7 +464,7 @@ describe('XBRL Financial Integration Tests', () => {
       // Look for ratio values by their aria-labels (highest priority selector)
       const roeValue = screen.getByLabelText('Return on Equity value');
       const currentRatioValue = screen.getByLabelText('Current Ratio value');
-      
+
       // Verify key ratios are displayed with proper values
       expect(roeValue).toBeInTheDocument();
       expect(roeValue).toHaveTextContent('14.7%');
@@ -499,10 +499,10 @@ describe('XBRL Financial Integration Tests', () => {
         // Look for benchmark content using proper selectors
         const benchmarkCards = screen.queryAllByRole('region', { name: /benchmark|industry/i });
         const benchmarkTexts = screen.queryAllByText(/Industry Benchmark|Above Average|Average|Below Average/);
-        
+
         console.log('Benchmark cards found:', benchmarkCards.length);
         console.log('Benchmark texts found:', benchmarkTexts.length);
-        
+
         expect(benchmarkTexts.length).toBeGreaterThan(0);
       }, { timeout: 5000 });
 

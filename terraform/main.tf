@@ -226,7 +226,7 @@ module "ingress" {
 
   namespace = kubernetes_namespace.econgraph.metadata[0].name
   domain    = var.domain
-  
+
   # DNS-01 challenge configuration
   enable_dns01_challenge = var.enable_dns01_challenge
   cloudflare_api_token   = var.cloudflare_api_token

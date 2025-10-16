@@ -50,7 +50,7 @@ OPTIONS:
 EXAMPLES:
     # Test with staging environment
     $0 -d test.econgraph.com
-    
+
     # Test with production environment
     $0 -d econgraph.com --production
 
@@ -203,18 +203,18 @@ echo ""
 # Check certificate status
 if kubectl get certificate "$CERT_NAME" -n "$NAMESPACE" &> /dev/null; then
     CERT_STATUS=$(kubectl get certificate "$CERT_NAME" -n "$NAMESPACE" -o jsonpath='{.status.conditions[0].type}')
-    
+
     if [[ "$CERT_STATUS" == "Ready" ]]; then
         print_success "Certificate issued successfully!"
-        
+
         # Display certificate details
         print_status "Certificate details:"
         kubectl describe certificate "$CERT_NAME" -n "$NAMESPACE" | grep -E "(Name:|Namespace:|Status:|Not Before:|Not After:|DNS Names:|Secret Name:)"
-        
+
         # Check certificate content
         print_status "Certificate content:"
         kubectl get secret "$CERT_NAME" -n "$NAMESPACE" -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -text -noout | grep -E "(Subject:|Issuer:|Not Before:|Not After:|DNS:|Serial Number:)"
-        
+
         # Test TLS connectivity (if domain is accessible)
         print_status "Testing TLS connectivity..."
         if command -v openssl &> /dev/null; then
@@ -224,7 +224,7 @@ if kubectl get certificate "$CERT_NAME" -n "$NAMESPACE" &> /dev/null; then
                 print_warning "TLS connectivity test failed (domain may not be accessible or not using the certificate yet)"
             fi
         fi
-        
+
         # Test DNS propagation
         print_status "Testing DNS propagation..."
         if command -v dig &> /dev/null; then
@@ -232,23 +232,23 @@ if kubectl get certificate "$CERT_NAME" -n "$NAMESPACE" &> /dev/null; then
             dig +short "$DOMAIN" A || print_warning "No A record found for $DOMAIN"
             dig +short "$DOMAIN" AAAA || print_warning "No AAAA record found for $DOMAIN"
         fi
-        
+
     elif [[ "$CERT_STATUS" == "Failed" ]]; then
         print_error "Certificate issuance failed!"
         print_status "Certificate status:"
         kubectl describe certificate "$CERT_NAME" -n "$NAMESPACE"
-        
+
         # Check for common issues
         print_status "Checking for common issues..."
-        
+
         # Check ClusterIssuer status
         print_status "ClusterIssuer status:"
         kubectl describe clusterissuer "$CLUSTER_ISSUER_NAME"
-        
+
         # Check certificate events
         print_status "Certificate events:"
         kubectl get events -n "$NAMESPACE" --field-selector involvedObject.name="$CERT_NAME" --sort-by='.metadata.creationTimestamp'
-        
+
         # Check if domain is managed by Cloudflare
         print_status "Checking if domain is managed by Cloudflare..."
         if command -v dig &> /dev/null; then
@@ -260,7 +260,7 @@ if kubectl get certificate "$CERT_NAME" -n "$NAMESPACE" &> /dev/null; then
                 print_warning "Domain may not be managed by Cloudflare (NS records don't contain 'cloudflare')"
             fi
         fi
-        
+
         exit 1
     else
         print_error "Certificate status unknown: $CERT_STATUS"

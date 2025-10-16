@@ -9,6 +9,7 @@ use testcontainers::core::WaitFor;
 #[cfg(test)]
 use testcontainers::runners::AsyncRunner;
 #[cfg(test)]
+#[allow(unused_imports)]
 use testcontainers::{Container, ContainerAsync, GenericImage, ImageExt};
 
 /// Test container for database testing

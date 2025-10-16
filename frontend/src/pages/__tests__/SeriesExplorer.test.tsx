@@ -552,7 +552,7 @@ describe('SeriesExplorer', () => {
     const searchInput = screen.getByPlaceholderText(/search economic series/i);
     await user.clear(searchInput);
     await user.type(searchInput, 'nonexistent-series');
-    
+
     // Wait for search to complete
     await waitFor(() => {
       expect(searchInput).toHaveValue('nonexistent-series');
@@ -565,7 +565,7 @@ describe('SeriesExplorer', () => {
 
     // Should provide helpful guidance
     expect(screen.getByText(/try adjusting your search criteria/i)).toBeInTheDocument();
-    
+
     // Should provide action to browse all series
     expect(screen.getByRole('button', { name: /browse all series/i })).toBeInTheDocument();
   });
@@ -678,7 +678,7 @@ describe('SeriesExplorer', () => {
 
     // Should provide helpful suggestions
     expect(screen.getByText(/try adjusting your search criteria/i)).toBeInTheDocument();
-    
+
     // Should offer alternative actions
     const browseButton = screen.getByRole('button', { name: /browse all series/i });
     expect(browseButton).toBeInTheDocument();
@@ -706,7 +706,7 @@ describe('SeriesExplorer', () => {
     await waitFor(() => {
       expect(screen.getByText(/series explorer/i)).toBeInTheDocument();
     });
-    
+
     await waitFor(() => {
       expect(screen.getByText(/no series found/i)).toBeInTheDocument();
     });
@@ -736,7 +736,7 @@ describe('SeriesExplorer', () => {
     // Should provide guidance on what to do next
     const searchInput = screen.getByPlaceholderText(/search economic series/i);
     expect(searchInput).toBeInTheDocument();
-    
+
     // Should suggest checking system status or contacting admin
     // (This would be enhanced with specific empty database messaging)
   });
@@ -759,7 +759,7 @@ describe('SeriesExplorer', () => {
     // Should be able to type in search
     await user.clear(searchInput);
     await user.type(searchInput, 'test search');
-    
+
     await waitFor(() => {
       expect(searchInput).toHaveValue('test search');
     });

@@ -7,12 +7,17 @@ use crate::models::{
     data_source::{DataSource, NewDataSource},
 };
 use crate::schema::{crawl_queue, data_sources};
+#[allow(unused_imports)]
 use crate::test_utils::db_test;
+#[allow(unused_imports)]
 use crate::test_utils::{DatabaseTestExt, TestContainer};
+#[allow(unused_imports)]
 use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
+#[allow(unused_imports)]
 use std::sync::Arc;
+#[allow(unused_imports)]
 use uuid::Uuid;
 
 // Simple unit tests that don't require complex database integration

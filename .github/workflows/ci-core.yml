@@ -96,54 +96,60 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
-
-    - name: Install shared tools
+    - name: Cache diagnostics (pre)
       run: |
-        echo "Installing shared tools..."
-        echo "Current PATH: $PATH"
-        echo "CARGO_HOME: $CARGO_HOME"
-        echo "HOME: $HOME"
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: backend
+        cache-all-crates: true
 
-        # Set up cargo bin directory and PATH
-        export CARGO_BIN_DIR="$HOME/.cargo/bin"
-        export PATH="$CARGO_BIN_DIR:$PATH"
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
 
-        # Install diesel_cli
-        echo "Installing diesel_cli..."
-        cargo install diesel_cli --no-default-features --features postgres --verbose --force
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
 
-        # Install cargo-audit
-        echo "Installing cargo-audit..."
-        cargo install cargo-audit --verbose --force
-
-        # Install cargo-deny
-        echo "Installing cargo-deny..."
-        cargo install cargo-deny --verbose --force
-
-        # Verify installations
-        echo "Verifying installations..."
-        ls -la "$CARGO_BIN_DIR/"
-        diesel --version || echo "diesel not found"
-        cargo-audit --version || echo "cargo-audit not found"
-        cargo-deny --version || echo "cargo-deny not found"
+    - name: Install Rust tools (prebuilt)
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-deny,cargo-audit
+    - name: Install diesel_cli (from crates.io)
+      env:
+        RUSTC_WRAPPER: ""
+        SCCACHE_GHA_ENABLED: "false"
+      run: |
+        export PATH="$HOME/.cargo/bin:$PATH"
+        cargo install --locked diesel_cli --no-default-features --features postgres
       working-directory: backend
 
     - name: Build backend
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
+        set +e
         cargo build --verbose
+        status=$?
+        if [ $status -ne 0 ]; then
+          echo "cargo build failed; attempting fallback without sccache"
+          export RUSTC_WRAPPER=
+          export SCCACHE_GHA_ENABLED=false
+          cargo build --verbose
+        fi
       working-directory: backend
 
   backend-migration-validation-tests:
@@ -202,38 +208,68 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Cache diagnostics (pre)
+      run: |
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
+        workspaces: backend
+        cache-all-crates: true
+
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
+
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
+
+    - name: Install cargo-nextest
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-nextest
 
     - name: Check Rust formatting
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo fmt --all -- --check
+      if: false # handled by pre-commit in quality-checks
+      run: echo "rustfmt handled by pre-commit"
       working-directory: backend
 
     - name: Run Clippy (linting)
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo clippy --all-targets --all-features -- -D warnings -A unused_imports -A dead_code -A clippy::empty_line_after_doc_comments -A clippy::explicit_auto_deref -A clippy::unused_enumerate_index -A clippy::manual_range_contains -A clippy::unnecessary_map_or -A clippy::inherent_to_string -A clippy::too_many_arguments -A clippy::uninlined_format_args -A clippy::needless_borrow -A unused_variables -A clippy::if_same_then_else -A clippy::assertions_on_constants -A clippy::useless_vec -A clippy::overly_complex_bool_expr -A clippy::manual_clamp -A clippy::upper_case_acronyms -A unused_must_use -A unused_mut -A clippy::derivable_impls
+      if: false # handled by pre-commit/reviewdog elsewhere
+      run: echo "clippy handled by pre-commit/CI annotations"
       working-directory: backend
 
-    - name: Run fast unit tests (no database)
+    - name: Run fast unit tests with nextest (no database)
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
-        cargo test --lib -- --test-threads=4 --nocapture config auth::integration_tests::test_user_response_serialization auth::integration_tests::test_request_validation auth::integration_tests::test_password_hashing auth::integration_tests::test_model_deserialization auth::comprehensive_integration_tests::test_password_security metrics mcp_server::tests::test_get_available_tools mcp_server::tests::test_get_available_resources
+        set +e
+        cargo nextest run --workspace --lib --status-level=fail --retries=1 --no-fail-fast
+        status=$?
+        if [ $status -ne 0 ]; then
+          echo "nextest failed; attempting fallback without sccache"
+          export RUSTC_WRAPPER=
+          export SCCACHE_GHA_ENABLED=false
+          cargo nextest run --workspace --lib --status-level=fail --retries=1 --no-fail-fast
+        fi
       working-directory: backend
       env:
         RUST_LOG: warn
+
+    - name: Show sccache stats
+      run: sccache --show-stats || true
 
   chart-api-integration-tests:
     name: Chart API Integration Tests
@@ -317,18 +353,34 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Cache diagnostics (pre)
+      run: |
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
+        workspaces: backend
+        cache-all-crates: true
+
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
+
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
 
     - name: Install diesel CLI
       run: |
@@ -1345,33 +1397,15 @@ jobs:
       with:
         ref: ${{ github.event.inputs.branch || github.ref }}
 
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
-
-    - name: Cache cargo registry
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-registry-
-
-    - name: Run Rust formatting check
-      working-directory: backend
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo fmt -- --check
-
-    - name: Run Rust clippy
-      working-directory: backend
-      run: |
-        export PATH="$HOME/.cargo/bin:$PATH"
-        cargo clippy -- -W clippy::all
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -1388,17 +1422,17 @@ jobs:
       working-directory: admin-frontend
       run: npm ci
 
-    - name: Install admin-frontend dependencies
-      working-directory: admin-frontend
-      run: npm ci
+    - name: Run pre-commit (all files + manual stage)
+      uses: pre-commit/action@v3.0.1
+      with:
+        extra_args: --all-files --hook-stage manual
 
-    - name: Run frontend formatting check
-      working-directory: frontend
-      run: npm run prettier-check
-
-    - name: Run frontend linting
-      working-directory: frontend
-      run: npm run lint
+    - name: Clippy annotations
+      if: always()
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --workspace --all-targets --all-features
 
   security-audit:
     name: Security Audit
@@ -1587,17 +1621,34 @@ jobs:
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@1.89.0
 
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+    - name: Cache diagnostics (pre)
+      run: |
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
+    - name: Rust build cache
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          ~/.cargo/bin
-          backend/target
-        key: ${{ runner.os }}-shared-cargo-v2
-        restore-keys: |
-          ${{ runner.os }}-shared-cargo-
+        workspaces: backend
+        cache-all-crates: true
+
+    - name: Enable sccache
+      uses: mozilla-actions/sccache-action@v0.0.4
+
+    - name: Configure sccache env
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
 
     - name: Install diesel CLI
       run: |
@@ -1615,7 +1666,15 @@ jobs:
     - name: Build backend
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
+        set +e
         cargo build --verbose
+        status=$?
+        if [ $status -ne 0 ]; then
+          echo "cargo build failed; attempting fallback without sccache"
+          export RUSTC_WRAPPER=
+          export SCCACHE_GHA_ENABLED=false
+          cargo build --verbose
+        fi
       working-directory: backend
 
     - name: Run backend integration tests

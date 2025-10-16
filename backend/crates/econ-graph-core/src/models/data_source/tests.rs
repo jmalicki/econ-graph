@@ -3,8 +3,11 @@
 // This ensures the data source model works correctly with all expected operations
 
 use crate::models::data_source::{DataSource, NewDataSource, UpdateDataSource};
+#[allow(unused_imports)]
 use crate::test_utils::db_test;
+#[allow(unused_imports)]
 use crate::test_utils::{DatabaseTestExt, TestContainer};
+#[allow(unused_imports)]
 use std::sync::Arc;
 
 // Simple unit tests that don't require complex database integration

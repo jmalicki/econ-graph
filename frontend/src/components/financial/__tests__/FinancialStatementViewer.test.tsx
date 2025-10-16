@@ -53,7 +53,7 @@ describe('FinancialStatementViewer', () => {
     vi.clearAllMocks();
     // MSW server handles GraphQL requests automatically in Node.js mode
   });
-  
+
   afterEach(() => {
     cleanup();
   });
