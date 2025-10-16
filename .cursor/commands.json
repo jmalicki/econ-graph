@@ -32,7 +32,7 @@
       ],
       "script": {
         "shell": "bash",
-        "content": "set -euo pipefail;\nTITLE=\"$1\"; BODY=\"${2-}\"; BASE=\"${3-main}\"; DRAFT_FLAG=\"${4-false}\";\n# Ensure branch has an upstream and push\nif ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then\n  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD);\n  git push -u origin \"$CURRENT_BRANCH\";\nfi;\n# Generate body from diff if not provided\nif [ -z \"$BODY\" ]; then\n  BODY=$(git log --oneline -n 5; echo; echo '## Diff'; echo '```'; git diff --stat \"$BASE\"...HEAD || true; echo '```');\nfi;\n# Create PR (or view existing)\nif gh pr view --json url >/dev/null 2>&1; then\n  echo 'PR already exists:'; gh pr view --json url -q .url;\nelse\n  if [ \"$DRAFT_FLAG\" = \"true\" ]; then DRAFT_OPT=--draft; else DRAFT_OPT=; fi;\n  gh pr create --base \"$BASE\" --title \"$TITLE\" --body \"$BODY\" $DRAFT_OPT --fill;\n  gh pr view --json url -q .url;\nfi"
+        "content": "set -euo pipefail;\nTITLE=\"$1\"; BODY=\"${2-}\"; BASE=\"${3-main}\"; DRAFT_FLAG=\"${4-false}\";\ncommand -v gh >/dev/null 2>&1 || { echo 'gh is required for /pr'; exit 1; }\n# Ensure branch has an upstream and push\nif ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then\n  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD);\n  git push -u origin \"$CURRENT_BRANCH\";\nfi;\n# Generate body from diff if not provided\nif [ -z \"$BODY\" ]; then\n  BODY=$(git log --oneline -n 5; echo; echo '## Diff'; echo '```'; git diff --stat \"$BASE\"...HEAD || true; echo '```');\nfi;\n# Create PR (or view existing)\nif gh pr view --json url >/dev/null 2>&1; then\n  echo 'PR already exists:'; gh pr view --json url -q .url;\nelse\n  if [ \"$DRAFT_FLAG\" = \"true\" ]; then DRAFT_OPT=--draft; else DRAFT_OPT=; fi;\n  gh pr create --base \"$BASE\" --title \"$TITLE\" --body \"$BODY\" $DRAFT_OPT --fill;\n  gh pr view --json url -q .url;\nfi"
       }
     },
     {
@@ -53,6 +53,131 @@
       "script": {
         "shell": "bash",
         "content": "set -euo pipefail;\necho '## Summary of changes';\ngit --no-pager diff --stat HEAD || true;\necho; echo '## Files changed';\ngit --no-pager diff --name-only HEAD || true;\necho; echo '## Recent commits';\ngit --no-pager log -5 --oneline || true;"
+      }
+    },
+    {
+      "name": "/e2e",
+      "description": "Run end-to-end integration tests via scripts/test-e2e.sh (all|backend|frontend|combined).",
+      "arguments": [
+        { "name": "suite", "description": "Test suite: all|backend|frontend|combined (default: all)", "required": false, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; SUITE=\"${1-all}\";\nif [ ! -x scripts/test-e2e.sh ]; then echo 'scripts/test-e2e.sh not found'; exit 1; fi;\n./scripts/test-e2e.sh \"$SUITE\""
+      }
+    },
+    {
+      "name": "/ci-latest",
+      "description": "Show latest GitHub Actions runs for the current branch and their statuses.",
+      "arguments": [],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v gh >/dev/null 2>&1 || { echo 'gh is required for /ci-latest'; exit 1; }; BRANCH=$(git rev-parse --abbrev-ref HEAD);\n gh run list --branch \"$BRANCH\" --limit 5 --json databaseId,status,conclusion,displayTitle,createdAt,url --jq '.[] | {id: .databaseId, status: .status, conclusion: .conclusion, title: .displayTitle, created: .createdAt, url: .url}'"
+      }
+    },
+    {
+      "name": "/pr-ready",
+      "description": "Push current branch and ensure it has an open PR; print PR URL and CI runs.",
+      "arguments": [
+        { "name": "title", "description": "PR title if a PR needs creating.", "required": false, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v gh >/dev/null 2>&1 || { echo 'gh is required for /pr-ready'; exit 1; }; TITLE=\"${1-}\"; BRANCH=$(git rev-parse --abbrev-ref HEAD);\nif ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then git push -u origin \"$BRANCH\"; else git push; fi;\nif gh pr view --json url >/dev/null 2>&1; then echo PR: $(gh pr view --json url -q .url); else [ -n \"$TITLE\" ] || TITLE=\"$BRANCH\"; gh pr create --title \"$TITLE\" --body \"Auto-created via /pr-ready\" --fill; echo PR: $(gh pr view --json url -q .url); fi;\necho; echo 'Latest runs:'; gh run list --branch \"$BRANCH\" --limit 3"
+      }
+    },
+    {
+      "name": "/pr-checks",
+      "description": "Watch PR checks for the current branch.",
+      "arguments": [],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v gh >/dev/null 2>&1 || { echo 'gh is required for /pr-checks'; exit 1; }; if gh pr view >/dev/null 2>&1; then gh pr checks --watch || gh pr checks; else echo 'No open PR for current branch'; fi"
+      }
+    },
+    {
+      "name": "/k8s-context",
+      "description": "Show current kubectl context and available namespaces.",
+      "arguments": [],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v kubectl >/dev/null 2>&1 || { echo 'kubectl is required for /k8s-context'; exit 1; }; kubectl config current-context; echo; kubectl get ns --no-headers | awk '{print $1}' | head -n 20"
+      }
+    },
+    {
+      "name": "/k8s-deploy",
+      "description": "Apply Kubernetes manifests from k8s/manifests (or a provided path).",
+      "arguments": [
+        { "name": "path", "description": "Manifests path (default: k8s/manifests)", "required": false, "type": "string" },
+        { "name": "namespace", "description": "Namespace to target (optional)", "required": false, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v kubectl >/dev/null 2>&1 || { echo 'kubectl is required for /k8s-deploy'; exit 1; }; PATH_ARG=\"${1-k8s/manifests}\"; NS=\"${2-}\";\nif [ ! -d \"$PATH_ARG\" ]; then echo \"Path not found: $PATH_ARG\"; exit 1; fi;\nif [ -n \"$NS\" ]; then NS_OPT=\"-n $NS\"; else NS_OPT=; fi;\nkubectl apply $NS_OPT -f \"$PATH_ARG\""
+      }
+    },
+    {
+      "name": "/k8s-restart",
+      "description": "Restart a Kubernetes deployment (kubectl rollout restart).",
+      "arguments": [
+        { "name": "deployment", "description": "Deployment name", "required": true, "type": "string" },
+        { "name": "namespace", "description": "Namespace (optional)", "required": false, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v kubectl >/dev/null 2>&1 || { echo 'kubectl is required for /k8s-restart'; exit 1; }; DEP=\"$1\"; NS=\"${2-}\"; if [ -n \"$NS\" ]; then NS_OPT=\"-n $NS\"; else NS_OPT=; fi;\nkubectl rollout restart deployment/\"$DEP\" $NS_OPT; kubectl rollout status deployment/\"$DEP\" $NS_OPT"
+      }
+    },
+    {
+      "name": "/k8s-logs",
+      "description": "Tail logs for a deployment's pods (last 200 lines, follow).",
+      "arguments": [
+        { "name": "deployment", "description": "Deployment name", "required": true, "type": "string" },
+        { "name": "namespace", "description": "Namespace (optional)", "required": false, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v kubectl >/dev/null 2>&1 || { echo 'kubectl is required for /k8s-logs'; exit 1; }; DEP=\"$1\"; NS=\"${2-}\"; if [ -n \"$NS\" ]; then NS_OPT=\"-n $NS\"; else NS_OPT=; fi;\nPODS=$(kubectl get pods $NS_OPT -l app=\"$DEP\" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || true);\nif [ -z \"$PODS\" ]; then PODS=$(kubectl get pods $NS_OPT -l app.kubernetes.io/name=\"$DEP\" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || true); fi;\nif [ -z \"$PODS\" ]; then echo 'No pods found for label app or app.kubernetes.io/name'; exit 1; fi;\nfor p in $PODS; do echo ==== $p ====; kubectl logs $NS_OPT --tail=200 -f \"$p\" & done; wait"
+      }
+    },
+    {
+      "name": "/db-migrate",
+      "description": "Run Diesel database migrations against DATABASE_URL (backend).",
+      "arguments": [
+        { "name": "database_url", "description": "Override DATABASE_URL (optional)", "required": false, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v diesel >/dev/null 2>&1 || { echo 'diesel CLI is required for /db-migrate'; exit 1; }; DB=\"${1-${DATABASE_URL-}}\"; cd backend; if [ -n \"$DB\" ]; then diesel migration run --database-url=\"$DB\"; else diesel migration run; fi"
+      }
+    },
+    {
+      "name": "/docker-logs",
+      "description": "Tail logs for a local Docker container (last 200 lines, follow).",
+      "arguments": [
+        { "name": "name", "description": "Container name or ID", "required": true, "type": "string" }
+      ],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v docker >/dev/null 2>&1 || { echo 'docker is required for /docker-logs'; exit 1; }; docker logs --tail=200 -f \"$1\""
+      }
+    },
+    {
+      "name": "/workflow-audit",
+      "description": "Audit .github/workflows for common issues: missing triggers, empty steps, naming.",
+      "arguments": [],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; command -v yq >/dev/null 2>&1 || { echo 'yq is required for /workflow-audit'; exit 1; }; DIR=.github/workflows; [ -d $DIR ] || { echo 'No workflows directory'; exit 0; };\nfor f in $DIR/*.yml $DIR/*.yaml; do [ -e \"$f\" ] || continue; echo \"== $f ==\";\n# Check basic keys\nif ! yq e '.on' \"$f\" >/dev/null 2>&1; then echo '  - Missing on: triggers'; fi;\nif ! yq e '.jobs' \"$f\" >/dev/null 2>&1; then echo '  - Missing jobs:'; fi;\n# Empty steps detection\nSTEPS=$(yq e '.jobs.*.steps | length' \"$f\" 2>/dev/null || echo 0); if [ \"$STEPS\" = \"0\" ]; then echo '  - No steps defined in at least one job'; fi;\nNAME=$(yq e '.name' \"$f\"); if [ \"$NAME\" = \"null\" ] || [ -z \"$NAME\" ]; then echo '  - Missing name'; fi; done"
+      }
+    },
+    {
+      "name": "/deploy",
+      "description": "Run repo deploy script if available (scripts/deploy/deploy.sh).",
+      "arguments": [],
+      "script": {
+        "shell": "bash",
+        "content": "set -euo pipefail; if [ -x scripts/deploy/deploy.sh ]; then scripts/deploy/deploy.sh; else echo 'scripts/deploy/deploy.sh not found'; exit 1; fi"
       }
     }
   ]
