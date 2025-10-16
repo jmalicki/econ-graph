@@ -255,7 +255,15 @@ jobs:
     - name: Run fast unit tests with nextest (no database)
       run: |
         export PATH="$HOME/.cargo/bin:$PATH"
+        set +e
         cargo nextest run --workspace --lib --status-level=fail --retries=1 --no-fail-fast
+        status=$?
+        if [ $status -ne 0 ]; then
+          echo "nextest failed; attempting fallback without sccache"
+          export RUSTC_WRAPPER=
+          export SCCACHE_GHA_ENABLED=false
+          cargo nextest run --workspace --lib --status-level=fail --retries=1 --no-fail-fast
+        fi
       working-directory: backend
       env:
         RUST_LOG: warn
