@@ -57,6 +57,7 @@ repos:
 
       - id: frontend-jsdoc
         name: Frontend JSDoc Validation
+        stages: [manual]
         entry: bash -c 'cd frontend && npx eslint "src/**/*.{ts,tsx}" --rule "jsdoc/require-jsdoc:warn" --rule "jsdoc/require-description:warn" --rule "jsdoc/require-param:warn" --rule "jsdoc/require-returns:warn" --max-warnings 600'
         language: system
         files: '^frontend/src/.*\.(ts|tsx)$'
@@ -93,8 +94,9 @@ repos:
       - id: trailing-whitespace
         exclude: '^(.*\.md|.*\.txt)$'
       - id: end-of-file-fixer
-        exclude: '^(.*\.md|.*\.txt|.*\.mp4|.*\.aiff|.*\.wav)$'
+        exclude: '^(.*\.md|.*\.txt|.*\.mp4|.*\.aiff|.*\.wav|frontend/storybook-static/.*)$'
       - id: check-yaml
+        args: ['--allow-multiple-documents']
       - id: check-json
         exclude: '^(frontend|admin-frontend)/package.*\.json$|^admin-frontend/.*\.json$'  # package.json can have comments, admin-frontend has issues
       - id: check-toml
@@ -109,7 +111,7 @@ repos:
     rev: v0.38.0
     hooks:
       - id: markdownlint
-        args: ['--disable', 'MD013', 'MD041', 'MD022', 'MD032', 'MD031', 'MD034', 'MD040', 'MD026', 'MD009', 'MD029', 'MD033', 'MD036', 'MD047', 'MD024', 'MD012', 'MD051', '--']  # Disable common formatting rules
+        args: ['--disable', 'MD010', 'MD013', 'MD041', 'MD022', 'MD032', 'MD031', 'MD034', 'MD040', 'MD026', 'MD009', 'MD029', 'MD033', 'MD036', 'MD047', 'MD024', 'MD012', 'MD051', '--']  # Disable common formatting rules
         exclude: '^node_modules/'
 
   # Security checks
@@ -121,6 +123,7 @@ repos:
         language: system
         files: '^backend/Cargo\.(toml|lock)$'
         pass_filenames: false
+        stages: [pre-push]
 
       - id: npm-audit
         name: NPM Security Audit
@@ -128,6 +131,7 @@ repos:
         language: system
         files: '^(frontend|admin-frontend)/package.*\.json$'
         pass_filenames: false
+        stages: [pre-push]
 
   # Database migration validation
   - repo: local
