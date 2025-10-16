@@ -56,9 +56,9 @@ Checks and suggested remediations:
         paths-ignore: ["**/*.md", "docs/**"]
     ```
 
-Example usage:
+Example usage (single line):
 ```bash
-/workflow-audit
+/workflow-audit && /pr "ci: workflow hygiene fixes" "Apply triggers/permissions/concurrency/timeouts; reduce CI noise" && /pr-ready "ci: workflow hygiene fixes" && /pr-checks
 ```
 
 Expected output:
@@ -66,7 +66,4 @@ Expected output:
 - Inline suggested diffs for each affected workflow
 - A ready PR plan title like `ci: workflow hygiene fixes` with a summary of changes
 
-Follow-ups:
-- Open PR with fixes: `/pr "ci: workflow hygiene fixes" "Apply triggers/permissions/concurrency/timeouts; reduce CI noise"`
-- Ensure PR exists/updated: `/pr-ready "ci: workflow hygiene fixes"`
-- Watch checks: `/pr-checks`; inspect runs: `/ci-latest`
+Tip: To just inspect CI runs without streaming checks, append `&& /ci-latest` to the one-liner above.
