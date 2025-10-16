@@ -1414,10 +1414,10 @@ jobs:
       working-directory: admin-frontend
       run: npm ci
 
-    - name: Run pre-commit
+    - name: Run pre-commit (all files + manual stage)
       uses: pre-commit/action@v3.0.1
       with:
-        extra_args: --all-files
+        extra_args: --all-files --hook-stage manual
 
     - name: Clippy annotations
       if: always()
