@@ -2,7 +2,7 @@
 
 Create a Conventional Commit and show a concise status summary.
 
-- message (string, required): Use Conventional Commits: `type(scope): summary`
+- message (string, required): Use Conventional Commits: `type(scope): summary` (see [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/))
   - Types: `feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert`
   - Examples: `feat(backend): add series search by tag`, `docs(personas): add Cursor slash commands [no ci]`
 
