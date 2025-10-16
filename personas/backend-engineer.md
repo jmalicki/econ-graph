@@ -568,6 +568,7 @@ tokio_test             // Async test utilities
 
 ## Cursor-native commands
 
+- Use `/branch` to create feature branches directly from the remote base (no local checkout of main)
 - Use `/commit` for Conventional Commits (see Conventional Commits rules in the command prompt)
 - Use `/pr` to open curated PRs; `/pr-ready` to ensure a PR exists and update its description; `/pr-checks` to watch checks; `/ci-latest` to inspect recent runs
 - Use `/e2e` to run end-to-end validation locally before pushing
@@ -587,7 +588,7 @@ tokio_test             // Async test utilities
 - **Create commits**: Use `/commit` with Conventional Commits
 - **Open/update PRs**: Use `/pr` and `/pr-ready` to create/update PRs and descriptions
 - **Watch checks**: Use `/pr-checks` (stream) and `/ci-latest` (recent runs)
-- **Branch Strategy**: Feature branches off main; prefer rebase for clean history
+- **Branch Strategy**: Create feature branches using `/branch`; prefer rebase for clean history
 - **Pre-commit**: Do not bypass hooks; run targeted tests before committing
 
 #### CI/CD Pipeline (Cursor-native)
@@ -891,12 +892,7 @@ pub async fn database_operation(pool: &DatabasePool) -> AppResult<SomeType> {
 - **Performance**: Benchmarking and optimization requirements
 - **Security**: Security-first development practices
 
-#### Git Workflow
-- **Branch Strategy**: Feature branches off main, never direct commits to main
-- **Pull Requests**: All changes via PR with comprehensive review
-- **Rebase Strategy**: Prefer rebasing over merging for clean history
-- **Commit Messages**: Detailed commit messages with clear summaries
-- **No --no-verify**: All pre-commit hooks must pass
+
 
 ### Troubleshooting Guide
 

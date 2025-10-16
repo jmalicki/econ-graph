@@ -2,6 +2,12 @@
 
 Create a new local branch directly from a remote base branch (without checking out the base locally), set upstream, and optionally push.
 
+Branch strategy (guidance):
+- Do not checkout `main` first; this command fetches the base and branches directly from the remote ref
+- Single‑concern branches only; keep scope small to ease review and CI
+- Recommended naming: `<area>/<verb-noun>` (e.g., `backend/feat-series-search`, `frontend/fix-drawer-dup`) 
+- Default base is `main`; for hotfixes or release work, pass the specific base (e.g., `release/2025.10`)
+
 - name (string, required): new branch name (e.g., `backend/fix-db-timeout`)
 - base (string, optional): remote base branch (default: `main`)
 - remote (string, optional): remote name (default: `origin`)
@@ -36,6 +42,5 @@ fi
 ```
 
 Notes:
-- Recommended naming: `<role>/<concise-task-slug>` (e.g., `releng/workflow-audit-cleanup`)
 - Use `/pr` or `/pr-ready` right after creating a branch if you plan to open a PR
 - This flow avoids checking out `main` locally; it branches directly from the remote base
