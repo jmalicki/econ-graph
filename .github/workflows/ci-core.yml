@@ -96,6 +96,14 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
+    - name: Cache diagnostics (pre)
+      run: |
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
     - name: Rust build cache
       uses: Swatinem/rust-cache@v2
       with:
@@ -109,6 +117,13 @@ jobs:
       run: |
         echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
         echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
 
     - name: Install Rust tools (prebuilt)
       uses: taiki-e/install-action@v2
@@ -185,6 +200,14 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
+    - name: Cache diagnostics (pre)
+      run: |
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
     - name: Rust build cache
       uses: Swatinem/rust-cache@v2
       with:
@@ -198,6 +221,13 @@ jobs:
       run: |
         echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
         echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
 
     - name: Install cargo-nextest
       uses: taiki-e/install-action@v2
@@ -307,6 +337,14 @@ jobs:
       uses: dtolnay/rust-toolchain@1.89.0
       with:
         components: rustfmt, clippy
+    - name: Cache diagnostics (pre)
+      run: |
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
     - name: Rust build cache
       uses: Swatinem/rust-cache@v2
       with:
@@ -320,6 +358,13 @@ jobs:
       run: |
         echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
         echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
 
     - name: Install diesel CLI
       run: |
@@ -1560,6 +1605,14 @@ jobs:
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@1.89.0
 
+    - name: Cache diagnostics (pre)
+      run: |
+        set -x
+        rustc -vV || true
+        cargo -vV || true
+        echo "CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}"
+        if [ -f backend/Cargo.lock ]; then echo "Cargo.lock sha256:"; sha256sum backend/Cargo.lock; fi
+        echo "Target dir: backend/target"
     - name: Rust build cache
       uses: Swatinem/rust-cache@v2
       with:
@@ -1573,6 +1626,13 @@ jobs:
       run: |
         echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
         echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    - name: sccache health check
+      run: |
+        if ! RUSTC_WRAPPER=sccache rustc -vV >/dev/null 2>&1; then
+          echo "sccache unhealthy, disabling fallback to rustc"
+          echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=false" >> "$GITHUB_ENV"
+        fi
 
     - name: Install diesel CLI
       run: |
